@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CivilWarLand in Bad Decline</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #1e2418; font-family: Georgia, serif; color: #d4d0c4; height: 100vh; overflow: hidden; }
+    #title-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px; }
+    #title-screen .subtitle { font-size:12px; letter-spacing:5px; text-transform:uppercase; color:#7a8a6a; margin-bottom:12px; }
+    #title-screen h1 { font-size:48px; font-weight:normal; letter-spacing:3px; margin-bottom:6px; }
+    #title-screen .decline { font-size:20px; font-style:italic; color:#9a9a7a; margin-bottom:32px; }
+    #title-screen .desc { max-width:420px; font-size:14px; line-height:1.8; color:#8a8a7a; margin-bottom:36px; }
+    #title-screen button { background:none; border:1px solid #5a6a48; color:#c4c4a8; padding:14px 48px; font-family:Georgia,serif; font-size:15px; letter-spacing:3px; text-transform:uppercase; cursor:pointer; }
+    #title-screen button:hover { background:rgba(90,106,72,0.2); }
+    #title-screen .credit { margin-top:28px; font-size:10px; color:#4a5a3a; letter-spacing:2px; }
+    #game-screen { display:none; height:100vh; }
+    #game-screen.active { display:flex; }
+    #map-col { flex:1; position:relative; overflow:hidden; }
+    #sidebar { width:320px; background:#1a1e14; border-left:1px solid #2a3420; display:flex; flex-direction:column; overflow:hidden; }
+    canvas { display:block; width:100%; height:100%; }
+    .sb-section { padding:14px 16px; border-bottom:1px solid #2a3420; }
+    .sb-label { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:#5a6a4a; margin-bottom:8px; }
+    .stat-row { display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px; }
+    .stat-name { color:#7a8a6a; }
+    .stat-val { color:#b0b898; font-variant-numeric:tabular-nums; }
+    .stat-bar { height:3px; background:#2a3420; border-radius:2px; margin-bottom:8px; overflow:hidden; }
+    .stat-bar-fill { height:100%; border-radius:2px; transition:width 0.4s; }
+    .action-btn { width:100%; text-align:left; background:rgba(26,30,20,0.55); border:1px solid rgba(42,52,32,0.5); color:#b0a888; padding:9px 10px 8px; font-family:Georgia,serif; cursor:pointer; border-radius:2px; margin-bottom:6px; }
+    .action-btn:hover { border-color:#5a7a4a; background:rgba(50,66,38,0.3); }
+    .action-btn.selected { background:rgba(70,90,50,0.2); border-color:rgba(140,170,100,0.35); color:#c8c4a0; }
+    .action-btn.locked { opacity:0.35; cursor:not-allowed; border-color:rgba(42,52,32,0.3); }
+    .action-btn.locked:hover { border-color:rgba(42,52,32,0.3); background:rgba(26,30,20,0.55); }
+    .action-btn .action-title { font-size:11px; letter-spacing:1px; text-transform:uppercase; margin-bottom:3px; }
+    .action-btn .action-desc { font-size:10px; color:#7a7a6a; line-height:1.4; margin-bottom:5px; }
+    .action-btn .action-effects { font-size:9px; display:flex; gap:8px; flex-wrap:wrap; }
+    .action-btn .cooldown-notice { font-size:9px; color:#9a5a4a; font-style:italic; margin-top:3px; }
+    .eff-pos { color:#6a8a4a; }
+    .eff-neg { color:#9a5a4a; }
+    #info-panel { padding:14px 16px; min-height:70px; border-bottom:1px solid #2a3420; }
+    #info-panel .name { font-size:15px; color:#c4c4a8; margin-bottom:4px; }
+    #info-panel .desc { font-size:11px; color:#8a8a7a; line-height:1.6; font-style:italic; }
+    #log-panel { flex:1; overflow-y:auto; padding:14px 16px; }
+    .log-entry { font-size:10px; color:#6a7a5a; margin-bottom:5px; padding-bottom:5px; border-bottom:1px solid #222a1a; }
+    .log-entry .log-day { color:#4a5a3a; margin-right:6px; }
+    #next-day-btn { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); background:rgba(26,30,20,0.9); border:1px solid #4a5a3a; color:#b0b898; padding:10px 36px; font-family:Georgia,serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; z-index:10; }
+    #next-day-btn:hover { border-color:#7a8a6a; }
+    #next-day-btn.disabled { color:#4a5a3a; border-color:#2a3a20; cursor:not-allowed; }
+    #next-day-btn.disabled:hover { border-color:#2a3a20; }
+    #day-display { position:absolute; top:12px; left:16px; z-index:10; }
+    #day-display .day-num { font-size:32px; color:#c4c4a8; }
+    #day-display .day-label { font-size:9px; letter-spacing:3px; color:#6a7a5a; text-transform:uppercase; margin-left:8px; }
+    #event-overlay { display:none; position:fixed; inset:0; background:rgba(10,14,8,0.88); z-index:100; align-items:center; justify-content:center; }
+    #event-overlay.active { display:flex; }
+    #event-box { max-width:520px; width:92%; background:linear-gradient(180deg,#222a1a,#1a2014); border:1px solid #3a4a2a; padding:28px 24px; border-radius:3px; max-height:90vh; overflow-y:auto; }
+    #event-box .ev-day { font-size:9px; letter-spacing:4px; text-transform:uppercase; color:#5a6a4a; margin-bottom:6px; }
+    #event-box .ev-title { font-size:22px; color:#c4c4a8; margin-bottom:14px; line-height:1.3; }
+    #event-box .ev-text { font-size:13px; color:#9a9a7a; line-height:1.8; margin-bottom:20px; }
+    .ev-choices { display:flex; flex-direction:column; gap:8px; }
+    .ev-choice-btn { background:rgba(42,52,32,0.5); border:1px solid #3a4a2a; color:#b0b898; padding:12px 16px; font-family:Georgia,serif; font-size:12px; text-align:left; cursor:pointer; line-height:1.5; }
+    .ev-choice-btn:hover { border-color:#6a8a4a; background:rgba(60,80,40,0.3); }
+    .ev-choice-btn .choice-label { display:block; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:#7a8a6a; margin-bottom:4px; }
+    .ev-minor-btn { background:rgba(42,52,32,0.5); border:1px solid #3a4a2a; color:#b0b898; padding:10px 20px; font-family:Georgia,serif; font-size:12px; cursor:pointer; width:100%; letter-spacing:2px; text-transform:uppercase; }
+    .ev-minor-btn:hover { border-color:#6a8a4a; background:rgba(60,80,40,0.3); }
+    #event-box.game-over .ev-title { color:#b07a5a; }
+    #event-box.game-over .ev-day { color:#8a5a4a; }
+    #event-box.fail-end .ev-title { color:#b07a5a; }
+    #event-box.fail-end .ev-day { color:#8a5a4a; }
+    .ev-continue-btn { background:none; border:1px solid #3a4a2a; color:#b0b898; padding:10px 28px; font-family:Georgia,serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; width:100%; margin-top:12px; }
+    .ev-continue-btn:hover { border-color:#6a8a4a; }
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:#1a1e14; }
+    ::-webkit-scrollbar-thumb { background:#3a4a2a; border-radius:2px; }
+  </style>
+</head>
+<body>
+<div id="title-screen">
+  <div class="subtitle">A Park Management Simulation</div>
+  <h1>CIVILWARLAND</h1>
+  <div class="decline">in Bad Decline</div>
+  <div class="desc">You are the Special Assistant at CivilWarLand, a historical theme park in terminal decline. Gangs roam the grounds. Attendance is cratering. Your boss has ideas. None of them are good.<br><br>Each day, choose how to spend your energy. When the story intervenes, choose how to respond. Try to keep the place standing for thirty days.</div>
+  <button onclick="startGame()">Enter the Park</button>
+  <div class="credit">After George Saunders</div>
+</div>
+<div id="game-screen">
+  <div id="map-col">
+    <canvas id="canvas"></canvas>
+    <div id="day-display"><span class="day-num" id="day-num">0</span><span class="day-label">Days</span></div>
+    <button id="next-day-btn" class="disabled" onclick="advanceDay()">Choose an Action</button>
+  </div>
+  <div id="sidebar">
+    <div class="sb-section">
+      <div class="sb-label">Park Status</div>
+      <div class="stat-row"><span class="stat-name">Budget</span><span class="stat-val" id="s-budget">$45,000</span></div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="bar-budget" style="width:90%;background:#8a8a4a;"></div></div>
+      <div class="stat-row"><span class="stat-name">Attendance</span><span class="stat-val" id="s-att">65/day</span></div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="bar-att" style="width:65%;background:#5a8a4a;"></div></div>
+      <div class="stat-row"><span class="stat-name">Gang Threat</span><span class="stat-val" id="s-gang">15%</span></div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="bar-gang" style="width:15%;background:#9a5a4a;"></div></div>
+      <div class="stat-row"><span class="stat-name">Staff Morale</span><span class="stat-val" id="s-morale">50%</span></div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="bar-morale" style="width:50%;background:#4a7a8a;"></div></div>
+    </div>
+    <div class="sb-section" id="action-panel">
+      <div class="sb-label">Daily Decision</div>
+      <div id="action-buttons"></div>
+    </div>
+    <div id="info-panel"><div class="sb-label">Selected</div><div class="desc" style="color:#4a5a3a;">Click a building for details.</div></div>
+    <div id="log-panel"><div class="sb-label">Event Log</div><div id="log-entries"></div></div>
+  </div>
+</div>
+<div id="event-overlay"><div id="event-box"></div></div>
+
+<script>
+var COOLDOWN_DAYS = 2;
+
+var state = {
+  day: 0, budget: 45000, attendance: 65, gangThreat: 15, morale: 50,
+  selectedBuilding: null, gameOver: false, eventActive: false,
+  log: [], destroyedBuildings: {}, flags: {}, characters: [],
+  selectedAction: null, actionCooldowns: {}, usedMinorEvents: []
+};
+
+var BUILDINGS = [
+  {id:"canal",name:"Erie Canal Lock",x:.08,y:.10,w:.12,h:.08,color:"#6EAAC4",roof:"#4E8AA4",desc:"90 feet of working canal. Coolie campsite diorama. Wrong ethnicity."},
+  {id:"hoedown",name:"Info Hoedown",x:.38,y:.06,w:.12,h:.07,color:"#D4B87A",roof:"#B49858",desc:"Near the McKinnon death-site. Ghosts frequent this area."},
+  {id:"conifer",name:"Conifer Grove",x:.70,y:.05,w:.14,h:.09,color:"#2D6B2D",roof:"#1D5B1D",desc:"Feinstein Memorial. Dense trees. Good cover for ambushes."},
+  {id:"blacksmith",name:"Blacksmith",x:.10,y:.28,w:.10,h:.07,color:"#8A7A6A",roof:"#6A5A4A",desc:"Old Tyme Skills Seminars. Poorly attended."},
+  {id:"saloon",name:"Nate's Saloon",x:.28,y:.25,w:.10,h:.07,color:"#C8A050",roof:"#A88030",desc:"In-park dining. Where gossip goes to thrive."},
+  {id:"kriegal",name:"Kriegal Place",x:.52,y:.18,w:.10,h:.07,color:"#C4A870",roof:"#A48850",desc:"Porch with butter churn. Samuel's station."},
+  {id:"everly",name:"Everly Mansion",x:.68,y:.22,w:.12,h:.08,color:"#E8DCC0",roof:"#B8A880",desc:"Grand facade. Currently featuring gang spray-paint."},
+  {id:"cityhall",name:"City Hall",x:.38,y:.38,w:.11,h:.08,color:"#D4A040",roof:"#B48020",desc:"Mr. Alsuga's office. Seat of questionable power."},
+  {id:"church",name:"Anglican Church",x:.15,y:.48,w:.10,h:.10,color:"#E0D8C8",roof:"#8B7D6B",desc:"Transported from Clydesville. $90,000 to refurbish."},
+  {id:"worship",name:"Worship Center",x:.72,y:.42,w:.12,h:.10,color:"#D4A070",roof:"#C08840",desc:"Former Siala utopian lodge. Gold dome. Baptisms: $300."},
+  {id:"thespian",name:"Thespian Center",x:.25,y:.60,w:.10,h:.07,color:"#A08060",roof:"#806040",desc:"Quinn's base. Wounded Grizzly suit storage."},
+  {id:"green",name:"Timeless Green",x:.42,y:.55,w:.16,h:.10,color:"#5CA048",roof:null,desc:"Open gathering area. Good for events and ambushes."},
+  {id:"general",name:"General Store",x:.55,y:.65,w:.10,h:.07,color:"#A8B878",roof:"#88A058",desc:"Penny candy. Fred Moore's domain."},
+  {id:"gift",name:"Gift Center",x:.68,y:.60,w:.12,h:.07,color:"#B8A888",roof:"#988868",desc:"Planters previously used as toilets by a part-timer."},
+  {id:"sweete",name:"Sweete Shoppe",x:.32,y:.72,w:.10,h:.06,color:"#E0C0A0",roof:"#C0A080",desc:"Staffed by reassigned simulated whores."},
+  {id:"brothel",name:"Cimarron Brothel",x:.82,y:.38,w:.10,h:.08,color:"#B07060",roof:"#904840",desc:"Uglier women now, per Verisimilitude standards."},
+  {id:"infirmary",name:"Infirmary",x:.84,y:.58,w:.09,h:.07,color:"#80B898",roof:"#609878",desc:"For knife-notched performers and other casualties."},
+  {id:"refreshments",name:"Refreshments",x:.05,y:.65,w:.10,h:.07,color:"#90B870",roof:"#70A050",desc:"Marsh behind it. Hand burial ground."},
+  {id:"entry",name:"Spaceship Entry",x:.42,y:.85,w:.16,h:.07,color:"#909090",roof:"#707070",desc:"Dated time-travel ride. Peeling helmets shaped like bowls."},
+  {id:"parking",name:"Parking",x:.65,y:.88,w:.20,h:.06,color:"#787870",roof:null,desc:"Former McKinnon cornfield. He calls the cars Beelzebubs."}
+];
+
+var TREES = [
+  {x:.03,y:.04,s:8},{x:.06,y:.02,s:6},{x:.01,y:.08,s:7},{x:.08,y:.06,s:5},
+  {x:.20,y:.04,s:6},{x:.22,y:.08,s:5},{x:.18,y:.15,s:7},{x:.24,y:.12,s:4},
+  {x:.04,y:.18,s:7},{x:.02,y:.22,s:5},{x:.06,y:.25,s:6},
+  {x:.72,y:.06,s:7},{x:.76,y:.03,s:6},{x:.80,y:.08,s:8},{x:.74,y:.10,s:5},{x:.78,y:.12,s:6},{x:.82,y:.05,s:5},
+  {x:.90,y:.15,s:6},{x:.92,y:.22,s:7},{x:.88,y:.28,s:5},
+  {x:.60,y:.40,s:5},{x:.62,y:.48,s:4},{x:.18,y:.38,s:5},{x:.02,y:.42,s:6},
+  {x:.95,y:.45,s:5},{x:.93,y:.52,s:6},{x:.96,y:.68,s:5},
+  {x:.02,y:.55,s:6},{x:.15,y:.70,s:4},{x:.20,y:.76,s:5},
+  {x:.48,y:.78,s:4},{x:.58,y:.80,s:5},{x:.88,y:.78,s:6},
+  {x:.50,y:.92,s:4},{x:.38,y:.95,s:5},{x:.90,y:.90,s:5}
+];
+
+var PATHS = [
+  {x1:.50,y1:.88,x2:.50,y2:.60},{x1:.50,y1:.60,x2:.42,y2:.42},
+  {x1:.42,y1:.42,x2:.30,y2:.28},{x1:.42,y1:.42,x2:.56,y2:.22},
+  {x1:.56,y1:.22,x2:.72,y2:.26},{x1:.30,y1:.28,x2:.14,y2:.14},
+  {x1:.50,y1:.60,x2:.30,y2:.63},{x1:.50,y1:.60,x2:.60,y2:.68},
+  {x1:.60,y1:.68,x2:.74,y2:.63},{x1:.42,y1:.42,x2:.20,y2:.52},
+  {x1:.42,y1:.42,x2:.78,y2:.47}
+];
+
+var INIT_CHARS = [
+  {id:"narrator",name:"You",x:.40,y:.42,color:"#E8D090",speed:.003},
+  {id:"alsuga",name:"Mr. Alsuga",x:.42,y:.40,color:"#D4A040",speed:.001},
+  {id:"quinn",name:"Quinn",x:.27,y:.62,color:"#C8A080",speed:.002},
+  {id:"sylvia",name:"Sylvia",x:.36,y:.40,color:"#D0B090",speed:.002},
+  {id:"grayson",name:"Grayson",x:.10,y:.12,color:"#80B060",speed:.0015},
+  {id:"mckinnon",name:"McKinnon Ghost",x:.40,y:.08,color:"#90C8E8",speed:.001,ghost:true}
+];
+
+var DAILY_ACTIONS = [
+  {id:"repair",title:"Patch and Repair",desc:"Send labor toward upkeep, paint, and quick fixes.",effect:{budget:-600,attendance:3,gangThreat:0,morale:1}},
+  {id:"patrol",title:"Increase Patrols",desc:"Push harder on perimeter security and visible enforcement.",effect:{budget:-500,attendance:0,gangThreat:-7,morale:-4}},
+  {id:"staff",title:"Manage the Staff",desc:"Spend time soothing nerves, smoothing conflict, keeping people functional.",effect:{budget:-300,attendance:0,gangThreat:0,morale:8}},
+  {id:"cuts",title:"Cut Corners",desc:"Save money now and let tomorrow absorb the damage.",effect:{budget:500,attendance:-4,gangThreat:3,morale:-6}}
+];
+
+// === MINOR EVENTS — flavor from the story, fire on non-story days ===
+var MINOR_EVENTS = [
+  {title:"THE PLANTER SITUATION",text:"Sylvia's identified the part-timer who's been systematically crapping in the planters in the Gift Acquisition Center. You fire him. He cries. You hand him his vest and a final check for $40.",effect:{budget:-40,attendance:1,gangThreat:0,morale:2}},
+  {title:"MESSAGEMINDER",text:"Phil in Grounds has been leaving obscene messages for the Teen Belles on MessageMinder. Sylvia traced it. You call him in. He says he thought the messages were anonymous. They were not.",effect:{budget:0,attendance:0,gangThreat:0,morale:-3}},
+  {title:"CANCAN GIRLS",text:"Sylvia says don't spread it around but two of the nine cancan girls are knocked up. Scheduling is going to be a nightmare. The costumes don't accommodate.",effect:{budget:-200,attendance:-2,gangThreat:0,morale:-2}},
+  {title:"DREAD DISEASE RIDER",text:"You find Quinn in Costuming again, dwelling on the gory details of his Dread Disease Rider. He wants to know if the company plan covers chronic nerve damage. You tell him you'll look into it. You won't.",effect:{budget:0,attendance:0,gangThreat:0,morale:-2}},
+  {title:"THE WHITTLED DUCK",text:"Mr. A wants to revive Old Tyme Skills Seminars. Whittling, specifically. You attended the last one. You, two widowers, and a chess-club type. Evelyn called you a bootlicker. You sign up anyway.",effect:{budget:-100,attendance:0,gangThreat:0,morale:3}},
+  {title:"MRS. DUGAN'S BREAD",text:"Several gang members encircled and made fun of Mrs. Dugan in her settler outfit as she was taking her fresh-baked bread over to the simulated Towne Meeting. She's shaken. The bread was ruined.",effect:{budget:-50,attendance:-1,gangThreat:3,morale:-3}},
+  {title:"THE DRAY HORSE",text:"The remaining dray horse has developed a limp. The vet says it's stress-related. A stressed horse. In a theme park about the Civil War. The irony is not lost on you. Treatment is expensive.",effect:{budget:-350,attendance:-1,gangThreat:0,morale:-1}},
+  {title:"HERLICHER AGAIN",text:"Herlicher's back. The guy who sued for being made hangman. He had nightmares, botched a contract, sent some government buyer torn pool liners. You make him sheriff again. He won't back down an inch.",effect:{budget:-100,attendance:0,gangThreat:0,morale:-2}},
+  {title:"SPACESHIP MALFUNCTION",text:"The spaceship entry ride is acting up again. The helmets look like bowls. The paint is peeling. The tape of space sounds keeps skipping. A child cried. You've argued and argued that we need to update.",effect:{budget:-400,attendance:-3,gangThreat:0,morale:-1}},
+  {title:"VERISIMILITUDE REPORT",text:"You complete your Verisimilitude Evaluation on the Cimarron Brothel. As per your recommendations they've replaced the young attractive simulated whores with uglier women with a little less on the ball. Everyone seems content with the arrangement.",effect:{budget:0,attendance:1,gangThreat:0,morale:1}},
+  {title:"THE McKINNON MRS.",text:"You find Mrs. McKinnon doing wash by the creek. Machine-stitching amazes her. She asks if she can buy your boots. You tell her about the budget situation. She doesn't understand budgets. She lived in a cornfield and died there.",effect:{budget:0,attendance:0,gangThreat:0,morale:-1}},
+  {title:"BEELZEBUBS",text:"Mr. McKinnon has been in the parking lot again, calling the cars Beelzebubs and kicking their tires. A Visitor's Camry now has a dent that, by all rights, should not be there. You cannot explain ghost damage to insurance.",effect:{budget:-200,attendance:-1,gangThreat:0,morale:0}},
+  {title:"MARIBETH",text:"Maribeth McKinnon has been gliding around the park reading bad poetry chapbooks and mooning at high school boys. One of them could see her. Got a crush. Tried to kiss her near Hostelry. Found out she was spectral. You slipped him a fifty.",effect:{budget:-50,attendance:0,gangThreat:0,morale:0}},
+  {title:"DESPERATE PATROL REHEARSAL",text:"The Desperate Patrol runs through their nightly routine. The boys limp along under floodlights, perform the partial rebellion, give the rousing speech, sing 'I Was Born under a Wandering Star.' The fireworks malfunction. Nobody is injured, technically.",effect:{budget:-150,attendance:2,gangThreat:-1,morale:2}},
+  {title:"RUBIK'S CUBE",text:"You brought Mrs. McKinnon a Rubik's Cube last month. To her, colored plastic is like something from Venus. Mr. McKinnon thinks it's the devil's work. He tried to smash it against the A3 lightpole. It passed through his hand. He's been sulking ever since.",effect:{budget:0,attendance:0,gangThreat:0,morale:0}},
+  {title:"LOCKED KEYS",text:"You get out to your K-Car and realize you've locked the keys in. Again. Mr. McKinnon sits down at the base of the lightpole and asks if you realize this is divine retribution for your slovenly moral state. You call Evelyn for the spare set. She starts with the lip.",effect:{budget:0,attendance:0,gangThreat:0,morale:-2}},
+  {title:"TAINTED MEAT",text:"Word comes in that last Friday's simulated frontier hunt may have used tainted beef. The stuff we toughen up to resemble buffalo meat. The story could hit the Sunday supplement. Mr. A says deny everything and pull the remaining stock.",effect:{budget:-600,attendance:-4,gangThreat:0,morale:-3}},
+  {title:"TEEN BELLES",text:"The Teen Belles have filed a group complaint about working conditions. They want period-appropriate undergarments replaced with modern ones. Mr. A says authenticity is non-negotiable. You're caught in the middle. As usual.",effect:{budget:-100,attendance:0,gangThreat:0,morale:-3}},
+  {title:"EBERSHOM",text:"You go for a late walk through the subdivision. As usual, Mr. Ebershom is practicing figure skating moves in his foyer. You sit down by the fake creek and think about how you ended up here. You don't reach a conclusion.",effect:{budget:0,attendance:0,gangThreat:0,morale:-1}},
+  {title:"HEAVEN'S DISREPAIR",text:"Sitting on the hood of your car after hours, you watch the stars with Mr. McKinnon. He says there are fewer than when he was a boy. He says even the heavens have fallen into disrepair. You think about explaining smog to him but decide against it.",effect:{budget:0,attendance:0,gangThreat:0,morale:-1}}
+];
+
+var EVENTS = [
+  {day:1,title:"THE HABERSTROM VISIT",text:"Mr. Haberstrom, founder of Burn'n'Learn, is here to consider a major investment. His great-grandfather was killed by a donkey on the Erie Canal. The gangs have tagged the Lock with spraycans.",choices:[
+    {label:"Cover it up",text:"Stall Haberstrom at the saloon while staff paints over the graffiti. Expensive, and he might still notice.",effect:{budget:-2500,attendance:4,gangThreat:0,morale:3},flag:"haberstrom_saved"},
+    {label:"Wing it",text:"Hope he doesn't notice. He notices. He pokes you with his cigar and storms off. Word gets around.",effect:{budget:0,attendance:-8,gangThreat:8,morale:-5}}]},
+  {day:4,title:"SUMMER STATS",text:"Mr. A pulls out the numbers. Worst attendance decline in ten years. Staff may be let go in droves. He gives you a meaningful look.",choices:[
+    {label:"Propose marketing push",text:"Spend $4,000 on local radio ads and flyers. It might help. It might not.",effect:{budget:-4000,attendance:8,gangThreat:0,morale:3}},
+    {label:"Suggest layoffs",text:"Cut three part-timers. The budget breathes but the remaining staff notice.",effect:{budget:2000,attendance:-5,gangThreat:0,morale:-18}}]},
+  {day:6,title:"QUINN FOR DESPERATE PATROL",text:"Sylvia's research identifies Quinn as the most violent employee. Mr. A wants him on Desperate Patrol with live ammo. Quinn's got six kids and needs the money.",choices:[
+    {label:"Arm Quinn",text:"Give Quinn live ammo and an extra $200/week. You're putting a weapon in the hands of a man who once burned a storage shed.",effect:{budget:-400,attendance:0,gangThreat:-4,morale:-8},flag:"quinn_armed"},
+    {label:"Refuse",text:"Tell Mr. A this is insane. He questions your commitment. The gangs remain unchecked.",effect:{budget:0,attendance:-3,gangThreat:8,morale:5},flag:"quinn_refused"}]},
+  {day:8,title:"THE ORNITHOLOGIST QUESTION",text:"Grayson says we need to eliminate a couple hundred orioles to match 1865. Mr. A says ornithologists are a luxury. You'll do the telling.",choices:[
+    {label:"Fire Grayson",text:"You hand him Kleenexes and fend off a few blows. One more person who trusted you, gone.",effect:{budget:600,attendance:0,gangThreat:0,morale:-12},flag:"grayson_fired",removeChar:"grayson"},
+    {label:"Defend Grayson",text:"You argue he's essential. Mr. A is annoyed. He'll remember this when cuts come.",effect:{budget:-1200,attendance:0,gangThreat:0,morale:5}}]},
+  {day:10,title:"QUINN HUMILIATED",text:"Quinn and his men are tied to the cannon. The gangs took Quinn's pants and cut him with knives. You wrap him in a Confederate flag and load him into a hay cart.",conditionNot:"quinn_refused",choices:[
+    {label:"Report it",text:"Call the police. The story makes the news. Attendance craters but at least there's a record.",effect:{budget:-2000,attendance:-12,gangThreat:8,morale:-5}},
+    {label:"Keep it quiet",text:"Give Quinn the week off. The staff know what happened. They know you buried it.",effect:{budget:-500,attendance:0,gangThreat:8,morale:-15}}]},
+  {day:10,title:"GANGS ESCALATE",text:"Without Quinn on patrol, the gangs get bolder. They wound two visitors near the General Store and spraypaint the Everly Mansion.",condition:"quinn_refused",choices:[
+    {label:"Hire security firm",text:"Professional but expensive. And they're not cheap enough to stick around.",effect:{budget:-6000,attendance:3,gangThreat:-12,morale:5}},
+    {label:"Tough it out",text:"Hope it blows over. Everyone knows it won't.",effect:{budget:0,attendance:-12,gangThreat:18,morale:-12}}]},
+  {day:13,title:"SAMUEL ARRIVES",text:"A guy shows up at Personnel looking completely Civil War. His name is Samuel. Sylvia's federal sources say he was expelled from Vietnam for a bloodbath. His marksmanship scores go on for pages.",choices:[
+    {label:"Arm Samuel",text:"Mr. A says Sam's our man. You get off your indefensible high horse. You're handing a weapon to a man expelled from a war for excessive violence.",effect:{budget:-800,gangThreat:-20,morale:-15,attendance:0},flag:"samuel_armed",addChar:{id:"samuel",name:"Samuel",x:.54,y:.20,color:"#8B4513",speed:.004}},
+    {label:"Keep him churning butter",text:"Samuel stays on the Kriegal porch. The gangs remain your problem. Mr. A's patience thins.",effect:{budget:0,gangThreat:8,morale:3,attendance:-3},flag:"samuel_butter"}]},
+  {day:17,title:"THE CHURCH BURNS",text:"The gangs have set fire to the Anglican Church. $90,000 to transport and refurbish, up in flames. You can see it from Mr. A's window. He breaks down in tears.",choices:[
+    {label:"Call fire department",text:"Official response. The story gets out. Insurance covers some of it but the damage to reputation is real.",effect:{budget:-8000,attendance:-15,gangThreat:8,morale:-10},destroy:"church"},
+    {label:"Let it burn for insurance",text:"Mr. A's eyes light up through his tears. You file the claim. You both know what you've done.",effect:{budget:5000,attendance:-15,gangThreat:5,morale:-25},destroy:"church",flag:"insurance_fraud"}]},
+  {day:20,title:"THE FOLEY BAPTISM",text:"The Foleys rent the Worship Center for a baptism. Midway through, a gang bursts in and seizes a sixteen-year-old niece. Her father is blackjacked.",conditionNot:"samuel_butter",choices:[
+    {label:"Let Samuel handle it",text:"Six fast shots. Six gang corpses. Samuel's having punch with the niece. The police arrive. You all lie like rugs. You are now an accessory to six homicides.",effect:{budget:300,attendance:3,gangThreat:-20,morale:-18},flag:"foley_massacre"},
+    {label:"Call 911 immediately",text:"The gang flees before police arrive. No one dies. But the Foleys are furious and the story makes the news.",effect:{budget:-5000,attendance:-12,gangThreat:8,morale:-5}}]},
+  {day:20,title:"THE FOLEY BAPTISM",text:"A gang bursts into the Foley baptism and seizes a niece. You have no armed enforcer in the woods.",condition:"samuel_butter",choices:[
+    {label:"Call 911",text:"Police respond in twelve minutes. The niece is found shaken but alive. The Foleys sue for negligence.",effect:{budget:-10000,attendance:-18,gangThreat:8,morale:-12}},
+    {label:"Intervene yourself",text:"You grab a shovel and run after them. You get beaten badly but the niece escapes. A week in the Infirmary. The staff look at you differently after.",effect:{budget:-2000,attendance:-5,gangThreat:5,morale:10},flag:"narrator_brave"}]},
+  {day:23,title:"THE HAND",text:"A human hand on your chair, holding a note. Penny candy everywhere. 'Sir, another pig disciplined. Samuel the Rectifier.' There's a class ring on it. A high schooler. For stealing candy.",condition:"samuel_armed",choices:[
+    {label:"Bury it in the marsh",text:"Mr. A says bury it behind Refreshments. You are now burying human remains to protect a murderer. Mr. McKinnon's ghost watches you dig.",effect:{budget:0,attendance:0,gangThreat:-5,morale:-22},flag:"buried_hand"},
+    {label:"Turn Samuel in",text:"You call the police. Samuel vanishes into the Great Forest. Mr. A says if you go down, he goes down, you go down. He's right.",effect:{budget:-3000,attendance:-8,gangThreat:18,morale:8},flag:"samuel_reported",removeChar:"samuel"}]},
+  {day:26,title:"HALLOWEEN",text:"You bring Marcus and Howie for trick-or-treating. Teens burst from the Conifer Grove as you cross the Timeless Green.",condition:"samuel_armed",conditionNot:"samuel_reported",choices:[
+    {label:"Trust Samuel",text:"Shots ring out. Howie drops. His ledger is hit, not him. The 'gang' turns out to be a bird-watching group. Samuel has shot three adolescent bird-watchers. Your son was ten feet from live fire.",effect:{budget:-10000,attendance:-35,gangThreat:5,morale:-28},flag:"birdwatchers_shot"},
+    {label:"Grab the boys and run",text:"You scoop up the kids and sprint for City Hall. Samuel fires anyway. One bird-watcher is wounded. But your boys are safe. For now.",effect:{budget:-5000,attendance:-22,gangThreat:5,morale:-18}}]},
+  {day:28,title:"EVELYN LEAVES",text:"Her note: 'I could never forgive you for putting our sons at risk. Good-bye forever you passive flake. Norm Hinkle has been a source of strength for several years, if you know what I mean.'",choices:[
+    {label:"Go after them",text:"You drive to Hinkle's. Evelyn won't come to the door. Marcus waves from an upstairs window. You sit in the car until dawn. You accomplish nothing.",effect:{budget:0,attendance:-5,gangThreat:3,morale:-18}},
+    {label:"Go back to work",text:"There is nothing left but the park. You sleep on your office floor. The janitor steps over you in the morning.",effect:{budget:0,attendance:0,gangThreat:0,morale:-12},flag:"married_to_job"}]}
+];
+
+var canvas, ctx, cw, ch;
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+function initCanvas(){canvas=document.getElementById("canvas");ctx=canvas.getContext("2d");resize();window.addEventListener("resize",resize);}
+function resize(){var col=document.getElementById("map-col");cw=col.clientWidth;ch=col.clientHeight;canvas.width=cw;canvas.height=ch;}
+
+function isActionLocked(actionId){var last=state.actionCooldowns[actionId];if(last===undefined)return false;return(state.day-last)<COOLDOWN_DAYS;}
+function cooldownRemaining(actionId){var last=state.actionCooldowns[actionId];if(last===undefined)return 0;return Math.max(0,COOLDOWN_DAYS-(state.day-last));}
+
+function renderActions(){
+  var c=document.getElementById("action-buttons"),h="";
+  DAILY_ACTIONS.forEach(function(a){
+    var sel=state.selectedAction&&state.selectedAction.id===a.id;
+    var locked=isActionLocked(a.id);
+    var remaining=cooldownRemaining(a.id);
+    h+='<button class="action-btn'+(sel?" selected":"")+(locked?" locked":"")+'" onclick="'+(locked?"":"selectAction(\'"+a.id+"\')")+'">';
+    h+='<div class="action-title">'+a.title+'</div>';
+    h+='<div class="action-desc">'+a.desc+'</div>';
+    h+='<div class="action-effects">';
+    h+='<span class="'+(a.effect.budget>=0?"eff-pos":"eff-neg")+'">$'+(a.effect.budget>=0?"+":"")+a.effect.budget+'</span>';
+    h+='<span class="'+(a.effect.attendance>=0?"eff-pos":"eff-neg")+'">Att '+(a.effect.attendance>=0?"+":"")+a.effect.attendance+'</span>';
+    h+='<span class="'+(a.effect.gangThreat<=0?"eff-pos":"eff-neg")+'">Threat '+(a.effect.gangThreat>=0?"+":"")+a.effect.gangThreat+'</span>';
+    h+='<span class="'+(a.effect.morale>=0?"eff-pos":"eff-neg")+'">Morale '+(a.effect.morale>=0?"+":"")+a.effect.morale+'</span>';
+    h+='</div>';
+    if(locked)h+='<div class="cooldown-notice">Available in '+remaining+' day'+(remaining===1?"":"s")+'</div>';
+    h+='</button>';
+  });
+  c.innerHTML=h;
+}
+
+function selectAction(id){
+  if(state.gameOver||state.eventActive)return;
+  if(isActionLocked(id))return;
+  for(var i=0;i<DAILY_ACTIONS.length;i++){if(DAILY_ACTIONS[i].id===id){state.selectedAction=DAILY_ACTIONS[i];break;}}
+  renderActions();
+  document.getElementById("next-day-btn").textContent="Next Day \u2192";
+  document.getElementById("next-day-btn").className="";
+}
+
+function startGame(){
+  document.getElementById("title-screen").style.display="none";
+  document.getElementById("game-screen").classList.add("active");
+  initCanvas();
+  state.characters=INIT_CHARS.map(function(c){return Object.assign({},c,{tx:c.x+(Math.random()-0.5)*0.1,ty:c.y+(Math.random()-0.5)*0.1});});
+  canvas.addEventListener("click",onCanvasClick);
+  renderActions();
+  gameLoop();
+}
+
+function checkFailState(){
+  if(state.budget<=0)return{title:"INSOLVENCY",text:"The money runs out. Payroll, repairs, and delusions can no longer be sustained."};
+  if(state.attendance<=0)return{title:"EMPTY PARK",text:"Nobody comes anymore. The attractions remain, but only as decaying scenery."};
+  if(state.gangThreat>=100)return{title:"GANG TAKEOVER",text:"The perimeter collapses. The gangs effectively inherit the grounds."};
+  if(state.morale<=0)return{title:"STAFF COLLAPSE",text:"The staff finally break. Quinn is last to leave, still in the Grizzly suit."};
+  return null;
+}
+
+function showFailEnd(f){
+  state.gameOver=true;state.eventActive=true;
+  var b=document.getElementById("event-box");b.className="fail-end";
+  var s='<br><br><span style="color:#5a6a4a;font-size:11px;">Day '+state.day+' \u00b7 Budget: $'+state.budget.toLocaleString()+' \u00b7 Attendance: '+state.attendance+' \u00b7 Morale: '+state.morale+'% \u00b7 Threat: '+state.gangThreat+'%</span>';
+  b.innerHTML='<div class="ev-day">Park Closed \u2014 Day '+state.day+'</div><div class="ev-title">'+f.title+'</div><div class="ev-text">'+f.text+s+'</div><button class="ev-continue-btn" onclick="location.reload()">Start Over</button>';
+  document.getElementById("event-overlay").classList.add("active");
+  document.getElementById("next-day-btn").textContent="Game Over";
+  document.getElementById("next-day-btn").className="disabled";
+}
+
+function getRandomMinorEvent(){
+  var available=[];
+  for(var i=0;i<MINOR_EVENTS.length;i++){
+    if(state.usedMinorEvents.indexOf(i)===-1)available.push(i);
+  }
+  if(available.length===0)return null;
+  var pick=available[Math.floor(Math.random()*available.length)];
+  state.usedMinorEvents.push(pick);
+  return MINOR_EVENTS[pick];
+}
+
+function showMinorEvent(me){
+  state.eventActive=true;
+  var b=document.getElementById("event-box");b.className="";
+  var effects=[];
+  if(me.effect.budget!==0)effects.push((me.effect.budget>0?"+":"")+me.effect.budget+" budget");
+  if(me.effect.attendance!==0)effects.push((me.effect.attendance>0?"+":"")+me.effect.attendance+" attendance");
+  if(me.effect.gangThreat!==0)effects.push((me.effect.gangThreat>0?"+":"")+me.effect.gangThreat+" threat");
+  if(me.effect.morale!==0)effects.push((me.effect.morale>0?"+":"")+me.effect.morale+" morale");
+  var effectLine=effects.length>0?'<div style="font-size:10px;color:#7a8a6a;margin-bottom:16px;">'+effects.join(' \u00b7 ')+'</div>':'';
+  b.innerHTML='<div class="ev-day">Day '+state.day+'</div><div class="ev-title">'+me.title+'</div><div class="ev-text">'+me.text+'</div>'+effectLine+'<button class="ev-minor-btn" onclick="dismissMinorEvent()">Continue</button>';
+  document.getElementById("event-overlay").classList.add("active");
+}
+
+function dismissMinorEvent(){
+  document.getElementById("event-overlay").classList.remove("active");
+  state.eventActive=false;
+}
+
+function advanceDay(){
+  if(state.gameOver||state.eventActive||!state.selectedAction)return;
+  state.day+=1;
+  state.actionCooldowns[state.selectedAction.id]=state.day;
+
+  // Compounding decay
+  state.gangThreat=clamp(state.gangThreat+3,0,100);
+  state.morale=clamp(state.morale-2,0,100);
+  state.attendance=clamp(state.attendance-1,0,100);
+
+  // Apply action
+  state.budget+=state.selectedAction.effect.budget;
+  state.attendance=clamp(state.attendance+state.selectedAction.effect.attendance,0,100);
+  state.gangThreat=clamp(state.gangThreat+state.selectedAction.effect.gangThreat,0,100);
+  state.morale=clamp(state.morale+state.selectedAction.effect.morale,0,100);
+
+  // Daily economics
+  var cost=800+Math.floor(Math.random()*250);
+  var rev=Math.max(0,state.attendance*(11+Math.floor(Math.random()*8)));
+  state.budget=state.budget-cost+rev;
+
+  // Small random drift
+  state.attendance=clamp(state.attendance+Math.floor(Math.random()*3)-2,0,100);
+  state.morale=clamp(state.morale+Math.floor(Math.random()*3)-2,0,100);
+  state.gangThreat=clamp(state.gangThreat+Math.floor(Math.random()*3)-1,0,100);
+
+  state.log.push({day:state.day,title:"Action: "+state.selectedAction.title});
+  state.selectedAction=null;
+  document.getElementById("day-num").textContent=state.day;
+  updateSidebar();renderActions();
+
+  var f=checkFailState();if(f){showFailEnd(f);return;}
+  if(state.day>=30){showEnding();return;}
+
+  // Check for story event
+  var ev=null;
+  for(var i=0;i<EVENTS.length;i++){var e=EVENTS[i];if(e.day!==state.day)continue;if(e.condition&&!state.flags[e.condition])continue;if(e.conditionNot&&state.flags[e.conditionNot])continue;ev=e;break;}
+
+  if(ev){
+    showEvent(ev);
+  }else{
+    // 60% chance of a minor event on non-story days
+    if(Math.random()<0.6){
+      var me=getRandomMinorEvent();
+      if(me){
+        // Apply minor event effects
+        state.budget+=me.effect.budget;
+        state.attendance=clamp(state.attendance+me.effect.attendance,0,100);
+        state.gangThreat=clamp(state.gangThreat+me.effect.gangThreat,0,100);
+        state.morale=clamp(state.morale+me.effect.morale,0,100);
+        state.log.push({day:state.day,title:me.title});
+        updateSidebar();
+        showMinorEvent(me);
+        var f2=checkFailState();if(f2){dismissMinorEvent();showFailEnd(f2);return;}
+      }
+    }
+  }
+
+  document.getElementById("next-day-btn").textContent="Choose an Action";
+  document.getElementById("next-day-btn").className="disabled";
+}
+
+function showEvent(ev){
+  state.eventActive=true;
+  var b=document.getElementById("event-box");b.className="";
+  var h='<div class="ev-day">Day '+state.day+'</div><div class="ev-title">'+ev.title+'</div><div class="ev-text">'+ev.text+'</div><div class="ev-choices">';
+  ev.choices.forEach(function(c,i){h+='<button class="ev-choice-btn" onclick="makeChoice('+state.day+','+i+')"><span class="choice-label">'+c.label+'</span>'+c.text+'</button>';});
+  h+='</div>';b.innerHTML=h;
+  document.getElementById("event-overlay").classList.add("active");
+}
+
+function makeChoice(day,idx){
+  var ev=null;
+  for(var i=0;i<EVENTS.length;i++){var e=EVENTS[i];if(e.day!==day)continue;if(e.condition&&!state.flags[e.condition])continue;if(e.conditionNot&&state.flags[e.conditionNot])continue;ev=e;break;}
+  if(!ev)return;
+  var c=ev.choices[idx];
+  if(c.effect.budget)state.budget+=c.effect.budget;
+  if(c.effect.attendance)state.attendance=clamp(state.attendance+c.effect.attendance,0,100);
+  if(c.effect.gangThreat)state.gangThreat=clamp(state.gangThreat+c.effect.gangThreat,0,100);
+  if(c.effect.morale)state.morale=clamp(state.morale+c.effect.morale,0,100);
+  if(c.flag)state.flags[c.flag]=true;
+  if(c.destroy)state.destroyedBuildings[c.destroy]=true;
+  if(c.removeChar)state.characters=state.characters.filter(function(ch){return ch.id!==c.removeChar;});
+  if(c.addChar)state.characters.push(Object.assign({},c.addChar,{tx:c.addChar.x,ty:c.addChar.y}));
+  state.log.push({day:day,title:ev.title+" \u2192 "+c.label});
+  document.getElementById("event-overlay").classList.remove("active");
+  state.eventActive=false;updateSidebar();updateLog();
+  var f=checkFailState();if(f)showFailEnd(f);
+}
+
+function showEnding(){
+  state.gameOver=true;state.eventActive=true;
+  var b=document.getElementById("event-box");b.className="game-over";
+  var t,x,sc=state.budget+(state.attendance*100)+(state.morale*50)-(state.gangThreat*80);
+  if(state.flags.samuel_armed&&!state.flags.samuel_reported&&state.flags.buried_hand){t="POSSESSING PERFECT KNOWLEDGE";x="Mr. A is half-crocked. The investors have withdrawn. He's torching the place. Samuel finds you with a hunting knife. You see the man you could have been, and the man you were.";}
+  else if(state.flags.samuel_reported){t="WHISTLEBLOWER";x="The park closes. Mr. A faces charges. Samuel is apprehended. You lose your job but keep your conscience.";}
+  else if(state.flags.narrator_brave){t="A DIFFERENT KIND OF MAN";x="The park closes. But the Foleys remember what you did. Quinn names his seventh kid after you. It's not much. But you can sleep.";}
+  else if(state.flags.samuel_butter&&sc>3000){t="BARELY STANDING";x="By some miracle of mediocrity, the park limps into another season. Samuel still churns butter. Mr. A gives you a $40/month raise and a parking spot near the dumpster.";}
+  else if(state.budget<0){t="BANKRUPTCY";x="The money runs out. Mr. A padlocks the gates on a Tuesday. You apply to Burn'n'Learn. They don't call back.";}
+  else{t="THE FIRE";x="Mr. A torches the place for insurance. The McKinnons pass through the retaining wall one final time. A transparent boy kneels over you. 'You've got amends to make,' he says.";}
+  x+='<br><br><span style="color:#5a6a4a;font-size:11px;">Budget: $'+state.budget.toLocaleString()+' \u00b7 Attendance: '+state.attendance+' \u00b7 Morale: '+state.morale+'% \u00b7 Threat: '+state.gangThreat+'%</span>';
+  b.innerHTML='<div class="ev-day">Day 30 \u2014 Final</div><div class="ev-title">'+t+'</div><div class="ev-text">'+x+'</div><button class="ev-continue-btn" onclick="location.reload()">Start Over</button>';
+  document.getElementById("event-overlay").classList.add("active");
+  document.getElementById("next-day-btn").textContent="Game Over";
+  document.getElementById("next-day-btn").className="disabled";
+}
+
+function onCanvasClick(e){
+  var r=canvas.getBoundingClientRect(),mx=(e.clientX-r.left)/cw,my=(e.clientY-r.top)/ch;
+  state.selectedBuilding=null;
+  for(var i=0;i<BUILDINGS.length;i++){var b=BUILDINGS[i];if(state.destroyedBuildings[b.id])continue;if(mx>=b.x&&mx<=b.x+b.w&&my>=b.y&&my<=b.y+b.h){state.selectedBuilding=b;break;}}
+  updateInfoPanel();
+}
+
+function updateSidebar(){
+  document.getElementById("s-budget").textContent="$"+Math.max(0,state.budget).toLocaleString();
+  document.getElementById("s-att").textContent=state.attendance+"/day";
+  document.getElementById("s-gang").textContent=state.gangThreat+"%";
+  document.getElementById("s-morale").textContent=state.morale+"%";
+  document.getElementById("bar-budget").style.width=clamp(state.budget/500,0,100)+"%";
+  document.getElementById("bar-att").style.width=state.attendance+"%";
+  document.getElementById("bar-gang").style.width=state.gangThreat+"%";
+  document.getElementById("bar-morale").style.width=state.morale+"%";
+}
+
+function updateInfoPanel(){
+  var p=document.getElementById("info-panel");
+  if(state.selectedBuilding)p.innerHTML='<div class="sb-label">Structure</div><div class="name">'+state.selectedBuilding.name+'</div><div class="desc">'+state.selectedBuilding.desc+'</div>';
+  else p.innerHTML='<div class="sb-label">Selected</div><div class="desc" style="color:#4a5a3a;">Click a building for details.</div>';
+}
+
+function updateLog(){
+  var h="";
+  for(var i=state.log.length-1;i>=0;i--)h+='<div class="log-entry"><span class="log-day">Day '+state.log[i].day+'</span>'+state.log[i].title+'</div>';
+  document.getElementById("log-entries").innerHTML=h;
+}
+
+function drawTree(x,y,size){
+  ctx.fillStyle="rgba(0,0,0,0.15)";
+  ctx.beginPath();ctx.arc(x+2,y+size*0.6,Math.max(1,size*0.5),0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#5A4A30";ctx.fillRect(x-1,y,2,size*0.4);
+  var cols=["#2D7A2D","#3A8A2A","#348030"];
+  for(var i=0;i<3;i++){ctx.beginPath();ctx.arc(x+(i-1)*size*0.2,y-size*0.1*i,Math.max(1,size*0.45-i),0,Math.PI*2);ctx.fillStyle=cols[i];ctx.fill();}
+}
+
+function render(){
+  if(!canvas)return;
+  ctx.clearRect(0,0,cw,ch);
+  var grad=ctx.createLinearGradient(0,0,0,ch);
+  grad.addColorStop(0,"#58A840");grad.addColorStop(0.3,"#4C9838");grad.addColorStop(0.7,"#448A30");grad.addColorStop(1,"#3C7828");
+  ctx.fillStyle=grad;ctx.fillRect(0,0,cw,ch);
+  ctx.globalAlpha=0.08;
+  for(var gi=0;gi<40;gi++){var gx=Math.random()*cw,gy=Math.random()*ch,gs=20+Math.random()*60;ctx.beginPath();ctx.arc(gx,gy,gs,0,Math.PI*2);ctx.fillStyle=Math.random()>0.5?"#60B848":"#388828";ctx.fill();}
+  ctx.globalAlpha=1;
+  ctx.strokeStyle="rgba(80,60,30,0.3)";ctx.lineWidth=Math.max(5,cw*0.007);
+  PATHS.forEach(function(p){ctx.beginPath();ctx.moveTo(p.x1*cw,p.y1*ch);ctx.lineTo(p.x2*cw,p.y2*ch);ctx.stroke();});
+  ctx.strokeStyle="#A09060";ctx.lineWidth=Math.max(3,cw*0.004);
+  PATHS.forEach(function(p){ctx.beginPath();ctx.moveTo(p.x1*cw,p.y1*ch);ctx.lineTo(p.x2*cw,p.y2*ch);ctx.stroke();});
+  ctx.strokeStyle="rgba(120,180,220,0.3)";ctx.lineWidth=Math.max(5,cw*0.007);
+  ctx.beginPath();ctx.moveTo(.08*cw,.65*ch);ctx.quadraticCurveTo(.12*cw,.58*ch,.10*cw,.50*ch);ctx.quadraticCurveTo(.08*cw,.42*ch,.12*cw,.35*ch);ctx.stroke();
+  ctx.strokeStyle="#5090B0";ctx.lineWidth=Math.max(3,cw*0.004);
+  ctx.beginPath();ctx.moveTo(.08*cw,.65*ch);ctx.quadraticCurveTo(.12*cw,.58*ch,.10*cw,.50*ch);ctx.quadraticCurveTo(.08*cw,.42*ch,.12*cw,.35*ch);ctx.stroke();
+  ctx.strokeStyle="#8A7A60";ctx.lineWidth=3;ctx.setLineDash([8,4]);
+  ctx.strokeRect(cw*0.015,ch*0.015,cw*0.97,ch*0.97);ctx.setLineDash([]);
+  TREES.forEach(function(t){drawTree(t.x*cw,t.y*ch,t.s);});
+  BUILDINGS.forEach(function(b){
+    var bx=b.x*cw,by=b.y*ch,bw=b.w*cw,bh=b.h*ch;
+    if(state.destroyedBuildings[b.id]){ctx.fillStyle="rgba(40,20,10,0.4)";ctx.fillRect(bx,by,bw,bh);ctx.strokeStyle="rgba(200,80,20,0.5)";ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.strokeRect(bx,by,bw,bh);ctx.setLineDash([]);ctx.fillStyle="rgba(200,100,30,0.7)";ctx.font=Math.floor(bh*0.35)+"px Georgia";ctx.textAlign="center";ctx.fillText("\uD83D\uDD25",bx+bw/2,by+bh/2+4);ctx.font="9px Georgia";ctx.fillText("RUINS",bx+bw/2,by+bh-3);return;}
+    var isOpen=!b.roof;
+    ctx.fillStyle="rgba(0,0,0,0.2)";ctx.fillRect(bx+3,by+3,bw,bh);
+    ctx.fillStyle=b.color;ctx.fillRect(bx,by,bw,bh);
+    if(!isOpen){ctx.fillStyle=b.roof;ctx.beginPath();ctx.moveTo(bx-2,by);ctx.lineTo(bx+bw/2,by-bh*0.25);ctx.lineTo(bx+bw+2,by);ctx.closePath();ctx.fill();ctx.strokeStyle="rgba(0,0,0,0.15)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(bx-2,by);ctx.lineTo(bx+bw/2,by-bh*0.25);ctx.lineTo(bx+bw+2,by);ctx.stroke();var wc=Math.max(1,Math.floor(bw/20));ctx.fillStyle="rgba(255,240,180,0.5)";for(var wi=0;wi<wc;wi++){ctx.fillRect(bx+bw*(wi+1)/(wc+1)-2,by+bh*0.45-2,4,4);}ctx.fillStyle="rgba(0,0,0,0.2)";ctx.fillRect(bx+bw/2-3,by+bh-8,6,8);}
+    if(state.selectedBuilding&&state.selectedBuilding.id===b.id){ctx.strokeStyle="#FFFFFF";ctx.lineWidth=2;ctx.strokeRect(bx-2,by-(isOpen?2:bh*0.25)-2,bw+4,bh+(isOpen?4:bh*0.25+4));}
+    var fs=Math.max(9,Math.min(12,bw/b.name.length*1.5));ctx.font=Math.floor(fs)+"px Georgia";ctx.textAlign="center";var tw=ctx.measureText(b.name).width;var lx=bx+bw/2,ly=by+bh+12;ctx.fillStyle="rgba(0,0,0,0.5)";ctx.fillRect(lx-tw/2-3,ly-fs+1,tw+6,fs+2);ctx.fillStyle="#FFFFFF";ctx.fillText(b.name,lx,ly);
+  });
+  state.characters.forEach(function(c){
+    var dx=c.tx-c.x,dy=c.ty-c.y,dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<0.01){c.tx=0.08+Math.random()*0.80;c.ty=0.08+Math.random()*0.80;}
+    else{c.x+=(dx/dist)*c.speed;c.y+=(dy/dist)*c.speed;}
+    var cx=c.x*cw,cy=c.y*ch,r=c.ghost?6:7;
+    if(c.ghost)ctx.globalAlpha=0.35+Math.sin(Date.now()/1000)*0.15;
+    ctx.beginPath();ctx.arc(cx+1,cy+r,Math.max(1,r*0.7),0,Math.PI*2);ctx.fillStyle="rgba(0,0,0,0.2)";ctx.fill();
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle=c.color;ctx.fill();ctx.strokeStyle="rgba(0,0,0,0.4)";ctx.lineWidth=1.5;ctx.stroke();
+    ctx.beginPath();ctx.arc(cx-1,cy-2,Math.max(1,r*0.35),0,Math.PI*2);ctx.fillStyle="rgba(255,255,255,0.25)";ctx.fill();
+    ctx.globalAlpha=1;
+    ctx.font="bold 9px Georgia";ctx.textAlign="center";var nw=ctx.measureText(c.name).width;
+    ctx.fillStyle="rgba(0,0,0,0.6)";ctx.fillRect(cx-nw/2-2,cy-r-13,nw+4,11);
+    ctx.fillStyle=c.ghost?"#90C8E8":"#FFFFFF";ctx.fillText(c.name,cx,cy-r-4);
+  });
+}
+
+function gameLoop(){render();requestAnimationFrame(gameLoop);}
+</script>
+</body>
+</html>
