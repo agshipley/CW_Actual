@@ -72,6 +72,35 @@
     ::-webkit-scrollbar { width:4px; }
     ::-webkit-scrollbar-track { background:#1a1e14; }
     ::-webkit-scrollbar-thumb { background:#3a4a2a; border-radius:2px; }
+    #interact-prompt { display:none; position:absolute; z-index:20; pointer-events:auto; background:rgba(18,24,14,0.94); border:1px solid #4a5a3a; padding:8px 14px; text-align:center; }
+    #interact-prompt .ip-name { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:#7a8a6a; margin-bottom:7px; }
+    #interact-prompt button { background:none; border:1px solid #5a6a48; color:#c4c4a8; padding:5px 16px; font-family:Georgia,serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; }
+    #interact-prompt button:hover { background:rgba(90,106,72,0.2); }
+    canvas.build-mode { cursor: crosshair; }
+    #build-toggle-btn { width:100%; background:none; border:1px solid #4a5a3a; color:#b0a888; padding:8px; font-family:Georgia,serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; }
+    #build-toggle-btn:hover, #build-toggle-btn.active { background:rgba(90,106,72,0.2); border-color:#8a9a6a; color:#c4c4a8; }
+    #build-menu-overlay { display:none; position:absolute; top:0; left:0; width:210px; height:100%; background:rgba(16,22,12,0.97); overflow-y:auto; z-index:15; padding:14px 12px; border-right:1px solid #2a3420; }
+    #build-menu-overlay .sb-label { display:flex; justify-content:space-between; align-items:center; }
+    #build-menu-overlay .close-btn { cursor:pointer; color:#7a8a6a; font-size:14px; line-height:1; }
+    #build-menu-overlay .close-btn:hover { color:#c4c4a8; }
+    .build-hint { font-size:9px; color:#7a8a6a; font-style:italic; margin-bottom:10px; line-height:1.5; }
+    .build-item { padding:8px 10px; border:1px solid #2a3420; margin-bottom:6px; cursor:pointer; background:rgba(26,30,20,0.5); }
+    .build-item:hover { border-color:#5a6a48; background:rgba(50,66,38,0.2); }
+    .build-item.selected { border-color:rgba(140,170,100,0.5); background:rgba(70,90,50,0.2); }
+    .build-item.cant-afford { opacity:0.4; cursor:not-allowed; }
+    .build-item.cant-afford:hover { border-color:#2a3420; background:rgba(26,30,20,0.5); }
+    .build-item-name { font-size:11px; letter-spacing:1px; text-transform:uppercase; color:#b0a888; margin-bottom:2px; }
+    .build-item.selected .build-item-name { color:#c8c4a0; }
+    .build-item-cost { font-size:9px; color:#7a8a6a; margin-bottom:3px; }
+    .build-item-cost.unaffordable { color:#9a5a4a; }
+    .build-item-effects { font-size:9px; display:flex; flex-direction:column; gap:2px; }
+    #debug-panel { display:none; position:absolute; top:10px; right:10px; z-index:30; background:rgba(10,0,0,0.92); border:2px solid #cc2222; padding:10px 12px; min-width:170px; }
+    #debug-panel .dbg-title { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:#cc4444; margin-bottom:8px; }
+    .dbg-btn { display:block; width:100%; background:none; border:1px solid #882222; color:#cc8888; padding:5px 8px; font-family:Georgia,serif; font-size:11px; text-align:left; cursor:pointer; margin-bottom:5px; }
+    .dbg-btn:hover { background:rgba(180,40,40,0.2); border-color:#cc4444; color:#ffaaaa; }
+    .dbg-row { display:flex; gap:5px; margin-bottom:5px; }
+    .dbg-row select { flex:1; background:#1a0000; border:1px solid #882222; color:#cc8888; font-family:Georgia,serif; font-size:11px; padding:4px; }
+    .dbg-row .dbg-btn { margin-bottom:0; flex:0 0 auto; }
     #mobile-gate { display:none; }
     @media (max-width: 899px) {
       #mobile-gate { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px; }
@@ -97,8 +126,30 @@
 <div id="game-screen">
   <div id="map-col">
     <canvas id="canvas"></canvas>
+    <div id="build-menu-overlay">
+      <div class="sb-label">Build <span class="close-btn" onclick="closeBuildMenu()">&#x2715;</span></div>
+      <div class="build-hint" id="build-hint">Select a structure, then click the new land to place it.</div>
+      <div id="build-items"></div>
+    </div>
+    <div id="debug-panel">
+      <div class="dbg-title">&#x26A0; Debug Mode</div>
+      <button class="dbg-btn" onclick="dbgSkipToDay30()">Skip to Day 30</button>
+      <button class="dbg-btn" onclick="dbgAddMoney()">Add $50,000</button>
+      <button class="dbg-btn" onclick="dbgPlace10Buildings()">+10 Buildings</button>
+      <button class="dbg-btn" onclick="dbgAllFlags()">All Flags</button>
+      <div class="dbg-row">
+        <select id="dbg-stat-select">
+          <option value="morale">Morale</option>
+          <option value="attendance">Attendance</option>
+          <option value="gangThreat">Gang Threat</option>
+          <option value="budget">Budget</option>
+        </select>
+        <button class="dbg-btn" onclick="dbgKillStat()">Kill Stat</button>
+      </div>
+    </div>
     <div id="day-display"><span class="day-num" id="day-num">0</span><span class="day-label">Days</span></div>
-    <button id="next-day-btn" class="disabled" onclick="advanceDay()">Choose an Action</button>
+    <div id="interact-prompt"><div class="ip-name" id="ip-building-name"></div><button onclick="interactWithBuilding()">Interact</button></div>
+    <button id="next-day-btn" onclick="advanceDay()">Next Day &#x2192;</button>
   </div>
   <div id="sidebar">
     <div class="sb-section">
@@ -111,11 +162,9 @@
       <div class="stat-bar"><div class="stat-bar-fill" id="bar-gang" style="width:15%;background:#9a5a4a;"></div></div>
       <div class="stat-row"><span class="stat-name">Staff Morale</span><span class="stat-val" id="s-morale">50%</span></div>
       <div class="stat-bar"><div class="stat-bar-fill" id="bar-morale" style="width:50%;background:#4a7a8a;"></div></div>
+      <div class="stat-row" id="structures-row" style="display:none;margin-top:4px;"><span class="stat-name">Structures</span><span class="stat-val" id="s-structures">0</span></div>
     </div>
-    <div class="sb-section" id="action-panel">
-      <div class="sb-label">Daily Decision</div>
-      <div id="action-buttons"></div>
-    </div>
+    <div class="sb-section" id="build-section" style="display:none"><button id="build-toggle-btn" onclick="toggleBuildMenu()">Build New Structure</button></div>
     <div id="info-panel"><div class="sb-label">Selected</div><div class="desc" style="color:#4a5a3a;">Click a building for details.</div></div>
     <div id="log-panel"><div class="sb-label">Event Log</div><div id="log-entries"></div></div>
   </div>
@@ -129,8 +178,23 @@ var state = {
   day: 0, budget: 45000, attendance: 65, gangThreat: 15, morale: 50,
   selectedBuilding: null, gameOver: false, eventActive: false,
   log: [], destroyedBuildings: {}, flags: {}, characters: [],
-  selectedAction: null, actionCooldowns: {}, usedMinorEvents: []
+  selectedAction: null, actionCooldowns: {}, usedMinorEvents: [],
+  expanded: false, mapScale: 1,
+  placedBuildings: [], buildMode: false, selectedBuildable: null
 };
+
+var BUILDABLE_STRUCTURES = [
+  {id:"settlers_shack",   name:"Settler's Shack",          cost:2000, color:"#B8A070",roof:"#987840", desc:"Where Mr. A started. One Union costume and a dream.",                              daily:{attendance:3}},
+  {id:"otoole_gazebo",    name:"O'Toole Gazebo",            cost:1500, color:"#A0C890",roof:null,       desc:"Good sightlines for clandestine employee observation.",                           daily:{attendance:2,morale:1}},
+  {id:"hostelry",         name:"Hostelry",                  cost:3000, color:"#C8B898",roof:"#A89878", desc:"Where the living boy tried to kiss Maribeth and found out she was spectral.",      daily:{attendance:4}},
+  {id:"towne_meeting",    name:"Towne Meeting Hall",         cost:4000, color:"#D8C8A0",roof:"#B8A880", desc:"For simulated democracy. Mrs. Dugan brings bread.",                               daily:{attendance:5,budget:100}},
+  {id:"watchtower",       name:"Watchtower",                cost:2500, color:"#8A7A60",roof:"#6A5A40", desc:"Eyes on the retaining wall.",                                                     daily:{gangThreat:-3}},
+  {id:"second_wall",      name:"Second Retaining Wall",     cost:5000, color:"#7A7A6A",roof:null,       desc:"They're tunneling in or coming over. Build higher.",                              daily:{gangThreat:-5}},
+  {id:"staff_quarters",   name:"Staff Quarters",            cost:3000, color:"#A89880",roof:"#887860", desc:"Somewhere to perform your Hatred Abatement Breathing.",                          daily:{morale:3}},
+  {id:"pasta_lair",       name:"Melvin's Pasta Lair",       cost:2000, color:"#C87040",roof:"#A85020", desc:"A religious zealot who worked five jobs during the Depression.",                  daily:{morale:2,budget:-50}},
+  {id:"mckinnon_memorial",name:"McKinnon Memorial",         cost:3500, color:"#90B8D0",roof:"#70A0B8", desc:"For the family who owned this land before it was a parking lot.",                 daily:{morale:2,attendance:2}},
+  {id:"photo_gallery",    name:"Gettysburg Photo Gallery",  cost:2500, color:"#B0A888",roof:"#908868", desc:"Actual photos. The ones we used for the Desperate Patrol costumes.",              daily:{attendance:3}}
+];
 
 var BUILDINGS = [
   {id:"canal",name:"Erie Canal Lock",x:.08,y:.10,w:.12,h:.08,color:"#6EAAC4",roof:"#4E8AA4",desc:"90 feet of working canal. Coolie campsite diorama. Wrong ethnicity."},
@@ -264,37 +328,51 @@ function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
 function initCanvas(){canvas=document.getElementById("canvas");ctx=canvas.getContext("2d");resize();window.addEventListener("resize",resize);}
 function resize(){var col=document.getElementById("map-col");cw=col.clientWidth;ch=col.clientHeight;canvas.width=cw;canvas.height=ch;}
 
-function isActionLocked(actionId){var last=state.actionCooldowns[actionId];if(last===undefined)return false;return(state.day-last)<COOLDOWN_DAYS;}
-function cooldownRemaining(actionId){var last=state.actionCooldowns[actionId];if(last===undefined)return 0;return Math.max(0,COOLDOWN_DAYS-(state.day-last));}
 
-function renderActions(){
-  var c=document.getElementById("action-buttons"),h="";
-  DAILY_ACTIONS.forEach(function(a){
-    var sel=state.selectedAction&&state.selectedAction.id===a.id;
-    var locked=isActionLocked(a.id);
-    var remaining=cooldownRemaining(a.id);
-    h+='<button class="action-btn'+(sel?" selected":"")+(locked?" locked":"")+'" onclick="'+(locked?"":"selectAction(\'"+a.id+"\')")+'">';
-    h+='<div class="action-title">'+a.title+'</div>';
-    h+='<div class="action-desc">'+a.desc+'</div>';
-    h+='<div class="action-effects">';
-    h+='<span class="'+(a.effect.budget>=0?"eff-pos":"eff-neg")+'">$'+(a.effect.budget>=0?"+":"")+a.effect.budget+'</span>';
-    h+='<span class="'+(a.effect.attendance>=0?"eff-pos":"eff-neg")+'">Att '+(a.effect.attendance>=0?"+":"")+a.effect.attendance+'</span>';
-    h+='<span class="'+(a.effect.gangThreat<=0?"eff-pos":"eff-neg")+'">Threat '+(a.effect.gangThreat>=0?"+":"")+a.effect.gangThreat+'</span>';
-    h+='<span class="'+(a.effect.morale>=0?"eff-pos":"eff-neg")+'">Morale '+(a.effect.morale>=0?"+":"")+a.effect.morale+'</span>';
-    h+='</div>';
-    if(locked)h+='<div class="cooldown-notice">Available in '+remaining+' day'+(remaining===1?"":"s")+'</div>';
-    h+='</button>';
-  });
-  c.innerHTML=h;
+var debugMode=false;
+var debugKeyBuffer="";
+document.addEventListener("keydown",function(e){
+  if(state.gameOver)return;
+  debugKeyBuffer=(debugKeyBuffer+e.key).slice(-5);
+  if(debugKeyBuffer==="debug"){debugMode=true;if(canvas)document.getElementById("debug-panel").style.display="block";}
+});
+
+function dbgSkipToDay30(){
+  if(state.gameOver)return;
+  state.day=29;
+  document.getElementById("day-num").textContent=state.day;
+  updateSidebar();
+  advanceDay();
 }
-
-function selectAction(id){
-  if(state.gameOver||state.eventActive)return;
-  if(isActionLocked(id))return;
-  for(var i=0;i<DAILY_ACTIONS.length;i++){if(DAILY_ACTIONS[i].id===id){state.selectedAction=DAILY_ACTIONS[i];break;}}
-  renderActions();
-  document.getElementById("next-day-btn").textContent="Next Day \u2192";
-  document.getElementById("next-day-btn").className="";
+function dbgAddMoney(){
+  state.budget+=50000;
+  updateSidebar();
+}
+function dbgPlace10Buildings(){
+  if(!state.expanded){alert("Expand first (Skip to Day 30 and continue).");return;}
+  var placed=0,attempts=0;
+  while(placed<10&&attempts<500){
+    attempts++;
+    var s=BUILDABLE_STRUCTURES[Math.floor(Math.random()*BUILDABLE_STRUCTURES.length)];
+    var bw=0.10,bh=0.07,worldMax=1/state.mapScale;
+    var bx=0.05+Math.random()*(worldMax-bw-0.10);
+    var by=0.05+Math.random()*(worldMax-bh-0.10);
+    if(placedBuildingOverlaps(bx,by,bw,bh))continue;
+    state.placedBuildings.push({id:"placed_"+Date.now()+"_"+placed,name:s.name,x:bx,y:by,w:bw,h:bh,color:s.color,roof:s.roof,desc:s.desc,daily:s.daily});
+    placed++;
+  }
+  updateSidebar();
+}
+function dbgAllFlags(){
+  ["quinn_armed","samuel_armed","grayson_fired","insurance_fraud","buried_hand","foley_massacre"].forEach(function(f){state.flags[f]=true;});
+}
+function dbgKillStat(){
+  var stat=document.getElementById("dbg-stat-select").value;
+  if(stat==="morale")state.morale=3;
+  else if(stat==="attendance")state.attendance=3;
+  else if(stat==="gangThreat")state.gangThreat=97;
+  else if(stat==="budget")state.budget=100;
+  updateSidebar();
 }
 
 function startGame(){
@@ -303,7 +381,8 @@ function startGame(){
   initCanvas();
   state.characters=INIT_CHARS.map(function(c){return Object.assign({},c,{tx:c.x+(Math.random()-0.5)*0.1,ty:c.y+(Math.random()-0.5)*0.1});});
   canvas.addEventListener("click",onCanvasClick);
-  renderActions();
+  canvas.addEventListener("mousemove",onCanvasMouseMove);
+  if(debugMode)document.getElementById("debug-panel").style.display="block";
   gameLoop();
 }
 
@@ -355,20 +434,16 @@ function dismissMinorEvent(){
 }
 
 function advanceDay(){
-  if(state.gameOver||state.eventActive||!state.selectedAction)return;
+  if(state.gameOver||state.eventActive)return;
   state.day+=1;
-  state.actionCooldowns[state.selectedAction.id]=state.day;
 
   // Compounding decay
   state.gangThreat=clamp(state.gangThreat+3,0,100);
   state.morale=clamp(state.morale-2,0,100);
   state.attendance=clamp(state.attendance-1,0,100);
 
-  // Apply action
-  state.budget+=state.selectedAction.effect.budget;
-  state.attendance=clamp(state.attendance+state.selectedAction.effect.attendance,0,100);
-  state.gangThreat=clamp(state.gangThreat+state.selectedAction.effect.gangThreat,0,100);
-  state.morale=clamp(state.morale+state.selectedAction.effect.morale,0,100);
+  // Placed building daily effects
+  for(var i=0;i<state.placedBuildings.length;i++){var pb=state.placedBuildings[i];var d=pb.daily;if(d.budget)state.budget+=d.budget;if(d.attendance)state.attendance=clamp(state.attendance+d.attendance,0,100);if(d.gangThreat)state.gangThreat=clamp(state.gangThreat+d.gangThreat,0,100);if(d.morale)state.morale=clamp(state.morale+d.morale,0,100);}
 
   // Daily economics
   var cost=800+Math.floor(Math.random()*250);
@@ -380,13 +455,11 @@ function advanceDay(){
   state.morale=clamp(state.morale+Math.floor(Math.random()*3)-2,0,100);
   state.gangThreat=clamp(state.gangThreat+Math.floor(Math.random()*3)-1,0,100);
 
-  state.log.push({day:state.day,title:"Action: "+state.selectedAction.title});
-  state.selectedAction=null;
   document.getElementById("day-num").textContent=state.day;
-  updateSidebar();renderActions();
+  updateSidebar();
 
   var f=checkFailState();if(f){showFailEnd(f);return;}
-  if(state.day>=30){showEnding();return;}
+  if(state.day===30&&!state.expanded){showEnding();return;}
 
   // Check for story event
   var ev=null;
@@ -399,7 +472,6 @@ function advanceDay(){
     if(Math.random()<0.6){
       var me=getRandomMinorEvent();
       if(me){
-        // Apply minor event effects
         state.budget+=me.effect.budget;
         state.attendance=clamp(state.attendance+me.effect.attendance,0,100);
         state.gangThreat=clamp(state.gangThreat+me.effect.gangThreat,0,100);
@@ -411,9 +483,6 @@ function advanceDay(){
       }
     }
   }
-
-  document.getElementById("next-day-btn").textContent="Choose an Action";
-  document.getElementById("next-day-btn").className="disabled";
 }
 
 function showEvent(ev){
@@ -452,20 +521,130 @@ function showEnding(){
   else if(state.flags.samuel_reported){t="WHISTLEBLOWER";x="The park closes. Mr. A faces charges. Samuel is apprehended. You lose your job but keep your conscience.";}
   else if(state.flags.narrator_brave){t="A DIFFERENT KIND OF MAN";x="The park closes. But the Foleys remember what you did. Quinn names his seventh kid after you. It's not much. But you can sleep.";}
   else if(state.flags.samuel_butter&&sc>3000){t="BARELY STANDING";x="By some miracle of mediocrity, the park limps into another season. Samuel still churns butter. Mr. A gives you a $40/month raise and a parking spot near the dumpster.";}
-  else if(state.budget<0){t="BANKRUPTCY";x="The money runs out. Mr. A padlocks the gates on a Tuesday. You apply to Burn'n'Learn. They don't call back.";}
-  else{t="THE FIRE";x="Mr. A torches the place for insurance. The McKinnons pass through the retaining wall one final time. A transparent boy kneels over you. 'You've got amends to make,' he says.";}
+  else if(state.budget<0){t="BANKRUPTCY";x="The money runs out. Mr. A padlocks the gates on a Tuesday. You apply to Burn\'n\'Learn. They don\'t call back.";}
+  else{t="THE FIRE";x="Mr. A torches the place for insurance. The McKinnons pass through the retaining wall one final time. A transparent boy kneels over you. \'You\'ve got amends to make,\' he says.";}
   x+='<br><br><span style="color:#5a6a4a;font-size:11px;">Budget: $'+state.budget.toLocaleString()+' \u00b7 Attendance: '+state.attendance+' \u00b7 Morale: '+state.morale+'% \u00b7 Threat: '+state.gangThreat+'%</span>';
-  b.innerHTML='<div class="ev-day">Day 30 \u2014 Final</div><div class="ev-title">'+t+'</div><div class="ev-text">'+x+'</div><button class="ev-continue-btn" onclick="location.reload()">Start Over</button>';
+  b.innerHTML='<div class="ev-day">Day 30 \u2014 Final</div><div class="ev-title">'+t+'</div><div class="ev-text">'+x+'</div><button class="ev-continue-btn" onclick="continueAfterEnding()" style="margin-bottom:8px;">Continue Playing</button><button class="ev-continue-btn" onclick="location.reload()">Start Over</button>';
   document.getElementById("event-overlay").classList.add("active");
   document.getElementById("next-day-btn").textContent="Game Over";
   document.getElementById("next-day-btn").className="disabled";
 }
 
+function continueAfterEnding(){
+  document.getElementById("event-overlay").classList.remove("active");
+  state.gameOver=false;
+  state.eventActive=false;
+  document.getElementById("next-day-btn").textContent="Next Day \u2192";
+  document.getElementById("next-day-btn").className="";
+  showExpansionEvent();
+}
+
+function showExpansionEvent(){
+  state.eventActive=true;
+  var b=document.getElementById("event-box");b.className="";
+  b.innerHTML='<div class="ev-day">Day '+state.day+'</div><div class="ev-title">EXPANSION</div><div class="ev-text">Against all odds, the park survived. Mr. A secures a new round of funding. The investors want to see growth. New land beyond the retaining wall is now available.</div><button class="ev-minor-btn" onclick="triggerExpansion()">Survey the New Land</button>';
+  document.getElementById("event-overlay").classList.add("active");
+}
+
+function triggerExpansion(){
+  document.getElementById("event-overlay").classList.remove("active");
+  state.eventActive=false;
+  state.expanded=true;
+  state.mapScale=0.5;
+  document.getElementById("build-section").style.display="block";
+}
+
+var buildPreviewX, buildPreviewY;
+var canvasNotifications = [];
+
+function onCanvasMouseMove(e){
+  if(!state.buildMode)return;
+  var ms=state.mapScale||1;
+  var r=canvas.getBoundingClientRect();
+  buildPreviewX=(e.clientX-r.left)/cw/ms;
+  buildPreviewY=(e.clientY-r.top)/ch/ms;
+}
+
+function placedBuildingOverlaps(nx,ny,nw,nh){
+  var pad=0.01;
+  for(var i=0;i<BUILDINGS.length;i++){var b=BUILDINGS[i];if(state.destroyedBuildings[b.id])continue;if(nx<b.x+b.w+pad&&nx+nw>b.x-pad&&ny<b.y+b.h+pad&&ny+nh>b.y-pad)return true;}
+  for(var i=0;i<state.placedBuildings.length;i++){var b=state.placedBuildings[i];if(nx<b.x+b.w+pad&&nx+nw>b.x-pad&&ny<b.y+b.h+pad&&ny+nh>b.y-pad)return true;}
+  return false;
+}
+
 function onCanvasClick(e){
-  var r=canvas.getBoundingClientRect(),mx=(e.clientX-r.left)/cw,my=(e.clientY-r.top)/ch;
+  var ms=state.mapScale||1;
+  var r=canvas.getBoundingClientRect(),mx=(e.clientX-r.left)/cw/ms,my=(e.clientY-r.top)/ch/ms;
+
+  if(state.buildMode&&state.selectedBuildable){
+    var s=state.selectedBuildable, bw=0.10, bh=0.07;
+    var bx=mx-bw/2, by=my-bh/2;
+    var worldMax=1/ms;
+    if(bx<0.02||by<0.02||bx+bw>worldMax-0.02||by+bh>worldMax-0.02){return;}
+    if(placedBuildingOverlaps(bx,by,bw,bh)){return;}
+    if(state.budget<s.cost){return;}
+    state.budget-=s.cost;
+    state.placedBuildings.push({id:"placed_"+Date.now(),name:s.name,x:bx,y:by,w:bw,h:bh,color:s.color,roof:s.roof,desc:s.desc,daily:s.daily});
+    state.log.push({day:state.day,title:"Built: "+s.name});
+    canvasNotifications.push({text:"BUILT: "+s.name.toUpperCase(),x:mx,y:my,born:Date.now()});
+    updateSidebar();updateLog();
+    state.selectedBuildable=null;
+    state.buildMode=false;
+    canvas.classList.remove("build-mode");
+    renderBuildMenu();
+    return;
+  }
+
   state.selectedBuilding=null;
   for(var i=0;i<BUILDINGS.length;i++){var b=BUILDINGS[i];if(state.destroyedBuildings[b.id])continue;if(mx>=b.x&&mx<=b.x+b.w&&my>=b.y&&my<=b.y+b.h){state.selectedBuilding=b;break;}}
+  if(!state.selectedBuilding){for(var i=0;i<state.placedBuildings.length;i++){var b=state.placedBuildings[i];if(mx>=b.x&&mx<=b.x+b.w&&my>=b.y&&my<=b.y+b.h){state.selectedBuilding=b;break;}}}
+  for(var i=0;i<state.characters.length;i++){if(state.characters[i].id==="narrator"){state.characters[i].tx=mx;state.characters[i].ty=my;state.characters[i].clickTarget=true;break;}}
   updateInfoPanel();
+}
+
+function toggleBuildMenu(){
+  var overlay=document.getElementById("build-menu-overlay");
+  var open=overlay.style.display==="block";
+  if(open){closeBuildMenu();}
+  else{overlay.style.display="block";document.getElementById("build-toggle-btn").classList.add("active");renderBuildMenu();}
+}
+
+function closeBuildMenu(){
+  document.getElementById("build-menu-overlay").style.display="none";
+  document.getElementById("build-toggle-btn").classList.remove("active");
+  state.buildMode=false;state.selectedBuildable=null;
+  canvas.classList.remove("build-mode");
+}
+
+function selectBuildable(id){
+  for(var i=0;i<BUILDABLE_STRUCTURES.length;i++){if(BUILDABLE_STRUCTURES[i].id===id){state.selectedBuildable=BUILDABLE_STRUCTURES[i];break;}}
+  state.buildMode=true;
+  canvas.classList.add("build-mode");
+  renderBuildMenu();
+}
+
+function renderBuildMenu(){
+  var h="";
+  if(state.buildMode&&state.selectedBuildable){
+    document.getElementById("build-hint").textContent="Click the new land to place "+state.selectedBuildable.name+". Click again to cancel.";
+  }else{
+    document.getElementById("build-hint").textContent="Select a structure, then click the new land to place it.";
+  }
+  BUILDABLE_STRUCTURES.forEach(function(s){
+    var canAfford=state.budget>=s.cost;
+    var sel=state.selectedBuildable&&state.selectedBuildable.id===s.id;
+    var fx='<div class="build-item-effects">';
+    if(s.daily.attendance)fx+='<span class="'+(s.daily.attendance>0?"eff-pos":"eff-neg")+'">Attendance '+(s.daily.attendance>0?"+":"")+s.daily.attendance+'/day</span>';
+    if(s.daily.budget)fx+='<span class="'+(s.daily.budget>0?"eff-pos":"eff-neg")+'">Budget '+(s.daily.budget>0?"+":"")+s.daily.budget+'/day</span>';
+    if(s.daily.gangThreat)fx+='<span class="'+(s.daily.gangThreat<=0?"eff-pos":"eff-neg")+'">Gang Threat '+(s.daily.gangThreat>0?"+":"")+s.daily.gangThreat+'/day</span>';
+    if(s.daily.morale)fx+='<span class="'+(s.daily.morale>0?"eff-pos":"eff-neg")+'">Morale '+(s.daily.morale>0?"+":"")+s.daily.morale+'/day</span>';
+    fx+='</div>';
+    h+='<div class="build-item'+(sel?" selected":"")+(canAfford?"":" cant-afford")+'" onclick="'+(canAfford?"selectBuildable('"+s.id+"')":"")+'">';
+    h+='<div class="build-item-name">'+s.name+'</div>';
+    h+='<div class="build-item-cost'+(canAfford?"":" unaffordable")+'">$'+s.cost.toLocaleString()+(canAfford?"":" \u2014 can\'t afford")+'</div>';
+    h+=fx+'</div>';
+  });
+  document.getElementById("build-items").innerHTML=h;
 }
 
 function updateSidebar(){
@@ -477,6 +656,7 @@ function updateSidebar(){
   document.getElementById("bar-att").style.width=state.attendance+"%";
   document.getElementById("bar-gang").style.width=state.gangThreat+"%";
   document.getElementById("bar-morale").style.width=state.morale+"%";
+  if(state.expanded){document.getElementById("structures-row").style.display="flex";document.getElementById("s-structures").textContent=state.placedBuildings.length;}
 }
 
 function updateInfoPanel(){
@@ -501,6 +681,7 @@ function drawTree(x,y,size){
 
 function render(){
   if(!canvas)return;
+  var ms=state.mapScale||1;
   ctx.clearRect(0,0,cw,ch);
   var grad=ctx.createLinearGradient(0,0,0,ch);
   grad.addColorStop(0,"#58A840");grad.addColorStop(0.3,"#4C9838");grad.addColorStop(0.7,"#448A30");grad.addColorStop(1,"#3C7828");
@@ -509,18 +690,20 @@ function render(){
   for(var gi=0;gi<40;gi++){var gx=Math.random()*cw,gy=Math.random()*ch,gs=20+Math.random()*60;ctx.beginPath();ctx.arc(gx,gy,gs,0,Math.PI*2);ctx.fillStyle=Math.random()>0.5?"#60B848":"#388828";ctx.fill();}
   ctx.globalAlpha=1;
   ctx.strokeStyle="rgba(80,60,30,0.3)";ctx.lineWidth=Math.max(5,cw*0.007);
-  PATHS.forEach(function(p){ctx.beginPath();ctx.moveTo(p.x1*cw,p.y1*ch);ctx.lineTo(p.x2*cw,p.y2*ch);ctx.stroke();});
+  PATHS.forEach(function(p){ctx.beginPath();ctx.moveTo(p.x1*ms*cw,p.y1*ms*ch);ctx.lineTo(p.x2*ms*cw,p.y2*ms*ch);ctx.stroke();});
   ctx.strokeStyle="#A09060";ctx.lineWidth=Math.max(3,cw*0.004);
-  PATHS.forEach(function(p){ctx.beginPath();ctx.moveTo(p.x1*cw,p.y1*ch);ctx.lineTo(p.x2*cw,p.y2*ch);ctx.stroke();});
+  PATHS.forEach(function(p){ctx.beginPath();ctx.moveTo(p.x1*ms*cw,p.y1*ms*ch);ctx.lineTo(p.x2*ms*cw,p.y2*ms*ch);ctx.stroke();});
   ctx.strokeStyle="rgba(120,180,220,0.3)";ctx.lineWidth=Math.max(5,cw*0.007);
-  ctx.beginPath();ctx.moveTo(.08*cw,.65*ch);ctx.quadraticCurveTo(.12*cw,.58*ch,.10*cw,.50*ch);ctx.quadraticCurveTo(.08*cw,.42*ch,.12*cw,.35*ch);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(.08*ms*cw,.65*ms*ch);ctx.quadraticCurveTo(.12*ms*cw,.58*ms*ch,.10*ms*cw,.50*ms*ch);ctx.quadraticCurveTo(.08*ms*cw,.42*ms*ch,.12*ms*cw,.35*ms*ch);ctx.stroke();
   ctx.strokeStyle="#5090B0";ctx.lineWidth=Math.max(3,cw*0.004);
-  ctx.beginPath();ctx.moveTo(.08*cw,.65*ch);ctx.quadraticCurveTo(.12*cw,.58*ch,.10*cw,.50*ch);ctx.quadraticCurveTo(.08*cw,.42*ch,.12*cw,.35*ch);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(.08*ms*cw,.65*ms*ch);ctx.quadraticCurveTo(.12*ms*cw,.58*ms*ch,.10*ms*cw,.50*ms*ch);ctx.quadraticCurveTo(.08*ms*cw,.42*ms*ch,.12*ms*cw,.35*ms*ch);ctx.stroke();
   ctx.strokeStyle="#8A7A60";ctx.lineWidth=3;ctx.setLineDash([8,4]);
-  ctx.strokeRect(cw*0.015,ch*0.015,cw*0.97,ch*0.97);ctx.setLineDash([]);
-  TREES.forEach(function(t){drawTree(t.x*cw,t.y*ch,t.s);});
+  ctx.strokeRect(cw*0.015,ch*0.015,cw*0.97,ch*0.97);
+  if(state.expanded){ctx.globalAlpha=0.3;ctx.strokeRect(ms*cw*0.015,ms*ch*0.015,ms*cw*0.97,ms*ch*0.97);ctx.globalAlpha=1;}
+  ctx.setLineDash([]);
+  TREES.forEach(function(t){drawTree(t.x*ms*cw,t.y*ms*ch,t.s);});
   BUILDINGS.forEach(function(b){
-    var bx=b.x*cw,by=b.y*ch,bw=b.w*cw,bh=b.h*ch;
+    var bx=b.x*ms*cw,by=b.y*ms*ch,bw=b.w*ms*cw,bh=b.h*ms*ch;
     if(state.destroyedBuildings[b.id]){ctx.fillStyle="rgba(40,20,10,0.4)";ctx.fillRect(bx,by,bw,bh);ctx.strokeStyle="rgba(200,80,20,0.5)";ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.strokeRect(bx,by,bw,bh);ctx.setLineDash([]);ctx.fillStyle="rgba(200,100,30,0.7)";ctx.font=Math.floor(bh*0.35)+"px Georgia";ctx.textAlign="center";ctx.fillText("\uD83D\uDD25",bx+bw/2,by+bh/2+4);ctx.font="9px Georgia";ctx.fillText("RUINS",bx+bw/2,by+bh-3);return;}
     var isOpen=!b.roof;
     ctx.fillStyle="rgba(0,0,0,0.2)";ctx.fillRect(bx+3,by+3,bw,bh);
@@ -529,11 +712,29 @@ function render(){
     if(state.selectedBuilding&&state.selectedBuilding.id===b.id){ctx.strokeStyle="#FFFFFF";ctx.lineWidth=2;ctx.strokeRect(bx-2,by-(isOpen?2:bh*0.25)-2,bw+4,bh+(isOpen?4:bh*0.25+4));}
     var fs=Math.max(9,Math.min(12,bw/b.name.length*1.5));ctx.font=Math.floor(fs)+"px Georgia";ctx.textAlign="center";var tw=ctx.measureText(b.name).width;var lx=bx+bw/2,ly=by+bh+12;ctx.fillStyle="rgba(0,0,0,0.5)";ctx.fillRect(lx-tw/2-3,ly-fs+1,tw+6,fs+2);ctx.fillStyle="#FFFFFF";ctx.fillText(b.name,lx,ly);
   });
+  state.placedBuildings.forEach(function(b){
+    var bx=b.x*ms*cw,by=b.y*ms*ch,bw=b.w*ms*cw,bh=b.h*ms*ch;
+    var isOpen=!b.roof;
+    ctx.fillStyle="rgba(0,0,0,0.2)";ctx.fillRect(bx+3,by+3,bw,bh);
+    ctx.fillStyle=b.color;ctx.fillRect(bx,by,bw,bh);
+    if(!isOpen){ctx.fillStyle=b.roof;ctx.beginPath();ctx.moveTo(bx-2,by);ctx.lineTo(bx+bw/2,by-bh*0.25);ctx.lineTo(bx+bw+2,by);ctx.closePath();ctx.fill();}
+    if(state.selectedBuilding&&state.selectedBuilding.id===b.id){ctx.strokeStyle="#FFFFFF";ctx.lineWidth=2;ctx.strokeRect(bx-2,by-(isOpen?2:bh*0.25)-2,bw+4,bh+(isOpen?4:bh*0.25+4));}
+    var fs=Math.max(9,Math.min(12,bw/b.name.length*1.5));ctx.font=Math.floor(fs)+"px Georgia";ctx.textAlign="center";var tw=ctx.measureText(b.name).width;var lx=bx+bw/2,ly=by+bh+12;ctx.fillStyle="rgba(0,0,0,0.5)";ctx.fillRect(lx-tw/2-3,ly-fs+1,tw+6,fs+2);ctx.fillStyle="#FFFFFF";ctx.fillText(b.name,lx,ly);
+  });
+  if(state.buildMode&&state.selectedBuildable&&buildPreviewX!==undefined){
+    var s=state.selectedBuildable,bw=0.10*ms*cw,bh=0.07*ms*ch;
+    var bx=buildPreviewX*ms*cw-bw/2,by=buildPreviewY*ms*ch-bh/2;
+    ctx.globalAlpha=0.55;
+    ctx.fillStyle=s.color;ctx.fillRect(bx,by,bw,bh);
+    if(s.roof){ctx.fillStyle=s.roof;ctx.beginPath();ctx.moveTo(bx-2,by);ctx.lineTo(bx+bw/2,by-bh*0.25);ctx.lineTo(bx+bw+2,by);ctx.closePath();ctx.fill();}
+    ctx.strokeStyle="#FFFFFF";ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.strokeRect(bx,by,bw,bh);ctx.setLineDash([]);
+    ctx.globalAlpha=1;
+  }
   state.characters.forEach(function(c){
     var dx=c.tx-c.x,dy=c.ty-c.y,dist=Math.sqrt(dx*dx+dy*dy);
-    if(dist<0.01){c.tx=0.08+Math.random()*0.80;c.ty=0.08+Math.random()*0.80;}
+    if(dist<0.01){if(!c.clickTarget){c.tx=0.08+Math.random()*0.80;c.ty=0.08+Math.random()*0.80;}}
     else{c.x+=(dx/dist)*c.speed;c.y+=(dy/dist)*c.speed;}
-    var cx=c.x*cw,cy=c.y*ch,r=c.ghost?6:7;
+    var cx=c.x*ms*cw,cy=c.y*ms*ch,r=c.ghost?6:7;
     if(c.ghost)ctx.globalAlpha=0.35+Math.sin(Date.now()/1000)*0.15;
     ctx.beginPath();ctx.arc(cx+1,cy+r,Math.max(1,r*0.7),0,Math.PI*2);ctx.fillStyle="rgba(0,0,0,0.2)";ctx.fill();
     ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle=c.color;ctx.fill();ctx.strokeStyle="rgba(0,0,0,0.4)";ctx.lineWidth=1.5;ctx.stroke();
@@ -543,9 +744,102 @@ function render(){
     ctx.fillStyle="rgba(0,0,0,0.6)";ctx.fillRect(cx-nw/2-2,cy-r-13,nw+4,11);
     ctx.fillStyle=c.ghost?"#90C8E8":"#FFFFFF";ctx.fillText(c.name,cx,cy-r-4);
   });
+  var now=Date.now();
+  canvasNotifications=canvasNotifications.filter(function(n){return now-n.born<2000;});
+  canvasNotifications.forEach(function(n){
+    var t=(now-n.born)/2000;
+    var nx=n.x*ms*cw, ny=(n.y-0.06*t)*ms*ch;
+    ctx.globalAlpha=1-t;
+    ctx.font="bold 11px Georgia";ctx.textAlign="center";
+    var tw=ctx.measureText(n.text).width;
+    ctx.fillStyle="rgba(0,0,0,0.6)";ctx.fillRect(nx-tw/2-5,ny-13,tw+10,17);
+    ctx.fillStyle="#E8D090";ctx.fillText(n.text,nx,ny);
+    ctx.globalAlpha=1;
+  });
 }
 
-function gameLoop(){render();requestAnimationFrame(gameLoop);}
+var BUILDING_ACTIONS = {
+  cityhall:    {label:"Report to Mr. A",    effect:{budget:200, morale:-2}},
+  canal:       {label:"Inspect the Lock",   effect:{attendance:3}},
+  saloon:      {label:"Eat Lunch",          effect:{morale:4}},
+  thespian:    {label:"Check on Quinn",     effect:{morale:3}},
+  general:     {label:"Restock Shelves",    effect:{attendance:2, budget:-100}},
+  blacksmith:  {label:"Old Tyme Seminar",   effect:{attendance:1, morale:2}},
+  worship:     {label:"Book a Baptism",     effect:{budget:300}},
+  sweete:      {label:"Check Inventory",    effect:{attendance:1}},
+  gift:        {label:"Inspect Planters",   effect:{morale:1, attendance:1}},
+  infirmary:   {label:"Visit the Wounded",  effect:{morale:3}},
+  refreshments:{label:"Check the Marsh",    effect:{gangThreat:-2}},
+  conifer:     {label:"Scout for Gangs",    effect:{gangThreat:-4, morale:-2}},
+  everly:      {label:"Scrub Graffiti",     effect:{attendance:2, budget:-200}},
+  kriegal:     {label:"Check on Samuel",    effect:{gangThreat:-3}, flagRequired:"samuel_armed", flavorOnly:true},
+  entry:       {label:"Tinker with the Ride",effect:{attendance:2, budget:-150}},
+  parking:     {label:"Patrol the Lot",     effect:{gangThreat:-2}}
+};
+
+var interactCooldownUntil = 0;
+
+function getNearbyBuilding(){
+  var narrator=null;
+  for(var i=0;i<state.characters.length;i++){if(state.characters[i].id==="narrator"){narrator=state.characters[i];break;}}
+  if(!narrator)return null;
+  var margin=0.03;
+  for(var i=0;i<BUILDINGS.length;i++){
+    var b=BUILDINGS[i];
+    if(state.destroyedBuildings[b.id])continue;
+    if(narrator.x>=b.x-margin&&narrator.x<=b.x+b.w+margin&&narrator.y>=b.y-margin&&narrator.y<=b.y+b.h+margin)return b;
+  }
+  return null;
+}
+
+function updateInteractPrompt(){
+  var el=document.getElementById("interact-prompt");
+  if(!canvas||state.gameOver||state.eventActive){el.style.display="none";return;}
+  var b=getNearbyBuilding();
+  if(!b||!BUILDING_ACTIONS[b.id]){el.style.display="none";return;}
+  var action=BUILDING_ACTIONS[b.id];
+  var onCooldown=Date.now()<interactCooldownUntil;
+  var ms=state.mapScale||1;
+  var bsx=(b.x+b.w/2)*ms*cw;
+  var bsy=(b.y+b.h)*ms*ch+10;
+  el.style.left=bsx+"px";
+  el.style.top=bsy+"px";
+  el.style.transform="translateX(-50%)";
+  el.style.display="block";
+  document.getElementById("ip-building-name").textContent=b.name;
+  var btn=el.querySelector("button");
+  btn.textContent=action.label;
+  btn.disabled=onCooldown;
+  btn.style.opacity=onCooldown?"0.4":"1";
+  el.dataset.buildingId=b.id;
+}
+
+function interactWithBuilding(){
+  if(Date.now()<interactCooldownUntil)return;
+  var el=document.getElementById("interact-prompt");
+  var buildingId=el.dataset.buildingId;
+  if(!buildingId||state.destroyedBuildings[buildingId])return;
+  var action=BUILDING_ACTIONS[buildingId];
+  if(!action)return;
+  var b=null;
+  for(var i=0;i<BUILDINGS.length;i++){if(BUILDINGS[i].id===buildingId){b=BUILDINGS[i];break;}}
+  if(!b)return;
+  // If action requires a flag and it's not set, show flavor but skip effect
+  var applyEffect=true;
+  if(action.flagRequired&&!state.flags[action.flagRequired])applyEffect=false;
+  if(applyEffect){
+    var e=action.effect;
+    if(e.budget)state.budget+=e.budget;
+    if(e.attendance)state.attendance=clamp(state.attendance+e.attendance,0,100);
+    if(e.gangThreat)state.gangThreat=clamp(state.gangThreat+e.gangThreat,0,100);
+    if(e.morale)state.morale=clamp(state.morale+e.morale,0,100);
+  }
+  state.log.push({day:state.day,title:action.label+": "+b.name+(applyEffect?"":" (no effect)")});
+  updateSidebar();updateLog();
+  interactCooldownUntil=Date.now()+2000;
+}
+
+function gameLoop(){render();updateInteractPrompt();requestAnimationFrame(gameLoop);}
 </script>
 </body>
 </html>
