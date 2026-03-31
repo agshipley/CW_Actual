@@ -72,9 +72,20 @@
     ::-webkit-scrollbar { width:4px; }
     ::-webkit-scrollbar-track { background:#1a1e14; }
     ::-webkit-scrollbar-thumb { background:#3a4a2a; border-radius:2px; }
+    #mobile-gate { display:none; }
+    @media (max-width: 899px) {
+      #mobile-gate { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px; }
+      #title-screen, #game-screen { display:none !important; }
+      #mobile-gate h2 { font-size:36px; font-weight:normal; letter-spacing:3px; margin-bottom:20px; color:#d4d0c4; }
+      #mobile-gate p { font-size:13px; line-height:1.8; color:#8a8a7a; max-width:320px; }
+    }
   </style>
 </head>
 <body>
+<div id="mobile-gate">
+  <h2>CIVILWARLAND</h2>
+  <p>This game is designed for desktop. Please switch to a larger screen.</p>
+</div>
 <div id="title-screen">
   <div class="subtitle">A Park Management Simulation</div>
   <h1>CIVILWARLAND</h1>
