@@ -43,6 +43,13 @@
     #info-panel .desc { font-size:11px; color:#8a8a7a; line-height:1.6; font-style:italic; }
     #log-panel { flex:1; overflow-y:auto; padding:14px 16px; }
     .log-entry { font-size:10px; color:#6a7a5a; margin-bottom:5px; padding-bottom:5px; border-bottom:1px solid #222a1a; }
+    #budget-tooltip { display:none; background:#141a10; border:1px solid #2a3420; padding:8px 10px; margin-top:4px; margin-bottom:4px; }
+    #budget-tooltip .eco-row { display:flex; justify-content:space-between; font-size:10px; color:#6a7a5a; margin-bottom:3px; }
+    #budget-tooltip .eco-row.net { border-top:1px solid #2a3420; padding-top:4px; margin-top:2px; color:#b0b898; font-size:11px; }
+    #budget-tooltip .eco-pos { color:#6a8a4a; }
+    #budget-tooltip .eco-neg { color:#9a5a4a; }
+    .stat-row.clickable { cursor:pointer; }
+    .stat-row.clickable:hover .stat-name { color:#a0b080; }
     .log-entry .log-day { color:#4a5a3a; margin-right:6px; }
     #next-day-btn { position:absolute; bottom:16px; left:50%; transform:translateX(-50%); background:rgba(26,30,20,0.9); border:1px solid #4a5a3a; color:#b0b898; padding:10px 36px; font-family:Georgia,serif; font-size:13px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; z-index:10; }
     #next-day-btn:hover { border-color:#7a8a6a; }
@@ -77,12 +84,13 @@
     #interact-prompt button { background:none; border:1px solid #5a6a48; color:#c4c4a8; padding:5px 16px; font-family:Georgia,serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; }
     #interact-prompt button:hover { background:rgba(90,106,72,0.2); }
     canvas.build-mode { cursor: crosshair; }
-    #build-toggle-btn { width:100%; background:none; border:1px solid #4a5a3a; color:#b0a888; padding:8px; font-family:Georgia,serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; }
-    #build-toggle-btn:hover, #build-toggle-btn.active { background:rgba(90,106,72,0.2); border-color:#8a9a6a; color:#c4c4a8; }
-    #build-menu-overlay { display:none; position:absolute; top:0; left:0; width:210px; height:100%; background:rgba(16,22,12,0.97); overflow-y:auto; z-index:15; padding:14px 12px; border-right:1px solid #2a3420; }
-    #build-menu-overlay .sb-label { display:flex; justify-content:space-between; align-items:center; }
-    #build-menu-overlay .close-btn { cursor:pointer; color:#7a8a6a; font-size:14px; line-height:1; }
-    #build-menu-overlay .close-btn:hover { color:#c4c4a8; }
+    #build-toggle-btn, #zone-toggle-btn { width:100%; background:none; border:1px solid #4a5a3a; color:#b0a888; padding:8px; font-family:Georgia,serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; margin-top:0; }
+    #build-toggle-btn:hover, #build-toggle-btn.active, #zone-toggle-btn:hover, #zone-toggle-btn.active { background:rgba(90,106,72,0.2); border-color:#8a9a6a; color:#c4c4a8; }
+    #zone-toggle-btn { margin-top:6px; }
+    #build-menu-overlay, #zone-menu-overlay { display:none; position:absolute; top:0; left:0; width:210px; height:100%; background:rgba(16,22,12,0.97); overflow-y:auto; z-index:15; padding:14px 12px; border-right:1px solid #2a3420; }
+    #build-menu-overlay .sb-label, #zone-menu-overlay .sb-label { display:flex; justify-content:space-between; align-items:center; }
+    #build-menu-overlay .close-btn, #zone-menu-overlay .close-btn { cursor:pointer; color:#7a8a6a; font-size:14px; line-height:1; }
+    #build-menu-overlay .close-btn:hover, #zone-menu-overlay .close-btn:hover { color:#c4c4a8; }
     .build-hint { font-size:9px; color:#7a8a6a; font-style:italic; margin-bottom:10px; line-height:1.5; }
     .build-item { padding:8px 10px; border:1px solid #2a3420; margin-bottom:6px; cursor:pointer; background:rgba(26,30,20,0.5); }
     .build-item:hover { border-color:#5a6a48; background:rgba(50,66,38,0.2); }
@@ -101,6 +109,30 @@
     .dbg-row { display:flex; gap:5px; margin-bottom:5px; }
     .dbg-row select { flex:1; background:#1a0000; border:1px solid #882222; color:#cc8888; font-family:Georgia,serif; font-size:11px; padding:4px; }
     .dbg-row .dbg-btn { margin-bottom:0; flex:0 0 auto; }
+    .speed-btn { background:rgba(26,30,20,0.9); border:1px solid #4a5a3a; color:#b0b898; padding:8px 14px; font-family:Georgia,serif; font-size:15px; cursor:pointer; }
+    #mute-btn { position:absolute; top:12px; right:12px; z-index:20; background:rgba(26,30,20,0.82); border:1px solid #3a4a2a; color:#6a7a5a; width:28px; height:28px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; border-radius:2px; }
+    #mute-btn:hover { border-color:#6a8a4a; color:#a0b080; }
+    #mute-btn.unmuted { color:#b0b898; border-color:#5a7a4a; }
+    #tutorial-overlay { display:none; position:fixed; inset:0; pointer-events:none; z-index:200; }
+    #tutorial-overlay.active { display:block; }
+    #tutorial-tip { position:fixed; width:268px; background:linear-gradient(180deg,#222a1a,#1a2014); border:1px solid #3a4a2a; border-radius:3px; padding:16px 18px 14px; pointer-events:auto; box-shadow:0 4px 24px rgba(0,0,0,0.55); font-family:Georgia,serif; }
+    #tutorial-tip::before,#tutorial-tip::after { content:''; position:absolute; width:0; height:0; pointer-events:none; }
+    #tutorial-tip.arrow-down::before { bottom:-11px; left:var(--ax,50%); transform:translateX(-50%); border:10px solid transparent; border-top-color:#3a4a2a; border-bottom-width:0; }
+    #tutorial-tip.arrow-down::after  { bottom:-9px;  left:var(--ax,50%); transform:translateX(-50%); border:9px  solid transparent; border-top-color:#1e2818;  border-bottom-width:0; }
+    #tutorial-tip.arrow-up::before   { top:-11px;    left:var(--ax,50%); transform:translateX(-50%); border:10px solid transparent; border-bottom-color:#3a4a2a; border-top-width:0; }
+    #tutorial-tip.arrow-up::after    { top:-9px;     left:var(--ax,50%); transform:translateX(-50%); border:9px  solid transparent; border-bottom-color:#1e2818;  border-top-width:0; }
+    #tutorial-tip.arrow-right::before { right:-11px; top:var(--ay,50%); transform:translateY(-50%); border:10px solid transparent; border-left-color:#3a4a2a; border-right-width:0; }
+    #tutorial-tip.arrow-right::after  { right:-9px;  top:var(--ay,50%); transform:translateY(-50%); border:9px  solid transparent; border-left-color:#1e2818;  border-right-width:0; }
+    .tut-num  { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:#5a6a4a; margin-bottom:8px; }
+    .tut-body { font-size:12px; color:#9a9a7a; line-height:1.75; margin-bottom:14px; }
+    .tut-btns { display:flex; justify-content:space-between; align-items:center; }
+    .tut-skip { background:none; border:none; font-family:Georgia,serif; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#4a5a3a; cursor:pointer; padding:0; }
+    .tut-skip:hover { color:#6a7a5a; }
+    .tut-next { background:none; border:1px solid #4a5a3a; font-family:Georgia,serif; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:#b0b898; cursor:pointer; padding:5px 14px; }
+    .tut-next:hover { border-color:#6a8a4a; color:#c4c4a8; }
+    .speed-btn:hover { border-color:#7a8a6a; }
+    .speed-btn.active { background:rgba(70,90,50,0.3); border-color:#8a9a6a; color:#e0e0c8; }
+    #time-display { font-size:13px; color:#8a9a7a; margin-left:12px; letter-spacing:1px; }
     #mobile-gate { display:none; }
     @media (max-width: 899px) {
       #mobile-gate { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; padding:20px; }
@@ -120,16 +152,24 @@
   <h1>CIVILWARLAND</h1>
   <div class="decline">in Bad Decline</div>
   <div class="desc">You are the Special Assistant at CivilWarLand, a historical theme park in terminal decline. Gangs roam the grounds. Attendance is cratering. Your boss has ideas. None of them are good.<br><br>Each day, choose how to spend your energy. When the story intervenes, choose how to respond. Try to keep the place standing for thirty days.</div>
+  <button id="continue-btn" onclick="loadGame()" style="display:none;margin-bottom:10px;">Continue</button>
   <button onclick="startGame()">Enter the Park</button>
+  <button id="newgame-btn" onclick="newGame()" style="display:none;margin-top:10px;font-size:11px;letter-spacing:2px;padding:10px 32px;opacity:0.65;">New Game</button>
   <div class="credit">After George Saunders</div>
 </div>
 <div id="game-screen">
   <div id="map-col">
     <canvas id="canvas"></canvas>
+    <button id="mute-btn" onclick="toggleMute()" title="Toggle sound">&#x1F507;</button>
     <div id="build-menu-overlay">
       <div class="sb-label">Build <span class="close-btn" onclick="closeBuildMenu()">&#x2715;</span></div>
       <div class="build-hint" id="build-hint">Select a structure, then click the new land to place it.</div>
       <div id="build-items"></div>
+    </div>
+    <div id="zone-menu-overlay">
+      <div class="sb-label">Zone <span class="close-btn" onclick="closeZoneMenu()">&#x2715;</span></div>
+      <div class="build-hint" id="zone-hint">Select a zone type, then click to place it.</div>
+      <div id="zone-items"></div>
     </div>
     <div id="debug-panel">
       <div class="dbg-title">&#x26A0; Debug Mode</div>
@@ -147,40 +187,72 @@
         <button class="dbg-btn" onclick="dbgKillStat()">Kill Stat</button>
       </div>
     </div>
-    <div id="day-display"><span class="day-num" id="day-num">0</span><span class="day-label">Days</span></div>
-    <div id="interact-prompt"><div class="ip-name" id="ip-building-name"></div><button id="ip-repair-btn" style="display:none" onclick="repairBuilding()">Repair</button><button id="ip-action-btn" style="display:none" onclick="interactWithBuilding()">Interact</button></div>
-    <button id="next-day-btn" onclick="advanceDay()">Next Day &#x2192;</button>
+    <div id="day-display"><span class="day-num" id="day-num">0</span><span class="day-label">Days</span><span id="time-display">8:00 AM</span></div>
+    <div id="interact-prompt"><div class="ip-name" id="ip-building-name"></div><button id="ip-repair-btn" style="display:none" onclick="repairBuilding()">Repair</button><button id="ip-rest-btn" style="display:none" onclick="restNarrator()">Rest</button><button id="ip-action-btn" style="display:none" onclick="interactWithBuilding()">Interact</button></div>
+    <div id="speed-controls" style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:10;align-items:center;">
+      <button class="speed-btn active" id="spd-pause" onclick="setSpeed(0)">&#x23F8;</button>
+      <button class="speed-btn" id="spd-1" onclick="setSpeed(1)">&#x25B6;</button>
+      <button class="speed-btn" id="spd-2" onclick="setSpeed(2)">&#x25B6;&#x25B6;</button>
+      <button class="speed-btn" id="spd-4" onclick="setSpeed(4)">&#x25B6;&#x25B6;&#x25B6;</button>
+      <span onclick="saveAndQuit()" style="font-size:9px;letter-spacing:1px;color:#4a5a3a;text-transform:uppercase;cursor:pointer;margin-left:6px;" title="Save &amp; Quit (Esc)">&#x2715; Quit</span>
+    </div>
   </div>
   <div id="sidebar">
     <div class="sb-section">
       <div class="sb-label">Park Status</div>
-      <div class="stat-row"><span class="stat-name">Budget</span><span class="stat-val" id="s-budget">$45,000</span></div>
+      <div class="stat-row clickable" onclick="toggleBudgetTooltip()"><span class="stat-name">Budget</span><span class="stat-val" id="s-budget">$50,000</span></div>
       <div class="stat-bar"><div class="stat-bar-fill" id="bar-budget" style="width:90%;background:#8a8a4a;"></div></div>
-      <div class="stat-row"><span class="stat-name">Attendance</span><span class="stat-val" id="s-att">65/day</span></div>
-      <div class="stat-bar"><div class="stat-bar-fill" id="bar-att" style="width:65%;background:#5a8a4a;"></div></div>
+      <div id="budget-tooltip"></div>
+      <div class="stat-row"><span class="stat-name">Attendance</span><span class="stat-val" id="s-att">70/day</span></div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="bar-att" style="width:70%;background:#5a8a4a;"></div></div>
       <div class="stat-row"><span class="stat-name">Gang Threat</span><span class="stat-val" id="s-gang">15%</span></div>
       <div class="stat-bar"><div class="stat-bar-fill" id="bar-gang" style="width:15%;background:#9a5a4a;"></div></div>
-      <div class="stat-row"><span class="stat-name">Staff Morale</span><span class="stat-val" id="s-morale">50%</span></div>
-      <div class="stat-bar"><div class="stat-bar-fill" id="bar-morale" style="width:50%;background:#4a7a8a;"></div></div>
+      <div class="stat-row"><span class="stat-name">Staff Morale</span><span class="stat-val" id="s-morale">60%</span></div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="bar-morale" style="width:60%;background:#4a7a8a;"></div></div>
       <div class="stat-row" id="structures-row" style="display:none;margin-top:4px;"><span class="stat-name">Structures</span><span class="stat-val" id="s-structures">0</span></div>
     </div>
-    <div class="sb-section" id="build-section" style="display:none"><button id="build-toggle-btn" onclick="toggleBuildMenu()">Build New Structure</button></div>
+    <div class="sb-section">
+      <div class="sb-label">Your Condition</div>
+      <div class="stat-row"><span class="stat-name">Energy</span><span class="stat-val" id="s-energy">80</span></div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="bar-energy" style="width:80%;background:#4a8aaa;"></div></div>
+      <div class="stat-row"><span class="stat-name">Stress</span><span class="stat-val" id="s-stress">20%</span></div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="bar-stress" style="width:20%;background:#aa5a3a;"></div></div>
+    </div>
+    <div class="sb-section" id="township-section" style="display:none">
+      <div class="sb-label">Township</div>
+      <div class="stat-row"><span class="stat-name">Population</span><span class="stat-val" id="s-population">0</span></div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="bar-population" style="width:0%;background:#6090b0;"></div></div>
+      <div class="stat-row"><span class="stat-name">Approval</span><span class="stat-val" id="s-approval">50%</span></div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="bar-approval" style="width:50%;background:#5a9a8a;"></div></div>
+    </div>
+    <div class="sb-section" id="build-section" style="display:none">
+      <button id="build-toggle-btn" onclick="toggleBuildMenu()">Build New Structure</button>
+      <button id="zone-toggle-btn" style="display:none" onclick="toggleZoneMenu()">Zone New Area</button>
+    </div>
     <div id="info-panel"><div class="sb-label">Selected</div><div class="desc" style="color:#4a5a3a;">Click a building for details.</div></div>
     <div id="log-panel"><div class="sb-label">Event Log</div><div id="log-entries"></div></div>
   </div>
 </div>
 <div id="event-overlay"><div id="event-box"></div></div>
+<div id="tutorial-overlay"><div id="tutorial-tip"></div></div>
 
 <script>
 var COOLDOWN_DAYS = 2;
 
 var state = {
-  day: 0, budget: 45000, attendance: 65, gangThreat: 15, morale: 50,
+  day: 0, budget: 50000, attendance: 70, gangThreat: 15, morale: 60,
   selectedBuilding: null, gameOver: false, eventActive: false,
   log: [], destroyedBuildings: {}, flags: {}, characters: [],
   selectedAction: null, actionCooldowns: {}, usedMinorEvents: [],
   expanded: false, mapScale: 1,
-  placedBuildings: [], buildMode: false, selectedBuildable: null
+  placedBuildings: [], buildMode: false, selectedBuildable: null,
+  narratorEnergy: 80, narratorStress: 20,
+  gameTime: 480, gamePaused: true, gameSpeed: 1,
+  placedZones: [], zoneMode: false, selectedZone: null,
+  townshipUnlocked: false, population: 0, approval: 50,
+  residents: [],
+  deficitDays: 0, lastEconBreakdown: null,
+  weather: "clear", weatherDaysLeft: 4, weatherEventPending: false
 };
 
 var BUILDABLE_STRUCTURES = [
@@ -190,10 +262,23 @@ var BUILDABLE_STRUCTURES = [
   {id:"towne_meeting",    name:"Towne Meeting Hall",         cost:4000, color:"#D8C8A0",roof:"#B8A880", desc:"For simulated democracy. Mrs. Dugan brings bread.",                               daily:{attendance:5,budget:100}},
   {id:"watchtower",       name:"Watchtower",                cost:2500, color:"#8A7A60",roof:"#6A5A40", desc:"Eyes on the retaining wall.",                                                     daily:{gangThreat:-3}},
   {id:"second_wall",      name:"Second Retaining Wall",     cost:5000, color:"#7A7A6A",roof:null,       desc:"They're tunneling in or coming over. Build higher.",                              daily:{gangThreat:-5}},
-  {id:"staff_quarters",   name:"Staff Quarters",            cost:3000, color:"#A89880",roof:"#887860", desc:"Somewhere to perform your Hatred Abatement Breathing.",                          daily:{morale:3}},
+  {id:"staff_quarters",   name:"Staff Quarters",            cost:3000, color:"#A89880",roof:"#887860", desc:"Somewhere to perform your Hatred Abatement Breathing.",                          daily:{morale:3}, restable:true},
   {id:"pasta_lair",       name:"Melvin's Pasta Lair",       cost:2000, color:"#C87040",roof:"#A85020", desc:"A religious zealot who worked five jobs during the Depression.",                  daily:{morale:2,budget:-50}},
   {id:"mckinnon_memorial",name:"McKinnon Memorial",         cost:3500, color:"#90B8D0",roof:"#70A0B8", desc:"For the family who owned this land before it was a parking lot.",                 daily:{morale:2,attendance:2}},
-  {id:"photo_gallery",    name:"Gettysburg Photo Gallery",  cost:2500, color:"#B0A888",roof:"#908868", desc:"Actual photos. The ones we used for the Desperate Patrol costumes.",              daily:{attendance:3}}
+  {id:"photo_gallery",    name:"Gettysburg Photo Gallery",  cost:2500, color:"#B0A888",roof:"#908868", desc:"Actual photos. The ones we used for the Desperate Patrol costumes.",              daily:{attendance:3}},
+  {id:"school",          name:"School",           cost:8000,  color:"#B0C8D8",roof:"#90A8B8", desc:"The curriculum covers the Civil War extensively. Some would say exclusively.",                                                                       daily:{approval:3},                      township:true, populationGrowthBonus:1},
+  {id:"clinic",          name:"Clinic",           cost:6000,  color:"#D0E0D0",roof:"#B0C0B0", desc:"Dr. Pelz handles everything from knife wounds to frontier stew poisoning. She doesn't ask how.",                                                    daily:{approval:2,morale:1},             township:true},
+  {id:"fire_station",    name:"Fire Station",     cost:7000,  color:"#D06040",roof:"#B04020", desc:"After the Anglican Church incident, this felt overdue.",                                                                                             daily:{gangThreat:-2,approval:1},        township:true},
+  {id:"post_office",     name:"Post Office",      cost:4000,  color:"#C8C0A0",roof:"#A8A080", desc:"Mostly handles complaints about the ghosts and requests for Samuel to stop staring.",                                                                daily:{approval:2},                      township:true},
+  {id:"community_center",name:"Community Center", cost:10000, color:"#B8A8C8",roof:"#9888A8", desc:"Mr. A wanted to call it the Alsuga Center for Community Excellence. You talked him down to Community Center.",                                       daily:{approval:4,morale:3,budget:-100},  township:true},
+  {id:"water_tower",     name:"Water Tower",      cost:12000, color:"#8090A0",roof:null,       desc:"The water tastes like 1865. Which is to say, it tastes like iron and regret.",                                                                      daily:{},                                township:true},
+  {id:"cemetery",        name:"Cemetery",         cost:2000,  color:"#707868",roof:null,       desc:"For the residents who lived here. And the ones who died here before it was a town. And the ones in between.",                                       daily:{approval:1},                      township:true}
+];
+
+var ZONE_TYPES = [
+  {id:"residential", name:"Residential", cost:3000, color:"#A0B8D0", roof:null,     desc:"Allows population growth. Houses up to 10 residents per zone."},
+  {id:"commercial",  name:"Commercial",  cost:4000, color:"#D0B870", roof:"#B09850", desc:"Generates $50/day per 10 residents. Requires population to produce revenue."},
+  {id:"civic",       name:"Civic",       cost:5000, color:"#90C0A0", roof:"#70A080", desc:"Increases approval by +2/day. Counteracts natural approval decay."}
 ];
 
 var BUILDINGS = [
@@ -278,7 +363,30 @@ var MINOR_EVENTS = [
   {title:"TAINTED MEAT",text:"Word comes in that last Friday's simulated frontier hunt may have used tainted beef. The stuff we toughen up to resemble buffalo meat. The story could hit the Sunday supplement. Mr. A says deny everything and pull the remaining stock.",effect:{budget:-600,attendance:-4,gangThreat:0,morale:-3}},
   {title:"TEEN BELLES",text:"The Teen Belles have filed a group complaint about working conditions. They want period-appropriate undergarments replaced with modern ones. Mr. A says authenticity is non-negotiable. You're caught in the middle. As usual.",effect:{budget:-100,attendance:0,gangThreat:0,morale:-3}},
   {title:"EBERSHOM",text:"You go for a late walk through the subdivision. As usual, Mr. Ebershom is practicing figure skating moves in his foyer. You sit down by the fake creek and think about how you ended up here. You don't reach a conclusion.",effect:{budget:0,attendance:0,gangThreat:0,morale:-1}},
-  {title:"HEAVEN'S DISREPAIR",text:"Sitting on the hood of your car after hours, you watch the stars with Mr. McKinnon. He says there are fewer than when he was a boy. He says even the heavens have fallen into disrepair. You think about explaining smog to him but decide against it.",effect:{budget:0,attendance:0,gangThreat:0,morale:-1}}
+  {title:"HEAVEN'S DISREPAIR",text:"Sitting on the hood of your car after hours, you watch the stars with Mr. McKinnon. He says there are fewer than when he was a boy. He says even the heavens have fallen into disrepair. You think about explaining smog to him but decide against it.",effect:{budget:0,attendance:0,gangThreat:0,morale:-1}},
+  {title:"REVENUE IMPACTING EVENT",text:"A kid pulls a butter knife on Fred Moore and steals a handful of penny candy from the General Store. As per specs, Fred alerts Mr. A. We perform Exit Sealage. The kid's gone. Mr. A says what the hell, Unseal, profit loss is minimal.",effect:{budget:-20,attendance:0,gangThreat:2,morale:-1}},
+  {title:"HOLOGRAPH MALFUNCTION",text:"The holograph generator in the woods is projecting Jefferson Davis directly into the men's room. Two visitors have complained. One said it was the most historically immersive bathroom experience of his life.",effect:{budget:-200,attendance:1,gangThreat:0,morale:0}},
+  {title:"THE COSTUME DISPUTE",text:"A Visitor refuses to play a Native American role, citing liability law. We offer him sheriff. He wants Confederate general. We don't have a general costume. We give him two hats and a sash and call it a field promotion.",effect:{budget:-50,attendance:0,gangThreat:0,morale:-1}},
+  {title:"PARADE OF OLD-FASHIONED CONVEYANCE",text:"Tonight's parade goes off without incident for the first time in six weeks. The hay wagon doesn't tip over. The donkey doesn't bite anyone. I almost don't know what to do with myself.",effect:{budget:100,attendance:3,gangThreat:0,morale:3}},
+  {title:"MR. A'S PUTTER",text:"Mr. A has installed a putting green in City Hall using sod from the Timeless Green. He says it helps him think strategically. The Timeless Green now has a bald patch. Visitors are asking about it.",effect:{budget:-100,attendance:-2,gangThreat:0,morale:-1}},
+  {title:"FRONTIER HUNT REDUX",text:"We're running another simulated frontier hunt. The beef has been triple-checked. Nobody gets food poisoning. This is what passes for a victory.",effect:{budget:-300,attendance:4,gangThreat:0,morale:1}},
+  {title:"QUINN'S AUDITION",condition:"quinn_armed",text:"Quinn asks for the afternoon off to audition for a dinner theater production of Cats. In the Grizzly suit. Because the director said they'd consider non-traditional casting. I let him go.",effect:{budget:0,attendance:0,gangThreat:2,morale:2}},
+  {title:"SAMUEL'S GARDEN",condition:"samuel_armed",text:"Samuel has started a small vegetable garden behind the Kriegal Place. He grows tomatoes and what appears to be medicinal herbs. Nobody asks about the herbs. The tomatoes are excellent.",effect:{budget:0,attendance:0,gangThreat:-1,morale:1}},
+  {title:"INSURANCE INSPECTOR",condition:"insurance_fraud",text:"An insurance inspector shows up asking about the church fire. He has a clipboard and an expression of professional skepticism. Mr. A sweats through his shirt. I offer the inspector a complimentary frontier lunch. He accepts. We dodge it. This time.",effect:{budget:-500,attendance:0,gangThreat:0,morale:-5}},
+  {title:"THE SYNTH INCIDENT",text:"Someone left Howie's little synth near the McKinnon death-site. It's playing carillon on loop. The ghosts are either soothed or furious, it's hard to tell. Mrs. McKinnon is swaying. Mr. McKinnon is trying to smash it but his hands pass through.",effect:{budget:0,attendance:0,gangThreat:0,morale:1}},
+  {title:"PERIOD-AUTHENTIC TREATS",text:"The saltwater taffy has been reformulated to be more period-authentic. It now tastes like 1865. Children are crying. Several fillings have been lost. Authenticity has a price.",effect:{budget:-100,attendance:-3,gangThreat:0,morale:-2}},
+  {title:"GRAYSON'S BIRDS",conditionNot:"grayson_fired",text:"Grayson reports the oriole population has self-corrected to within 3% of the 1865 estimate. He's ecstatic. Nobody else understands why. He went overboard on Howie's baseball candy again. I let it slide.",effect:{budget:-30,attendance:0,gangThreat:0,morale:2}},
+  {title:"THE WIDOWER RETURNS",text:"One of the two widowers from Mr. A's whittling seminar has come back. He wants to know when the next one is. There is no next one. I tell him we're in a scheduling transition. He says he'll wait.",effect:{budget:0,attendance:1,gangThreat:0,morale:1}},
+  {title:"MAKE ME CLUB",text:"Sylvia shows up Monday with marks on her wrists from the Make Me Club on Airport Road. She says she's upgraded from kiddie handcuffs to the real thing. She seems happier. Her Security work has never been sharper. I don't ask follow-up questions.",effect:{budget:0,attendance:0,gangThreat:-2,morale:2}},
+  {title:"NATE'S SPECIAL",text:"Nate's Saloon is running a two-for-one special on frontier stew. The stew is mostly potato. Staff morale briefly improves. Quinn has three bowls and falls asleep in the cannon.",effect:{budget:-150,attendance:1,gangThreat:0,morale:4}},
+  {title:"HOMEOWNERS ASSOCIATION",text:"A homeowners association has formed. They have concerns. They have many concerns, formatted as a bulleted list, laminated, and slid under your door at 6 AM. Nobody knows who printed it.",effect:{budget:0,attendance:0,gangThreat:0,morale:0,approval:-2},townshipOnly:true},
+  {title:"SCHOOL PLAY",condition:"school_built",text:"The school is staging a production of Our American Cousin. The casting is ambitious. The sets are cardboard. A child playing Lincoln refuses to go onstage. The audience loves it anyway.",effect:{budget:0,attendance:0,gangThreat:0,morale:2,approval:3},townshipOnly:true},
+  {title:"SAMUEL'S TOMATOES",condition:"samuel_armed",text:"Samuel's vegetable garden has been producing. He leaves a basket of tomatoes at the Township Hall with a note: 'From the garden. Not poisoned.' The residents appreciate the tomatoes. They are divided on the note.",effect:{budget:50,attendance:0,gangThreat:0,morale:0,approval:1},townshipOnly:true},
+  {title:"THE HISTORIAN",text:"A retired professor has moved into the residential zone. He's written a monograph about the area's pre-park history. He wants to give a lecture. You let him. Twelve people attend. He refers to the Conifer Grove as 'the haunt of tragedy.' He's not wrong.",effect:{budget:0,attendance:3,gangThreat:0,morale:0,approval:2},townshipOnly:true},
+  {title:"POWER OUTAGE",text:"A transformer issue takes out power to the township for six hours. Residents gather by candlelight and complain about you. Some of them discover they enjoy complaining by candlelight. This is not the outcome you were hoping for.",effect:{budget:-400,attendance:-5,gangThreat:0,morale:-3,approval:0},townshipOnly:true},
+  {title:"FIRST BABY",text:"The township's first child is born. A boy. The parents name him after the park. His full legal name is CivilWarLand Dubrovnik. You sign the commemorative certificate. You do not comment on the name.",effect:{budget:0,attendance:0,gangThreat:0,morale:3,approval:5,population:1},townshipOnly:true},
+  {title:"TAX REVENUE",text:"The commercial zone turns in a strong quarter. The numbers, for once, are not a source of despair. Mr. A sends a memo. The memo says 'good.' That's the whole memo.",effect:{budget:2000,attendance:0,gangThreat:0,morale:0,approval:0},townshipOnly:true},
+  {title:"THE DEVELOPER",text:"A developer named Kessler shows up with a briefcase and a blazer that doesn't quite fit. He's interested in the township land. He doesn't say what he'd build. He says 'mixed-use.' You say you'll think about it. You're not sure you will.",effect:{budget:0,attendance:0,gangThreat:0,morale:0,approval:-3},flag:"developer_interested",townshipOnly:true}
 ];
 
 var EVENTS = [
@@ -289,42 +397,131 @@ var EVENTS = [
     {label:"Propose marketing push",text:"Spend $4,000 on local radio ads and flyers. It might help. It might not.",effect:{budget:-4000,attendance:8,gangThreat:0,morale:3}},
     {label:"Suggest layoffs",text:"Cut three part-timers. The budget breathes but the remaining staff notice.",effect:{budget:2000,attendance:-5,gangThreat:0,morale:-18}}]},
   {day:6,title:"QUINN FOR DESPERATE PATROL",text:"Sylvia's research identifies Quinn as the most violent employee. Mr. A wants him on Desperate Patrol with live ammo. Quinn's got six kids and needs the money.",choices:[
-    {label:"Arm Quinn",text:"Give Quinn live ammo and an extra $200/week. You're putting a weapon in the hands of a man who once burned a storage shed.",effect:{budget:-400,attendance:0,gangThreat:-4,morale:-8},flag:"quinn_armed"},
-    {label:"Refuse",text:"Tell Mr. A this is insane. He questions your commitment. The gangs remain unchecked.",effect:{budget:0,attendance:-3,gangThreat:8,morale:5},flag:"quinn_refused"}]},
+    {label:"Arm Quinn",text:"Give Quinn live ammo and an extra $200/week. You're putting a weapon in the hands of a man who once burned a storage shed.",effect:{budget:-400,attendance:0,gangThreat:-4,morale:-8,stress:8},flag:"quinn_armed"},
+    {label:"Refuse",text:"Tell Mr. A this is insane. He questions your commitment. The gangs remain unchecked.",effect:{budget:0,attendance:-3,gangThreat:8,morale:5,stress:3},flag:"quinn_refused"}]},
   {day:8,title:"THE ORNITHOLOGIST QUESTION",text:"Grayson says we need to eliminate a couple hundred orioles to match 1865. Mr. A says ornithologists are a luxury. You'll do the telling.",choices:[
-    {label:"Fire Grayson",text:"You hand him Kleenexes and fend off a few blows. One more person who trusted you, gone.",effect:{budget:600,attendance:0,gangThreat:0,morale:-12},flag:"grayson_fired",removeChar:"grayson"},
-    {label:"Defend Grayson",text:"You argue he's essential. Mr. A is annoyed. He'll remember this when cuts come.",effect:{budget:-1200,attendance:0,gangThreat:0,morale:5}}]},
+    {label:"Fire Grayson",text:"You hand him Kleenexes and fend off a few blows. One more person who trusted you, gone.",effect:{budget:600,attendance:0,gangThreat:0,morale:-12,stress:10},flag:"grayson_fired",removeChar:"grayson"},
+    {label:"Defend Grayson",text:"You argue he's essential. Mr. A is annoyed. He'll remember this when cuts come.",effect:{budget:-1200,attendance:0,gangThreat:0,morale:5,stress:3}}]},
   {day:10,title:"QUINN HUMILIATED",text:"Quinn and his men are tied to the cannon. The gangs took Quinn's pants and cut him with knives. You wrap him in a Confederate flag and load him into a hay cart.",conditionNot:"quinn_refused",choices:[
-    {label:"Report it",text:"Call the police. The story makes the news. Attendance craters but at least there's a record.",effect:{budget:-2000,attendance:-12,gangThreat:8,morale:-5}},
-    {label:"Keep it quiet",text:"Give Quinn the week off. The staff know what happened. They know you buried it.",effect:{budget:-500,attendance:0,gangThreat:8,morale:-15}}]},
+    {label:"Report it",text:"Call the police. The story makes the news. Attendance craters but at least there's a record.",effect:{budget:-2000,attendance:-12,gangThreat:8,morale:-5,stress:5}},
+    {label:"Keep it quiet",text:"Give Quinn the week off. The staff know what happened. They know you buried it.",effect:{budget:-500,attendance:0,gangThreat:8,morale:-15,stress:12}}]},
   {day:10,title:"GANGS ESCALATE",text:"Without Quinn on patrol, the gangs get bolder. They wound two visitors near the General Store and spraypaint the Everly Mansion.",condition:"quinn_refused",choices:[
-    {label:"Hire security firm",text:"Professional but expensive. And they're not cheap enough to stick around.",effect:{budget:-6000,attendance:3,gangThreat:-12,morale:5}},
-    {label:"Tough it out",text:"Hope it blows over. Everyone knows it won't.",effect:{budget:0,attendance:-12,gangThreat:18,morale:-12}}]},
+    {label:"Hire security firm",text:"Professional but expensive. And they're not cheap enough to stick around.",effect:{budget:-6000,attendance:3,gangThreat:-12,morale:5,stress:4}},
+    {label:"Tough it out",text:"Hope it blows over. Everyone knows it won't.",effect:{budget:0,attendance:-12,gangThreat:18,morale:-12,stress:6}}]},
   {day:13,title:"SAMUEL ARRIVES",text:"A guy shows up at Personnel looking completely Civil War. His name is Samuel. Sylvia's federal sources say he was expelled from Vietnam for a bloodbath. His marksmanship scores go on for pages.",choices:[
-    {label:"Arm Samuel",text:"Mr. A says Sam's our man. You get off your indefensible high horse. You're handing a weapon to a man expelled from a war for excessive violence.",effect:{budget:-800,gangThreat:-20,morale:-15,attendance:0},flag:"samuel_armed",addChar:{id:"samuel",name:"Samuel",x:.54,y:.20,color:"#8B4513",speed:.004}},
-    {label:"Keep him churning butter",text:"Samuel stays on the Kriegal porch. The gangs remain your problem. Mr. A's patience thins.",effect:{budget:0,gangThreat:8,morale:3,attendance:-3},flag:"samuel_butter"}]},
+    {label:"Arm Samuel",text:"Mr. A says Sam's our man. You get off your indefensible high horse. You're handing a weapon to a man expelled from a war for excessive violence.",effect:{budget:-800,gangThreat:-20,morale:-15,attendance:0,stress:10},flag:"samuel_armed",addChar:{id:"samuel",name:"Samuel",x:.54,y:.20,color:"#8B4513",speed:.004}},
+    {label:"Keep him churning butter",text:"Samuel stays on the Kriegal porch. The gangs remain your problem. Mr. A's patience thins.",effect:{budget:0,gangThreat:8,morale:3,attendance:-3,stress:2},flag:"samuel_butter"}]},
   {day:17,title:"THE CHURCH BURNS",text:"The gangs have set fire to the Anglican Church. $90,000 to transport and refurbish, up in flames. You can see it from Mr. A's window. He breaks down in tears.",choices:[
-    {label:"Call fire department",text:"Official response. The story gets out. Insurance covers some of it but the damage to reputation is real.",effect:{budget:-8000,attendance:-15,gangThreat:8,morale:-10},destroy:"church"},
-    {label:"Let it burn for insurance",text:"Mr. A's eyes light up through his tears. You file the claim. You both know what you've done.",effect:{budget:5000,attendance:-15,gangThreat:5,morale:-25},destroy:"church",flag:"insurance_fraud"}]},
+    {label:"Call fire department",text:"Official response. The story gets out. Insurance covers some of it but the damage to reputation is real.",effect:{budget:-5000,attendance:-15,gangThreat:8,morale:-6,stress:8},destroy:"church"},
+    {label:"Let it burn for insurance",text:"Mr. A's eyes light up through his tears. You file the claim. You both know what you've done.",effect:{budget:5000,attendance:-15,gangThreat:5,morale:-25,stress:15},destroy:"church",flag:"insurance_fraud"}]},
   {day:20,title:"THE FOLEY BAPTISM",text:"The Foleys rent the Worship Center for a baptism. Midway through, a gang bursts in and seizes a sixteen-year-old niece. Her father is blackjacked.",conditionNot:"samuel_butter",choices:[
-    {label:"Let Samuel handle it",text:"Six fast shots. Six gang corpses. Samuel's having punch with the niece. The police arrive. You all lie like rugs. You are now an accessory to six homicides.",effect:{budget:300,attendance:3,gangThreat:-20,morale:-18},flag:"foley_massacre"},
-    {label:"Call 911 immediately",text:"The gang flees before police arrive. No one dies. But the Foleys are furious and the story makes the news.",effect:{budget:-5000,attendance:-12,gangThreat:8,morale:-5}}]},
+    {label:"Let Samuel handle it",text:"Six fast shots. Six gang corpses. Samuel's having punch with the niece. The police arrive. You all lie like rugs. You are now an accessory to six homicides.",effect:{budget:300,attendance:3,gangThreat:-20,morale:-10,stress:15},flag:"foley_massacre"},
+    {label:"Call 911 immediately",text:"The gang flees before police arrive. No one dies. But the Foleys are furious and the story makes the news.",effect:{budget:-5000,attendance:-12,gangThreat:8,morale:-5,stress:5}}]},
   {day:20,title:"THE FOLEY BAPTISM",text:"A gang bursts into the Foley baptism and seizes a niece. You have no armed enforcer in the woods.",condition:"samuel_butter",choices:[
-    {label:"Call 911",text:"Police respond in twelve minutes. The niece is found shaken but alive. The Foleys sue for negligence.",effect:{budget:-10000,attendance:-18,gangThreat:8,morale:-12}},
-    {label:"Intervene yourself",text:"You grab a shovel and run after them. You get beaten badly but the niece escapes. A week in the Infirmary. The staff look at you differently after.",effect:{budget:-2000,attendance:-5,gangThreat:5,morale:10},flag:"narrator_brave"}]},
+    {label:"Call 911",text:"Police respond in twelve minutes. The niece is found shaken but alive. The Foleys sue for negligence.",effect:{budget:-10000,attendance:-18,gangThreat:8,morale:-12,stress:5}},
+    {label:"Intervene yourself",text:"You grab a shovel and run after them. You get beaten badly but the niece escapes. A week in the Infirmary. The staff look at you differently after.",effect:{budget:-2000,attendance:-5,gangThreat:5,morale:10,stress:8},flag:"narrator_brave"}]},
   {day:23,title:"THE HAND",text:"A human hand on your chair, holding a note. Penny candy everywhere. 'Sir, another pig disciplined. Samuel the Rectifier.' There's a class ring on it. A high schooler. For stealing candy.",condition:"samuel_armed",choices:[
-    {label:"Bury it in the marsh",text:"Mr. A says bury it behind Refreshments. You are now burying human remains to protect a murderer. Mr. McKinnon's ghost watches you dig.",effect:{budget:0,attendance:0,gangThreat:-5,morale:-22},flag:"buried_hand"},
-    {label:"Turn Samuel in",text:"You call the police. Samuel vanishes into the Great Forest. Mr. A says if you go down, he goes down, you go down. He's right.",effect:{budget:-3000,attendance:-8,gangThreat:18,morale:8},flag:"samuel_reported",removeChar:"samuel"}]},
+    {label:"Bury it in the marsh",text:"Mr. A says bury it behind Refreshments. You are now burying human remains to protect a murderer. Mr. McKinnon's ghost watches you dig.",effect:{budget:0,attendance:0,gangThreat:-5,morale:-22,stress:15},flag:"buried_hand"},
+    {label:"Turn Samuel in",text:"You call the police. Samuel vanishes into the Great Forest. Mr. A says if you go down, he goes down, you go down. He's right.",effect:{budget:-3000,attendance:-8,gangThreat:18,morale:8,stress:10},flag:"samuel_reported",removeChar:"samuel"}]},
   {day:26,title:"HALLOWEEN",text:"You bring Marcus and Howie for trick-or-treating. Teens burst from the Conifer Grove as you cross the Timeless Green.",condition:"samuel_armed",conditionNot:"samuel_reported",choices:[
-    {label:"Trust Samuel",text:"Shots ring out. Howie drops. His ledger is hit, not him. The 'gang' turns out to be a bird-watching group. Samuel has shot three adolescent bird-watchers. Your son was ten feet from live fire.",effect:{budget:-10000,attendance:-35,gangThreat:5,morale:-28},flag:"birdwatchers_shot"},
-    {label:"Grab the boys and run",text:"You scoop up the kids and sprint for City Hall. Samuel fires anyway. One bird-watcher is wounded. But your boys are safe. For now.",effect:{budget:-5000,attendance:-22,gangThreat:5,morale:-18}}]},
+    {label:"Trust Samuel",text:"Shots ring out. Howie drops. His ledger is hit, not him. The 'gang' turns out to be a bird-watching group. Samuel has shot three adolescent bird-watchers. Your son was ten feet from live fire.",effect:{budget:-10000,attendance:-20,gangThreat:5,morale:-15,stress:15},flag:"birdwatchers_shot"},
+    {label:"Grab the boys and run",text:"You scoop up the kids and sprint for City Hall. Samuel fires anyway. One bird-watcher is wounded. But your boys are safe. For now.",effect:{budget:-5000,attendance:-22,gangThreat:5,morale:-18,stress:10}}]},
   {day:28,title:"EVELYN LEAVES",text:"Her note: 'I could never forgive you for putting our sons at risk. Good-bye forever you passive flake. Norm Hinkle has been a source of strength for several years, if you know what I mean.'",choices:[
-    {label:"Go after them",text:"You drive to Hinkle's. Evelyn won't come to the door. Marcus waves from an upstairs window. You sit in the car until dawn. You accomplish nothing.",effect:{budget:0,attendance:-5,gangThreat:3,morale:-18}},
-    {label:"Go back to work",text:"There is nothing left but the park. You sleep on your office floor. The janitor steps over you in the morning.",effect:{budget:0,attendance:0,gangThreat:0,morale:-12},flag:"married_to_job"}]}
+    {label:"Go after them",text:"You drive to Hinkle's. Evelyn won't come to the door. Marcus waves from an upstairs window. You sit in the car until dawn. You accomplish nothing.",effect:{budget:0,attendance:-5,gangThreat:3,morale:-18,stress:8}},
+    {label:"Go back to work",text:"There is nothing left but the park. You sleep on your office floor. The janitor steps over you in the morning.",effect:{budget:0,attendance:0,gangThreat:0,morale:-12,stress:8},flag:"married_to_job"}]}
 ];
+
+var TOWNSHIP_EVENTS = [
+  {id:"first_complaint",title:"THE FIRST COMPLAINT",condition:function(){return state.townshipUnlocked&&state.population>=10&&!state.flags.first_complaint_done;},
+   text:"A delegation of residents has arrived in your office. They have concerns about generator noise from the park operations. The spokesman — a retired insurance adjuster named Mapes — has a prepared statement. It is four pages long.",
+   choices:[
+    {label:"Adjust the generators",text:"You spend $1,500 and three weekends on noise mitigation. Mapes sends a thank-you note. It is one sentence.",effect:{budget:-1500,approval:5},flag:"first_complaint_done"},
+    {label:"It's a feature",text:"You explain that the generator sounds are part of the historical ambient experience. Mapes stares at you for a long time. He leaves without another word.",effect:{approval:-8},flag:"first_complaint_done",setFlag:"jefferson_feature"}]},
+  {id:"zoning_board",title:"ZONING BOARD",condition:function(){return state.townshipUnlocked&&state.population>=20&&!state.flags.zoning_board_done;},
+   text:"The residents want to establish a formal zoning board to oversee future development. On one hand, this is exactly how a functioning community works. On the other hand, it would give residents veto power over your building decisions and add a 20% cost surcharge to all future construction.",
+   choices:[
+    {label:"Establish the board",text:"You sign the charter. Mapes is elected chair on the first ballot. He frames the charter. You can see it through his window from the parking lot.",effect:{approval:10,morale:5},flag:"zoning_board_done",setFlag:"zoning_board"},
+    {label:"Deny the petition",text:"You cite regulatory ambiguity. The residents are not satisfied with this explanation. They do not stop having opinions.",effect:{approval:-15,gangThreat:-5},flag:"zoning_board_done"}]},
+  {id:"the_election",title:"THE ELECTION",condition:function(){return state.townshipUnlocked&&state.population>=40&&!state.flags.election_done;},
+   text:"The township is holding its first mayoral election. Three names are on the table. Mr. Alsuga, who has been currying favor with the commercial zone since week two. Quinn, who is popular with residents for reasons that remain unclear. And you.",
+   choices:[
+    {label:"Back Mr. Alsuga",text:"You endorse Alsuga. He wins by twelve votes. He immediately proposes renaming the park 'Alsuga's CivilWarLand.' You talk him down to a plaque.",effect:{budget:2000,approval:-10,morale:-8},flag:"election_done"},
+    {label:"Back Quinn",text:"You endorse Quinn. He wins by four votes. His first act as mayor is to declare a park holiday called Desperate Patrol Appreciation Day. Attendance goes up slightly. Nobody is sure why.",effect:{morale:15,attendance:5,approval:5},flag:"election_done",setFlag:"quinn_mayor"},
+    {label:"Run yourself",text:"You run. The campaign is three weeks of handshakes and uncomfortable conversations. You win by one vote. You have no idea who your opponents received the other votes from and you never find out.",effect:{stress:20,approval:8},flag:"election_done",setFlag:"narrator_mayor"}]},
+  {id:"property_values",title:"PROPERTY VALUES",condition:function(){return state.townshipUnlocked&&!state.flags.property_values_done&&checkBrothelProximity();},
+   text:"A residential zone sits uncomfortably close to the Cimarron Brothel. The residents are not unaware of this. They are very much aware of this. Mapes has called it 'a proximity issue.' The property values have not improved.",
+   choices:[
+    {label:"Close the brothel",text:"You issue the closure order. The historically-simulated establishment shuts down. The staff take it professionally. Morale takes the hit you expected.",effect:{approval:8,morale:-10,attendance:-5},destroy:"brothel",flag:"property_values_done"},
+    {label:"Rename it",text:"The Cimarron Brothel is now the Cimarron Frontier Social Club. The sign is tasteful. The activities within are unchanged. Mapes does not comment on this.",effect:{approval:3,morale:2},flag:"property_values_done",setFlag:"brothel_renamed"}]},
+  {id:"what_to_do_with_samuel",title:"WHAT DO WE DO WITH SAMUEL",condition:function(){return state.townshipUnlocked&&state.gangThreat<5&&state.flags.samuel_armed&&!state.flags.samuel_reported&&!state.flags.samuel_departed&&!state.flags.samuel_housed&&!state.flags.what_samuel_done;},
+   text:"The gang threat is effectively neutralized. Samuel has done what he was brought here to do. He's been sleeping in the Conifer Grove. The residents have noticed. They have questions about him. You don't have good answers.",
+   choices:[
+    {label:"House him in the township",text:"You set Samuel up in a residential unit. He keeps the garden going. He doesn't talk much. The neighbors give him a wide berth. He seems fine with that.",effect:{approval:-10},flag:"what_samuel_done",setFlag:"samuel_housed"},
+    {label:"Let him go",text:"You thank Samuel. He looks at you for a moment, nods, and walks into the Great Forest. You never see him again. The forest seems quieter after.",effect:{morale:5,approval:5,gangThreat:10},flag:"what_samuel_done",setFlag:"samuel_departed",removeChar:"samuel"}]}
+];
+
+function checkBrothelProximity(){
+  var brothel=null;
+  for(var i=0;i<BUILDINGS.length;i++){if(BUILDINGS[i].id==="brothel"&&!state.destroyedBuildings["brothel"]){brothel=BUILDINGS[i];break;}}
+  if(!brothel)return false;
+  var bcx=brothel.x+brothel.w/2,bcy=brothel.y+brothel.h/2;
+  for(var j=0;j<state.placedZones.length;j++){
+    var z=state.placedZones[j];if(z.type!=="residential")continue;
+    var zcx=z.x+z.w/2,zcy=z.y+z.h/2;
+    var dist=Math.sqrt((zcx-bcx)*(zcx-bcx)+(zcy-bcy)*(zcy-bcy));
+    if(dist<0.2)return true;
+  }
+  return false;
+}
+
+function getActualCost(baseCost){return state.flags.zoning_board?Math.round(baseCost*1.2):baseCost;}
+
+function showTownshipEvent(te){
+  state.eventActive=true;sndChime();
+  var b=document.getElementById("event-box");b.className="";
+  var h='<div class="ev-day">Day '+state.day+'</div><div class="ev-title">'+te.title+'</div><div class="ev-text">'+te.text+'</div><div class="ev-choices">';
+  te.choices.forEach(function(c,i){h+='<button class="ev-choice-btn" onclick="makeTownshipChoice(\''+te.id+'\','+i+')"><span class="choice-label">'+c.label+'</span>'+c.text+'</button>';});
+  h+='</div>';b.innerHTML=h;
+  document.getElementById("event-overlay").classList.add("active");
+}
+
+function makeTownshipChoice(eventId,idx){
+  var te=null;for(var i=0;i<TOWNSHIP_EVENTS.length;i++){if(TOWNSHIP_EVENTS[i].id===eventId){te=TOWNSHIP_EVENTS[i];break;}}
+  if(!te)return;
+  var c=te.choices[idx];
+  if(c.effect.budget)state.budget+=c.effect.budget;
+  if(c.effect.approval)state.approval=clamp(state.approval+c.effect.approval,0,100);
+  if(c.effect.morale)state.morale=clamp(state.morale+c.effect.morale,0,100);
+  if(c.effect.attendance)state.attendance=clamp(state.attendance+c.effect.attendance,0,100);
+  if(c.effect.gangThreat)state.gangThreat=clamp(state.gangThreat+c.effect.gangThreat,0,100);
+  if(c.effect.stress)state.narratorStress=clamp(state.narratorStress+c.effect.stress,0,100);
+  if(c.flag)state.flags[c.flag]=true;
+  if(c.setFlag)state.flags[c.setFlag]=true;
+  if(c.destroy){
+    var hasFireStation=false;
+    for(var fsi=0;fsi<state.placedBuildings.length;fsi++){if(state.placedBuildings[fsi].typeId==="fire_station"){hasFireStation=true;break;}}
+    if(hasFireStation)state.log.push({day:state.day,title:"Fire Station prevented destruction of "+c.destroy});
+    else state.destroyedBuildings[c.destroy]=true;
+  }
+  if(c.removeChar)state.characters=state.characters.filter(function(ch){return ch.id!==c.removeChar;});
+  state.log.push({day:state.day,title:te.title+" \u2192 "+c.label});
+  document.getElementById("event-overlay").classList.remove("active");
+  state.eventActive=false;updateSidebar();updateLog();
+  var f=checkFailState();if(f)showFailEnd(f);
+}
 
 var canvas, ctx, cw, ch;
 function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+
+function formatGameTime(min){var h=Math.floor(min/60)%24,m=Math.floor(min%60);var ampm=h>=12?"PM":"AM";var h12=h%12||12;return h12+":"+(m<10?"0":"")+m+" "+ampm;}
+function updateTimeDisplay(){var el=document.getElementById("time-display");if(el)el.textContent="— "+formatGameTime(state.gameTime);}
+function setSpeed(n){
+  state.gameSpeed=(n===0)?1:n;state.gamePaused=(n===0);
+  ["pause","1","2","4"].forEach(function(id){var b=document.getElementById("spd-"+id);if(b)b.classList.remove("active");});
+  var activeId=n===0?"pause":String(n);var ab=document.getElementById("spd-"+activeId);if(ab)ab.classList.add("active");
+}
+function getDayBrightness(){var t=state.gameTime;if(t>=420&&t<1140)return 1.0;if(t>=360&&t<420)return 0.6+0.4*((t-360)/60);if(t>=1140&&t<1200)return 1.0-0.4*((t-1140)/60);return 0.6;}
+
 function initCanvas(){canvas=document.getElementById("canvas");ctx=canvas.getContext("2d");resize();window.addEventListener("resize",resize);}
 function resize(){var col=document.getElementById("map-col");cw=col.clientWidth;ch=col.clientHeight;canvas.width=cw;canvas.height=ch;}
 
@@ -349,7 +546,7 @@ function dbgSkipToDay30(){
   state.day=29;
   document.getElementById("day-num").textContent=state.day;
   updateSidebar();
-  advanceDay();
+  applyMidnight();
 }
 function dbgAddMoney(){
   state.budget+=50000;
@@ -365,7 +562,7 @@ function dbgPlace10Buildings(){
     var bx=0.05+Math.random()*(worldMax-bw-0.10);
     var by=0.05+Math.random()*(worldMax-bh-0.10);
     if(placedBuildingOverlaps(bx,by,bw,bh))continue;
-    state.placedBuildings.push({id:"placed_"+Date.now()+"_"+placed,name:s.name,x:bx,y:by,w:bw,h:bh,color:s.color,roof:s.roof,desc:s.desc,daily:s.daily,condition:100});
+    state.placedBuildings.push({id:"placed_"+Date.now()+"_"+placed,typeId:s.id,name:s.name,x:bx,y:by,w:bw,h:bh,color:s.color,roof:s.roof,desc:s.desc,daily:s.daily,condition:100,restable:s.restable||false});
     placed++;
   }
   updateSidebar();
@@ -388,10 +585,15 @@ function startGame(){
   initCanvas();
   BUILDINGS.forEach(function(b){b.condition=80;});
   state.characters=INIT_CHARS.map(function(c){return Object.assign({},c,{tx:c.x+(Math.random()-0.5)*0.1,ty:c.y+(Math.random()-0.5)*0.1});});
+  for(var rdi=0;rdi<35;rdi++){rainDrops.push({x:Math.random(),phase:Math.random(),speed:0.28+Math.random()*0.18});}
   canvas.addEventListener("click",onCanvasClick);
   canvas.addEventListener("mousemove",onCanvasMouseMove);
   if(debugMode)document.getElementById("debug-panel").style.display="block";
+  updateTimeDisplay();
+  setSpeed(0);
+  startDrone();
   gameLoop();
+  if(!state.flags.tutorial_done)showTutorialStep(0);
 }
 
 function checkFailState(){
@@ -399,23 +601,31 @@ function checkFailState(){
   if(state.attendance<=0)return{title:"EMPTY PARK",text:"Nobody comes anymore. The attractions remain, but only as decaying scenery."};
   if(state.gangThreat>=100)return{title:"GANG TAKEOVER",text:"The perimeter collapses. The gangs effectively inherit the grounds."};
   if(state.morale<=0)return{title:"STAFF COLLAPSE",text:"The staff finally break. Quinn is last to leave, still in the Grizzly suit."};
+  if(state.narratorStress>=100)return{title:"BREAKDOWN",text:"You're found in a closet performing Hatred Abatement Breathing for the ninth consecutive hour. Mr. A sends you home. You don't come back."};
+  if(state.townshipUnlocked&&state.approval<20)return{title:"RECALL",text:"The residents of CivilWarLand have voted you out. The margin was decisive. Quinn abstained."};
   return null;
 }
 
 function showFailEnd(f){
   state.gameOver=true;state.eventActive=true;
+  try{localStorage.removeItem(SAVE_KEY);}catch(e){}
+  sndThud();
   var b=document.getElementById("event-box");b.className="fail-end";
   var s='<br><br><span style="color:#5a6a4a;font-size:11px;">Day '+state.day+' \u00b7 Budget: $'+state.budget.toLocaleString()+' \u00b7 Attendance: '+state.attendance+' \u00b7 Morale: '+state.morale+'% \u00b7 Threat: '+state.gangThreat+'%</span>';
   b.innerHTML='<div class="ev-day">Park Closed \u2014 Day '+state.day+'</div><div class="ev-title">'+f.title+'</div><div class="ev-text">'+f.text+s+'</div><button class="ev-continue-btn" onclick="location.reload()">Start Over</button>';
   document.getElementById("event-overlay").classList.add("active");
-  document.getElementById("next-day-btn").textContent="Game Over";
-  document.getElementById("next-day-btn").className="disabled";
+  state.gamePaused=true;
 }
 
 function getRandomMinorEvent(){
   var available=[];
   for(var i=0;i<MINOR_EVENTS.length;i++){
-    if(state.usedMinorEvents.indexOf(i)===-1)available.push(i);
+    if(state.usedMinorEvents.indexOf(i)!==-1)continue;
+    var me=MINOR_EVENTS[i];
+    if(me.condition&&!state.flags[me.condition])continue;
+    if(me.conditionNot&&state.flags[me.conditionNot])continue;
+    if(me.townshipOnly&&!state.townshipUnlocked)continue;
+    available.push(i);
   }
   if(available.length===0)return null;
   var pick=available[Math.floor(Math.random()*available.length)];
@@ -424,13 +634,15 @@ function getRandomMinorEvent(){
 }
 
 function showMinorEvent(me){
-  state.eventActive=true;
+  state.eventActive=true;sndChime();
   var b=document.getElementById("event-box");b.className="";
   var effects=[];
   if(me.effect.budget!==0)effects.push((me.effect.budget>0?"+":"")+me.effect.budget+" budget");
   if(me.effect.attendance!==0)effects.push((me.effect.attendance>0?"+":"")+me.effect.attendance+" attendance");
   if(me.effect.gangThreat!==0)effects.push((me.effect.gangThreat>0?"+":"")+me.effect.gangThreat+" threat");
   if(me.effect.morale!==0)effects.push((me.effect.morale>0?"+":"")+me.effect.morale+" morale");
+  if(me.effect.approval)effects.push((me.effect.approval>0?"+":"")+me.effect.approval+" approval");
+  if(me.effect.population)effects.push("+"+(me.effect.population)+" population");
   var effectLine=effects.length>0?'<div style="font-size:10px;color:#7a8a6a;margin-bottom:16px;">'+effects.join(' \u00b7 ')+'</div>':'';
   b.innerHTML='<div class="ev-day">Day '+state.day+'</div><div class="ev-title">'+me.title+'</div><div class="ev-text">'+me.text+'</div>'+effectLine+'<button class="ev-minor-btn" onclick="dismissMinorEvent()">Continue</button>';
   document.getElementById("event-overlay").classList.add("active");
@@ -441,65 +653,272 @@ function dismissMinorEvent(){
   state.eventActive=false;
 }
 
-function advanceDay(){
-  if(state.gameOver||state.eventActive)return;
+function applyMidnight(){
   state.day+=1;
-
+  // Weather cycling
+  state.weatherDaysLeft--;
+  if(state.weatherDaysLeft<=0){
+    var prevWeather=state.weather;
+    var wPicks=["clear","clear","clear","rain","fog"];
+    state.weather=wPicks[Math.floor(Math.random()*wPicks.length)];
+    state.weatherDaysLeft=3+Math.floor(Math.random()*3);
+    if(state.weather!==prevWeather&&state.weather!=="clear")state.weatherEventPending=true;
+  }
   // Compounding decay
-  state.gangThreat=clamp(state.gangThreat+3,0,100);
-  state.morale=clamp(state.morale-2,0,100);
+  state.gangThreat=clamp(state.gangThreat+2,0,100);
+  state.morale=clamp(state.morale-1,0,100);
   state.attendance=clamp(state.attendance-1,0,100);
-
+  state.narratorStress=clamp(state.narratorStress+1,0,100);
   // Building condition decay
   var extraDecay=state.gangThreat>50?2:0;
   BUILDINGS.forEach(function(b){if(!state.destroyedBuildings[b.id]&&b.condition!==undefined)b.condition=Math.max(0,b.condition-(1+Math.floor(Math.random()*4))-extraDecay);});
   state.placedBuildings.forEach(function(b){b.condition=Math.max(0,b.condition-(1+Math.floor(Math.random()*4))-extraDecay);});
-
   // Placed building daily effects (skip condemned)
-  for(var i=0;i<state.placedBuildings.length;i++){var pb=state.placedBuildings[i];if(pb.condition===0)continue;var d=pb.daily;if(d.budget)state.budget+=d.budget;if(d.attendance)state.attendance=clamp(state.attendance+d.attendance,0,100);if(d.gangThreat)state.gangThreat=clamp(state.gangThreat+d.gangThreat,0,100);if(d.morale)state.morale=clamp(state.morale+d.morale,0,100);}
-
-  // Daily economics
-  var cost=800+Math.floor(Math.random()*250);
-  var rev=Math.max(0,state.attendance*(11+Math.floor(Math.random()*8)));
-  state.budget=state.budget-cost+rev;
-
+  for(var i=0;i<state.placedBuildings.length;i++){var pb=state.placedBuildings[i];if(pb.condition===0)continue;var d=pb.daily;if(d.budget)state.budget+=d.budget;if(d.attendance)state.attendance=clamp(state.attendance+d.attendance,0,100);if(d.gangThreat)state.gangThreat=clamp(state.gangThreat+d.gangThreat,0,100);if(d.morale)state.morale=clamp(state.morale+d.morale,0,100);if(d.approval&&state.townshipUnlocked)state.approval=clamp(state.approval+d.approval,0,100);}
   // Small random drift
-  state.attendance=clamp(state.attendance+Math.floor(Math.random()*3)-2,0,100);
-  state.morale=clamp(state.morale+Math.floor(Math.random()*3)-2,0,100);
+  state.attendance=clamp(state.attendance+Math.floor(Math.random()*3)-1,0,100);
+  state.morale=clamp(state.morale+Math.floor(Math.random()*3)-1,0,100);
   state.gangThreat=clamp(state.gangThreat+Math.floor(Math.random()*3)-1,0,100);
-
+  // Zone effects (population growth, approval — no commercial income here)
+  var commercialIncome=0;
+  if(state.townshipUnlocked){
+    var resCount=0,comCount=0,civCount=0;
+    for(var zi=0;zi<state.placedZones.length;zi++){var zt=state.placedZones[zi].type;if(zt==="residential")resCount++;else if(zt==="commercial")comCount++;else if(zt==="civic")civCount++;}
+    var waterTowers=0,schools=0;
+    for(var pbi=0;pbi<state.placedBuildings.length;pbi++){var pbt=state.placedBuildings[pbi].typeId;if(pbt==="water_tower")waterTowers++;else if(pbt==="school")schools++;}
+    var resCap=resCount*10;
+    if(waterTowers>0)resCap+=waterTowers*20;else resCap=Math.min(resCap,30);
+    if(state.population<resCap)state.population=Math.min(resCap,state.population+resCount+schools);
+    state.approval=clamp(state.approval-1+civCount*2,0,100);
+    syncResidents();
+    // Commercial income: 50 per nearby (within 0.15) residential zone for each commercial zone
+    for(var ci2=0;ci2<state.placedZones.length;ci2++){
+      var cz2=state.placedZones[ci2];if(cz2.type!=="commercial")continue;
+      var czx=cz2.x+cz2.w/2,czy=cz2.y+cz2.h/2;
+      for(var ri2=0;ri2<state.placedZones.length;ri2++){
+        var rz2=state.placedZones[ri2];if(rz2.type!=="residential")continue;
+        var rzx=rz2.x+rz2.w/2,rzy=rz2.y+rz2.h/2;
+        var dist2=Math.sqrt((czx-rzx)*(czx-rzx)+(czy-rzy)*(czy-rzy));
+        if(dist2<0.15)commercialIncome+=50;
+      }
+    }
+  }
+  // Daily economics
+  var parkRevenue=state.attendance*12;
+  var taxIncome=(state.townshipUnlocked&&state.population>=10)?state.population*8:0;
+  var operatingCost=600+Math.floor(state.population*3);
+  var buildingUpkeep=state.placedBuildings.length*30;
+  var netIncome=parkRevenue+taxIncome+commercialIncome-operatingCost-buildingUpkeep;
+  state.budget+=netIncome;
+  state.lastEconBreakdown={parkRevenue:parkRevenue,taxIncome:taxIncome,commercial:commercialIncome,operatingCost:operatingCost,buildingUpkeep:buildingUpkeep,net:netIncome};
+  if(netIncome<0){state.deficitDays++;}else{state.deficitDays=0;}
   document.getElementById("day-num").textContent=state.day;
-  updateSidebar();
-
+  updateSidebar();saveGame();
   var f=checkFailState();if(f){showFailEnd(f);return;}
   if(state.day===30&&!state.expanded){showEnding();return;}
-
   // Check for story event
   var ev=null;
   for(var i=0;i<EVENTS.length;i++){var e=EVENTS[i];if(e.day!==state.day)continue;if(e.condition&&!state.flags[e.condition])continue;if(e.conditionNot&&state.flags[e.conditionNot])continue;ev=e;break;}
-
-  if(ev){
-    showEvent(ev);
-  }else{
-    // 60% chance of a minor event on non-story days
-    if(Math.random()<0.6){
+  if(ev){showEvent(ev);}
+  else{
+    // Check township story events
+    var townEv=null;
+    if(state.townshipUnlocked){
+      for(var ti=0;ti<TOWNSHIP_EVENTS.length;ti++){
+        var te=TOWNSHIP_EVENTS[ti];
+        if(typeof te.condition==="function"&&te.condition()){townEv=te;break;}
+      }
+    }
+    if(townEv){showTownshipEvent(townEv);}
+    else if(state.weatherEventPending){
+      state.weatherEventPending=false;
+      var wme=state.weather==="rain"
+        ?{title:"RAIN",text:"Rain again. The Erie Canal Lock fills with actual water for once. The effect is briefly convincing.",effect:{budget:0,attendance:-2,gangThreat:0,morale:-1}}
+        :{title:"FOG",text:"Fog rolls in from the creek. The McKinnon family becomes almost solid. Mrs. McKinnon reaches for a visitor's hand. The visitor screams.",effect:{budget:0,attendance:-3,gangThreat:0,morale:1}};
+      state.attendance=clamp(state.attendance+wme.effect.attendance,0,100);
+      state.morale=clamp(state.morale+wme.effect.morale,0,100);
+      state.log.push({day:state.day,title:wme.title});updateSidebar();showMinorEvent(wme);
+      var fW=checkFailState();if(fW){dismissMinorEvent();showFailEnd(fW);return;}
+    }
+    else if(state.deficitDays>=5){
+      state.deficitDays=0;
+      var defMe={title:"DEFICIT SPENDING",text:"Mr. A says we're investing in the future. The future, you note, has been getting more expensive every quarter. He says that's what futures do.",effect:{budget:0,attendance:0,gangThreat:0,morale:-3,approval:0}};
+      state.morale=clamp(state.morale+defMe.effect.morale,0,100);
+      state.log.push({day:state.day,title:defMe.title});updateSidebar();showMinorEvent(defMe);
+      var fDef=checkFailState();if(fDef){dismissMinorEvent();showFailEnd(fDef);return;}
+    }
+    else if(Math.random()<0.6){
       var me=getRandomMinorEvent();
       if(me){
-        state.budget+=me.effect.budget;
-        state.attendance=clamp(state.attendance+me.effect.attendance,0,100);
-        state.gangThreat=clamp(state.gangThreat+me.effect.gangThreat,0,100);
-        state.morale=clamp(state.morale+me.effect.morale,0,100);
-        state.log.push({day:state.day,title:me.title});
-        updateSidebar();
-        showMinorEvent(me);
+        state.budget+=me.effect.budget;state.attendance=clamp(state.attendance+me.effect.attendance,0,100);
+        state.gangThreat=clamp(state.gangThreat+me.effect.gangThreat,0,100);state.morale=clamp(state.morale+me.effect.morale,0,100);
+        if(me.effect.approval&&state.townshipUnlocked)state.approval=clamp(state.approval+me.effect.approval,0,100);
+        if(me.effect.population&&state.townshipUnlocked){state.population+=me.effect.population;syncResidents();}
+        if(me.flag)state.flags[me.flag]=true;
+        state.log.push({day:state.day,title:me.title});updateSidebar();showMinorEvent(me);
         var f2=checkFailState();if(f2){dismissMinorEvent();showFailEnd(f2);return;}
       }
     }
   }
 }
+function advanceDay(){if(state.gameOver||state.eventActive)return;applyMidnight();}
+
+// ── Audio System ──────────────────────────────────────────────
+var audioCtx = null;
+var droneGain = null;
+var droneNode = null;
+var soundMuted = true;
+
+function getAudioCtx(){
+  if(!audioCtx){
+    try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){audioCtx=null;}
+  }
+  return audioCtx;
+}
+
+function startDrone(){
+  var ctx=getAudioCtx();if(!ctx)return;
+  if(droneNode)return;
+  droneGain=ctx.createGain();
+  droneGain.gain.value=soundMuted?0:0.03;
+  droneGain.connect(ctx.destination);
+  droneNode=ctx.createOscillator();
+  droneNode.type="sine";
+  droneNode.frequency.value=80;
+  droneNode.connect(droneGain);
+  droneNode.start();
+}
+
+function toggleMute(){
+  soundMuted=!soundMuted;
+  if(droneGain)droneGain.gain.value=soundMuted?0:0.03;
+  var btn=document.getElementById("mute-btn");
+  if(btn){btn.textContent=soundMuted?"\u{1F507}":"\u{1F50A}";btn.className=soundMuted?"":"unmuted";}
+}
+
+function sndPlace(){
+  var ctx=getAudioCtx();if(!ctx||soundMuted)return;
+  var g=ctx.createGain();g.gain.setValueAtTime(0.08,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.05);
+  g.connect(ctx.destination);
+  var o=ctx.createOscillator();o.type="square";o.frequency.value=200;
+  o.connect(g);o.start();o.stop(ctx.currentTime+0.05);
+}
+
+function sndChime(){
+  var ctx=getAudioCtx();if(!ctx||soundMuted)return;
+  [440,550].forEach(function(freq,i){
+    var t=ctx.currentTime+i*0.11;
+    var g=ctx.createGain();g.gain.setValueAtTime(0.07,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.18);
+    g.connect(ctx.destination);
+    var o=ctx.createOscillator();o.type="triangle";o.frequency.value=freq;
+    o.connect(g);o.start(t);o.stop(t+0.18);
+  });
+}
+
+function sndThud(){
+  var ctx=getAudioCtx();if(!ctx||soundMuted)return;
+  var g=ctx.createGain();g.gain.setValueAtTime(0.1,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+0.3);
+  g.connect(ctx.destination);
+  var o=ctx.createOscillator();o.type="sine";o.frequency.value=60;
+  o.connect(g);o.start();o.stop(ctx.currentTime+0.3);
+}
+// ──────────────────────────────────────────────────────────────
+
+var SAVE_KEY="civilwarland_save";
+var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns"];
+
+function saveGame(){
+  var s={};
+  SAVE_FIELDS.forEach(function(k){s[k]=state[k];});
+  // Save BUILDINGS condition separately (they're in the global array, not state)
+  s._buildingConditions={};
+  BUILDINGS.forEach(function(b){if(b.condition!==undefined)s._buildingConditions[b.id]=b.condition;});
+  try{localStorage.setItem(SAVE_KEY,JSON.stringify(s));}catch(e){}
+}
+
+function loadGame(){
+  var raw;
+  try{raw=localStorage.getItem(SAVE_KEY);}catch(e){}
+  if(!raw)return;
+  var s=JSON.parse(raw);
+  SAVE_FIELDS.forEach(function(k){if(s[k]!==undefined)state[k]=s[k];});
+  if(s._buildingConditions){BUILDINGS.forEach(function(b){if(s._buildingConditions[b.id]!==undefined)b.condition=s._buildingConditions[b.id];});}
+  // Restore non-saveable transient state
+  state.selectedBuilding=null;state.gameOver=false;state.eventActive=false;
+  state.buildMode=false;state.selectedBuildable=null;state.zoneMode=false;state.selectedZone=null;
+  state.gamePaused=true;state.weatherEventPending=false;
+  // Boot into game
+  document.getElementById("title-screen").style.display="none";
+  document.getElementById("game-screen").classList.add("active");
+  initCanvas();
+  if(rainDrops.length===0){for(var rdi=0;rdi<35;rdi++){rainDrops.push({x:Math.random(),phase:Math.random(),speed:0.28+Math.random()*0.18});}}
+  canvas.addEventListener("click",onCanvasClick);
+  canvas.addEventListener("mousemove",onCanvasMouseMove);
+  if(debugMode)document.getElementById("debug-panel").style.display="block";
+  if(state.expanded){document.getElementById("build-section").style.display="block";}
+  if(state.townshipUnlocked){
+    document.getElementById("township-section").style.display="block";
+    var zs=document.getElementById("zone-section");if(zs)zs.style.display="block";
+  }
+  document.getElementById("day-num").textContent=state.day;
+  updateTimeDisplay();setSpeed(0);updateSidebar();updateLog();
+  startDrone();
+  gameLoop();
+}
+
+function newGame(){
+  try{localStorage.removeItem(SAVE_KEY);}catch(e){}
+  startGame();
+}
+
+function saveAndQuit(){
+  if(state.gameOver)return;
+  saveGame();
+  // Tear down game
+  state.gamePaused=true;
+  document.getElementById("game-screen").classList.remove("active");
+  document.getElementById("event-overlay").classList.remove("active");
+  document.getElementById("title-screen").style.display="flex";
+  checkSaveOnTitleScreen();
+}
+
+function checkSaveOnTitleScreen(){
+  var hasSave=false;
+  try{hasSave=!!localStorage.getItem(SAVE_KEY);}catch(e){}
+  document.getElementById("continue-btn").style.display=hasSave?"block":"none";
+  document.getElementById("newgame-btn").style.display=hasSave?"block":"none";
+}
+
+// Escape key → save & quit (while in game, not during event)
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape"&&document.getElementById("game-screen").classList.contains("active")&&!state.eventActive&&!state.gameOver){
+    saveAndQuit();
+  }
+});
+
+function toggleBudgetTooltip(){
+  var el=document.getElementById("budget-tooltip");if(!el)return;
+  el.style.display=el.style.display==="block"?"none":"block";
+  if(el.style.display==="block")updateBudgetTooltip();
+}
+function updateBudgetTooltip(){
+  var el=document.getElementById("budget-tooltip");if(!el||el.style.display!=="block")return;
+  var b=state.lastEconBreakdown;
+  if(!b){el.innerHTML='<div class="eco-row"><span style="color:#4a5a3a;font-style:italic;">No data — advance one day.</span></div>';return;}
+  function fmtPos(n){return'+$'+n.toLocaleString();}
+  function fmtNeg(n){return'-$'+Math.abs(n).toLocaleString();}
+  var h='';
+  h+='<div class="eco-row"><span>Park revenue</span><span class="eco-pos">'+fmtPos(b.parkRevenue)+'</span></div>';
+  if(b.taxIncome>0)h+='<div class="eco-row"><span>Tax income</span><span class="eco-pos">'+fmtPos(b.taxIncome)+'</span></div>';
+  if(b.commercial>0)h+='<div class="eco-row"><span>Commercial</span><span class="eco-pos">'+fmtPos(b.commercial)+'</span></div>';
+  h+='<div class="eco-row"><span>Operating costs</span><span class="eco-neg">'+fmtNeg(b.operatingCost)+'</span></div>';
+  if(b.buildingUpkeep>0)h+='<div class="eco-row"><span>Building upkeep</span><span class="eco-neg">'+fmtNeg(b.buildingUpkeep)+'</span></div>';
+  h+='<div class="eco-row net"><span>Net</span><span class="'+(b.net>=0?'eco-pos':'eco-neg')+'">'+(b.net>=0?fmtPos(b.net):fmtNeg(b.net))+'</span></div>';
+  el.innerHTML=h;
+}
 
 function showEvent(ev){
-  state.eventActive=true;
+  state.eventActive=true;sndChime();
   var b=document.getElementById("event-box");b.className="";
   var h='<div class="ev-day">Day '+state.day+'</div><div class="ev-title">'+ev.title+'</div><div class="ev-text">'+ev.text+'</div><div class="ev-choices">';
   ev.choices.forEach(function(c,i){h+='<button class="ev-choice-btn" onclick="makeChoice('+state.day+','+i+')"><span class="choice-label">'+c.label+'</span>'+c.text+'</button>';});
@@ -516,8 +935,14 @@ function makeChoice(day,idx){
   if(c.effect.attendance)state.attendance=clamp(state.attendance+c.effect.attendance,0,100);
   if(c.effect.gangThreat)state.gangThreat=clamp(state.gangThreat+c.effect.gangThreat,0,100);
   if(c.effect.morale)state.morale=clamp(state.morale+c.effect.morale,0,100);
+  if(c.effect.stress)state.narratorStress=clamp(state.narratorStress+c.effect.stress,0,100);
   if(c.flag)state.flags[c.flag]=true;
-  if(c.destroy)state.destroyedBuildings[c.destroy]=true;
+  if(c.destroy){
+    var hasFireStation=false;
+    for(var fsi=0;fsi<state.placedBuildings.length;fsi++){if(state.placedBuildings[fsi].typeId==="fire_station"){hasFireStation=true;break;}}
+    if(hasFireStation)state.log.push({day:day,title:"Fire Station prevented destruction of "+c.destroy});
+    else state.destroyedBuildings[c.destroy]=true;
+  }
   if(c.removeChar)state.characters=state.characters.filter(function(ch){return ch.id!==c.removeChar;});
   if(c.addChar)state.characters.push(Object.assign({},c.addChar,{tx:c.addChar.x,ty:c.addChar.y}));
   state.log.push({day:day,title:ev.title+" \u2192 "+c.label});
@@ -539,16 +964,12 @@ function showEnding(){
   x+='<br><br><span style="color:#5a6a4a;font-size:11px;">Budget: $'+state.budget.toLocaleString()+' \u00b7 Attendance: '+state.attendance+' \u00b7 Morale: '+state.morale+'% \u00b7 Threat: '+state.gangThreat+'%</span>';
   b.innerHTML='<div class="ev-day">Day 30 \u2014 Final</div><div class="ev-title">'+t+'</div><div class="ev-text">'+x+'</div><button class="ev-continue-btn" onclick="continueAfterEnding()" style="margin-bottom:8px;">Continue Playing</button><button class="ev-continue-btn" onclick="location.reload()">Start Over</button>';
   document.getElementById("event-overlay").classList.add("active");
-  document.getElementById("next-day-btn").textContent="Game Over";
-  document.getElementById("next-day-btn").className="disabled";
+  state.gamePaused=true;
 }
 
 function continueAfterEnding(){
   document.getElementById("event-overlay").classList.remove("active");
-  state.gameOver=false;
-  state.eventActive=false;
-  document.getElementById("next-day-btn").textContent="Next Day \u2192";
-  document.getElementById("next-day-btn").className="";
+  state.gameOver=false;state.eventActive=false;
   showExpansionEvent();
 }
 
@@ -569,9 +990,43 @@ function triggerExpansion(){
 
 var buildPreviewX, buildPreviewY;
 var canvasNotifications = [];
+var speechBubble = null;
+var speechCooldowns = {};
+var footprints = [];
+var lastFootprintX = null, lastFootprintY = null;
+var rainDrops = [];
+var seasonGrassColors = [
+  [[88,168,64],[76,152,56],[68,138,48],[60,120,40]],
+  [[92,168,48],[80,144,40],[70,130,34],[58,116,28]],
+  [[160,136,48],[136,112,32],[112,96,24],[96,80,20]],
+  [[96,120,88],[80,104,72],[64,88,56],[52,72,44]]
+];
+
+var CHAR_BUILDINGS = {quinn:"thespian",sylvia:"cityhall",grayson:"conifer",samuel:"conifer",alsuga:"cityhall"};
+var CHAR_MOOD_OFFSETS = {quinn:-10,sylvia:5,grayson:-5,alsuga:15,samuel:-20};
+var CHAR_SPEECH = {
+  quinn:{content:"I've been working on my monologue for the Patrol.",unhappy:"The Dread Disease Rider covers nerve damage, right?",miserable:"I can't keep doing this. Six kids and a Grizzly suit."},
+  sylvia:{content:"I traced three unauthorized MessageMinder accounts today.",unhappy:"The Make Me Club on Airport Road is calling my name.",miserable:"There's nothing left to dig up. We ARE the dirt."},
+  grayson:{content:"Oriole count is holding steady.",unhappy:"The bird populations don't lie. This place is dying.",miserable:"I'm going to go live with the orioles."},
+  alsuga:{content:"Revenues are upscaling! I can feel it in my bones.",unhappy:"Do you know what kind of debt I'm carrying?",miserable:"I should have stayed in Rotary."},
+  samuel:{content:null,unhappy:null,miserable:"Don't take this too personal."}
+};
+
+var RESIDENT_LINES = [
+  "Is the canal historically accurate? It feels wrong somehow.",
+  "I moved here for the schools. There are no schools.",
+  "The man with the knife by the Conifer Grove \u2014 is he staff?",
+  "My realtor said this was up-and-coming. I'm not sure which direction.",
+  "The ghosts don't bother me. The property taxes bother me.",
+  "I tried the frontier stew. It's mostly potato.",
+  "My kid did a report on the Erie Canal. Your plaque says Chinese workers. His textbook says Irish. Someone's wrong.",
+  "I saw the McKinnon girl reading poetry by the creek. Lovely girl. Translucent, though.",
+  "Is the Cimarron Brothel still operational? Asking for research purposes.",
+  "I feel safe here. Except near the marsh. And the grove. And the parking lot after dark."
+];
 
 function onCanvasMouseMove(e){
-  if(!state.buildMode)return;
+  if(!state.buildMode&&!state.zoneMode)return;
   var ms=state.mapScale||1;
   var r=canvas.getBoundingClientRect();
   buildPreviewX=(e.clientX-r.left)/cw/ms;
@@ -582,6 +1037,7 @@ function placedBuildingOverlaps(nx,ny,nw,nh){
   var pad=0.01;
   for(var i=0;i<BUILDINGS.length;i++){var b=BUILDINGS[i];if(state.destroyedBuildings[b.id])continue;if(nx<b.x+b.w+pad&&nx+nw>b.x-pad&&ny<b.y+b.h+pad&&ny+nh>b.y-pad)return true;}
   for(var i=0;i<state.placedBuildings.length;i++){var b=state.placedBuildings[i];if(nx<b.x+b.w+pad&&nx+nw>b.x-pad&&ny<b.y+b.h+pad&&ny+nh>b.y-pad)return true;}
+  for(var i=0;i<state.placedZones.length;i++){var z=state.placedZones[i];if(nx<z.x+z.w+pad&&nx+nw>z.x-pad&&ny<z.y+z.h+pad&&ny+nh>z.y-pad)return true;}
   return false;
 }
 
@@ -589,29 +1045,48 @@ function onCanvasClick(e){
   var ms=state.mapScale||1;
   var r=canvas.getBoundingClientRect(),mx=(e.clientX-r.left)/cw/ms,my=(e.clientY-r.top)/ch/ms;
 
+  if(state.zoneMode&&state.selectedZone){
+    var sz=state.selectedZone,zw=0.12,zh=0.09;
+    var zx=mx-zw/2,zy=my-zh/2;
+    var worldMax0=1/ms;
+    if(zx<0.02||zy<0.02||zx+zw>worldMax0-0.02||zy+zh>worldMax0-0.02){return;}
+    if(placedBuildingOverlaps(zx,zy,zw,zh)){return;}
+    if(state.budget<sz.cost){return;}
+    state.budget-=sz.cost;
+    state.placedZones.push({id:"zone_"+Date.now(),type:sz.id,name:sz.name,x:zx,y:zy,w:zw,h:zh,color:sz.color,roof:sz.roof});
+    state.log.push({day:state.day,title:"Zoned: "+sz.name});
+    canvasNotifications.push({text:"ZONED: "+sz.name.toUpperCase(),x:mx,y:my,born:Date.now()});sndPlace();
+    updateSidebar();updateLog();
+    state.selectedZone=null;state.zoneMode=false;
+    canvas.classList.remove("build-mode");
+    renderZoneMenu();
+    return;
+  }
   if(state.buildMode&&state.selectedBuildable){
     var s=state.selectedBuildable, bw=0.10, bh=0.07;
     var bx=mx-bw/2, by=my-bh/2;
     var worldMax=1/ms;
     if(bx<0.02||by<0.02||bx+bw>worldMax-0.02||by+bh>worldMax-0.02){return;}
     if(placedBuildingOverlaps(bx,by,bw,bh)){return;}
-    if(state.budget<s.cost){return;}
-    state.budget-=s.cost;
-    state.placedBuildings.push({id:"placed_"+Date.now(),name:s.name,x:bx,y:by,w:bw,h:bh,color:s.color,roof:s.roof,desc:s.desc,daily:s.daily,condition:100});
+    var placeCost=getActualCost(s.cost);
+    if(state.budget<placeCost){return;}
+    state.budget-=placeCost;
+    state.placedBuildings.push({id:"placed_"+Date.now(),typeId:s.id,name:s.name,x:bx,y:by,w:bw,h:bh,color:s.color,roof:s.roof,desc:s.desc,daily:s.daily,condition:100,restable:s.restable||false});
+    if(s.id==="school")state.flags.school_built=true;
     state.log.push({day:state.day,title:"Built: "+s.name});
-    canvasNotifications.push({text:"BUILT: "+s.name.toUpperCase(),x:mx,y:my,born:Date.now()});
+    canvasNotifications.push({text:"BUILT: "+s.name.toUpperCase(),x:mx,y:my,born:Date.now()});sndPlace();
     updateSidebar();updateLog();
-    state.selectedBuildable=null;
-    state.buildMode=false;
+    state.selectedBuildable=null;state.buildMode=false;
     canvas.classList.remove("build-mode");
     renderBuildMenu();
+    if(state.placedBuildings.length===10&&!state.townshipUnlocked){showMunicipalAmbitions();}
     return;
   }
 
   state.selectedBuilding=null;
   for(var i=0;i<BUILDINGS.length;i++){var b=BUILDINGS[i];if(state.destroyedBuildings[b.id])continue;if(mx>=b.x&&mx<=b.x+b.w&&my>=b.y&&my<=b.y+b.h){state.selectedBuilding=b;break;}}
   if(!state.selectedBuilding){for(var i=0;i<state.placedBuildings.length;i++){var b=state.placedBuildings[i];if(mx>=b.x&&mx<=b.x+b.w&&my>=b.y&&my<=b.y+b.h){state.selectedBuilding=b;break;}}}
-  for(var i=0;i<state.characters.length;i++){if(state.characters[i].id==="narrator"){state.characters[i].tx=mx;state.characters[i].ty=my;state.characters[i].clickTarget=true;break;}}
+  for(var i=0;i<state.characters.length;i++){if(state.characters[i].id==="narrator"){if(state.gamePaused)setSpeed(1);state.characters[i].tx=mx;state.characters[i].ty=my;state.characters[i].clickTarget=true;break;}}
   updateInfoPanel();
 }
 
@@ -636,27 +1111,37 @@ function selectBuildable(id){
   renderBuildMenu();
 }
 
+function buildItemHTML(s){
+  var actualCost=getActualCost(s.cost);
+  var canAfford=state.budget>=actualCost;
+  var sel=state.selectedBuildable&&state.selectedBuildable.id===s.id;
+  var fx='<div class="build-item-effects">';
+  if(s.daily.attendance)fx+='<span class="'+(s.daily.attendance>0?"eff-pos":"eff-neg")+'">Attendance '+(s.daily.attendance>0?"+":"")+s.daily.attendance+'/day</span>';
+  if(s.daily.budget)fx+='<span class="'+(s.daily.budget>0?"eff-pos":"eff-neg")+'">Budget '+(s.daily.budget>0?"+":"")+s.daily.budget+'/day</span>';
+  if(s.daily.gangThreat)fx+='<span class="'+(s.daily.gangThreat<=0?"eff-pos":"eff-neg")+'">Threat '+(s.daily.gangThreat>0?"+":"")+s.daily.gangThreat+'/day</span>';
+  if(s.daily.morale)fx+='<span class="'+(s.daily.morale>0?"eff-pos":"eff-neg")+'">Morale '+(s.daily.morale>0?"+":"")+s.daily.morale+'/day</span>';
+  if(s.daily.approval)fx+='<span class="'+(s.daily.approval>0?"eff-pos":"eff-neg")+'">Approval '+(s.daily.approval>0?"+":"")+s.daily.approval+'/day</span>';
+  if(s.populationGrowthBonus)fx+='<span class="eff-pos">Pop Growth +'+s.populationGrowthBonus+'/day</span>';
+  if(s.id==="water_tower")fx+='<span class="eff-pos">+20 pop cap \u00b7 required for pop&gt;30</span>';
+  fx+='</div>';
+  return '<div class="build-item'+(sel?" selected":"")+(canAfford?"":" cant-afford")+'" onclick="'+(canAfford?"selectBuildable('"+s.id+"')":"")+'">'
+    +'<div class="build-item-name">'+s.name+'</div>'
+    +'<div class="build-item-cost'+(canAfford?"":" unaffordable")+'">$'+actualCost.toLocaleString()+(canAfford?"":" \u2014 can\'t afford")+'</div>'
+    +fx+'</div>';
+}
+
 function renderBuildMenu(){
-  var h="";
   if(state.buildMode&&state.selectedBuildable){
     document.getElementById("build-hint").textContent="Click the new land to place "+state.selectedBuildable.name+". Click again to cancel.";
   }else{
     document.getElementById("build-hint").textContent="Select a structure, then click the new land to place it.";
   }
-  BUILDABLE_STRUCTURES.forEach(function(s){
-    var canAfford=state.budget>=s.cost;
-    var sel=state.selectedBuildable&&state.selectedBuildable.id===s.id;
-    var fx='<div class="build-item-effects">';
-    if(s.daily.attendance)fx+='<span class="'+(s.daily.attendance>0?"eff-pos":"eff-neg")+'">Attendance '+(s.daily.attendance>0?"+":"")+s.daily.attendance+'/day</span>';
-    if(s.daily.budget)fx+='<span class="'+(s.daily.budget>0?"eff-pos":"eff-neg")+'">Budget '+(s.daily.budget>0?"+":"")+s.daily.budget+'/day</span>';
-    if(s.daily.gangThreat)fx+='<span class="'+(s.daily.gangThreat<=0?"eff-pos":"eff-neg")+'">Gang Threat '+(s.daily.gangThreat>0?"+":"")+s.daily.gangThreat+'/day</span>';
-    if(s.daily.morale)fx+='<span class="'+(s.daily.morale>0?"eff-pos":"eff-neg")+'">Morale '+(s.daily.morale>0?"+":"")+s.daily.morale+'/day</span>';
-    fx+='</div>';
-    h+='<div class="build-item'+(sel?" selected":"")+(canAfford?"":" cant-afford")+'" onclick="'+(canAfford?"selectBuildable('"+s.id+"')":"")+'">';
-    h+='<div class="build-item-name">'+s.name+'</div>';
-    h+='<div class="build-item-cost'+(canAfford?"":" unaffordable")+'">$'+s.cost.toLocaleString()+(canAfford?"":" \u2014 can\'t afford")+'</div>';
-    h+=fx+'</div>';
-  });
+  var h="";
+  for(var i=0;i<BUILDABLE_STRUCTURES.length;i++){if(!BUILDABLE_STRUCTURES[i].township)h+=buildItemHTML(BUILDABLE_STRUCTURES[i]);}
+  if(state.townshipUnlocked){
+    h+='<div class="sb-label" style="margin-top:12px;padding-top:8px;border-top:1px solid #2a3420;">Township Structures</div>';
+    for(var i=0;i<BUILDABLE_STRUCTURES.length;i++){if(BUILDABLE_STRUCTURES[i].township)h+=buildItemHTML(BUILDABLE_STRUCTURES[i]);}
+  }
   document.getElementById("build-items").innerHTML=h;
 }
 
@@ -670,6 +1155,24 @@ function updateSidebar(){
   document.getElementById("bar-gang").style.width=state.gangThreat+"%";
   document.getElementById("bar-morale").style.width=state.morale+"%";
   if(state.expanded){document.getElementById("structures-row").style.display="flex";document.getElementById("s-structures").textContent=state.placedBuildings.length;}
+  if(state.townshipUnlocked){
+    document.getElementById("township-section").style.display="block";
+    var resCnt=0;for(var i=0;i<state.placedZones.length;i++){if(state.placedZones[i].type==="residential")resCnt++;}
+    var wtCnt=0;for(var i=0;i<state.placedBuildings.length;i++){if(state.placedBuildings[i].typeId==="water_tower")wtCnt++;}
+    var maxPop=resCnt*10+(wtCnt*20);if(wtCnt===0)maxPop=Math.min(maxPop,30);maxPop=Math.max(maxPop,1);
+    document.getElementById("s-population").textContent=state.population;
+    document.getElementById("bar-population").style.width=clamp(state.population/maxPop*100,0,100)+"%";
+    document.getElementById("s-approval").textContent=state.approval+"%";
+    document.getElementById("bar-approval").style.width=state.approval+"%";
+    document.getElementById("bar-approval").style.background=state.approval>=40?"#5a9a8a":"#cc4422";
+  }
+  document.getElementById("s-energy").textContent=state.narratorEnergy;
+  document.getElementById("bar-energy").style.width=state.narratorEnergy+"%";
+  document.getElementById("bar-energy").style.background=state.narratorEnergy>40?"#4a8aaa":"#aa6a3a";
+  document.getElementById("s-stress").textContent=state.narratorStress+"%";
+  document.getElementById("bar-stress").style.width=state.narratorStress+"%";
+  document.getElementById("bar-stress").style.background=state.narratorStress<60?"#aa5a3a":"#cc2222";
+  updateBudgetTooltip();
 }
 
 function updateInfoPanel(){
@@ -716,21 +1219,100 @@ function renderBuilding(b,bx,by,bw,bh,ms){
   ctx.fillStyle=barColor;ctx.fillRect(barX,barY,barW*(cond/100),barH);
 }
 
+function getStaffTarget(c){
+  var isParkHours=state.gameTime>=480&&state.gameTime<1200;
+  // Samuel housed: wanders residential zones
+  if(c.id==="samuel"&&state.flags.samuel_housed){
+    var rezones=[];for(var ri=0;ri<state.placedZones.length;ri++){if(state.placedZones[ri].type==="residential")rezones.push(state.placedZones[ri]);}
+    if(rezones.length>0){var rz=rezones[Math.floor(Math.random()*rezones.length)];return{tx:rz.x+rz.w/2+(Math.random()-0.5)*0.08,ty:rz.y+rz.h/2+(Math.random()-0.5)*0.08};}
+  }
+  if(isParkHours){
+    var homeId=CHAR_BUILDINGS[c.id];
+    if(homeId){
+      for(var i=0;i<BUILDINGS.length;i++){
+        if(BUILDINGS[i].id===homeId&&!state.destroyedBuildings[homeId]){
+          var b=BUILDINGS[i];return{tx:b.x+b.w/2+(Math.random()-0.5)*0.05,ty:b.y+b.h/2+(Math.random()-0.5)*0.05};
+        }
+      }
+    }
+  }
+  return{tx:0.58+Math.random()*0.28,ty:0.80+Math.random()*0.14};
+}
+
+function drawSpeechBubble(text,cx,cy,alpha){
+  ctx.save();ctx.globalAlpha=alpha;
+  ctx.font="italic 10px Georgia";ctx.textAlign="center";
+  var tw=ctx.measureText(text).width,pw=tw+16,ph=22;
+  var px=Math.max(4,Math.min(cw-pw-4,cx-pw/2));
+  var py=Math.max(4,cy-7-ph-16);
+  ctx.fillStyle="rgba(245,240,222,0.96)";ctx.strokeStyle="rgba(100,88,50,0.55)";ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(px+4,py);ctx.lineTo(px+pw-4,py);ctx.arcTo(px+pw,py,px+pw,py+4,4);
+  ctx.lineTo(px+pw,py+ph-4);ctx.arcTo(px+pw,py+ph,px+pw-4,py+ph,4);
+  ctx.lineTo(px+4,py+ph);ctx.arcTo(px,py+ph,px,py+ph-4,4);
+  ctx.lineTo(px,py+4);ctx.arcTo(px,py,px+4,py,4);ctx.closePath();
+  ctx.fill();ctx.stroke();
+  var tx2=Math.max(px+8,Math.min(px+pw-8,cx));
+  ctx.fillStyle="rgba(245,240,222,0.96)";
+  ctx.beginPath();ctx.moveTo(tx2-4,py+ph);ctx.lineTo(tx2+4,py+ph);ctx.lineTo(tx2,py+ph+8);ctx.closePath();ctx.fill();
+  ctx.strokeStyle="rgba(100,88,50,0.55)";ctx.beginPath();ctx.moveTo(tx2-4,py+ph);ctx.lineTo(tx2,py+ph+8);ctx.lineTo(tx2+4,py+ph);ctx.stroke();
+  ctx.fillStyle="#302818";ctx.fillText(text,cx,py+ph/2+4);
+  ctx.restore();
+}
+
+function renderZone(z,zx,zy,zw,zh){
+  ctx.globalAlpha=0.22;ctx.fillStyle=z.color;ctx.fillRect(zx,zy,zw,zh);ctx.globalAlpha=1;
+  ctx.strokeStyle=z.color;ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.strokeRect(zx,zy,zw,zh);ctx.setLineDash([]);
+  var lbl={residential:"RES",commercial:"COM",civic:"CIV"}[z.type]||z.type.slice(0,3).toUpperCase();
+  ctx.font="bold 9px Georgia";ctx.textAlign="center";ctx.fillStyle=z.color;ctx.fillText(lbl,zx+zw/2,zy+zh/2+3);
+}
+
 function drawTree(x,y,size){
+  var season=Math.floor((state.day/30)%4);
   ctx.fillStyle="rgba(0,0,0,0.15)";
   ctx.beginPath();ctx.arc(x+2,y+size*0.6,Math.max(1,size*0.5),0,Math.PI*2);ctx.fill();
   ctx.fillStyle="#5A4A30";ctx.fillRect(x-1,y,2,size*0.4);
-  var cols=["#2D7A2D","#3A8A2A","#348030"];
-  for(var i=0;i<3;i++){ctx.beginPath();ctx.arc(x+(i-1)*size*0.2,y-size*0.1*i,Math.max(1,size*0.45-i),0,Math.PI*2);ctx.fillStyle=cols[i];ctx.fill();}
+  if(season===3){
+    ctx.strokeStyle="#4A3A22";ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(x,y+size*0.4);ctx.lineTo(x,y-size*0.3);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x,y+size*0.1);ctx.lineTo(x-size*0.35,y-size*0.25);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x,y+size*0.1);ctx.lineTo(x+size*0.35,y-size*0.25);ctx.stroke();
+  }else{
+    var cols=["#2D7A2D","#3A8A2A","#348030"];
+    for(var i=0;i<3;i++){ctx.beginPath();ctx.arc(x+(i-1)*size*0.2,y-size*0.1*i,Math.max(1,size*0.45-i),0,Math.PI*2);ctx.fillStyle=cols[i];ctx.fill();}
+  }
+}
+
+function drawSmoke(bx,by,bw){
+  var t=Date.now()/1200;
+  var sx=bx+bw*0.45;
+  ctx.save();
+  for(var i=0;i<4;i++){
+    var phase=((t+i*0.25)%1);
+    var py=by-6-phase*20;
+    var drift=Math.sin(t*2+i*1.8)*4*phase;
+    var alpha=0.38*(1-phase);
+    var r=1.5+phase*3.5;
+    ctx.beginPath();ctx.arc(sx+drift,py,r,0,Math.PI*2);
+    ctx.fillStyle="rgba(160,155,145,"+alpha.toFixed(2)+")";ctx.fill();
+  }
+  ctx.restore();
 }
 
 function render(){
   if(!canvas)return;
   var ms=state.mapScale||1;
   ctx.clearRect(0,0,cw,ch);
+  var br=getDayBrightness();
+  var season=Math.floor((state.day/30)%4);
+  var sgc=seasonGrassColors[season];
   var grad=ctx.createLinearGradient(0,0,0,ch);
-  grad.addColorStop(0,"#58A840");grad.addColorStop(0.3,"#4C9838");grad.addColorStop(0.7,"#448A30");grad.addColorStop(1,"#3C7828");
+  grad.addColorStop(0,"rgb("+Math.floor(sgc[0][0]*br)+","+Math.floor(sgc[0][1]*br)+","+Math.floor(sgc[0][2]*br)+")");
+  grad.addColorStop(0.3,"rgb("+Math.floor(sgc[1][0]*br)+","+Math.floor(sgc[1][1]*br)+","+Math.floor(sgc[1][2]*br)+")");
+  grad.addColorStop(0.7,"rgb("+Math.floor(sgc[2][0]*br)+","+Math.floor(sgc[2][1]*br)+","+Math.floor(sgc[2][2]*br)+")");
+  grad.addColorStop(1,"rgb("+Math.floor(sgc[3][0]*br)+","+Math.floor(sgc[3][1]*br)+","+Math.floor(sgc[3][2]*br)+")");
   ctx.fillStyle=grad;ctx.fillRect(0,0,cw,ch);
+  if(br<1.0){ctx.fillStyle="rgba(5,10,30,"+(0.35*(1-br))+")";ctx.fillRect(0,0,cw,ch);}
   ctx.globalAlpha=0.08;
   for(var gi=0;gi<40;gi++){var gx=Math.random()*cw,gy=Math.random()*ch,gs=20+Math.random()*60;ctx.beginPath();ctx.arc(gx,gy,gs,0,Math.PI*2);ctx.fillStyle=Math.random()>0.5?"#60B848":"#388828";ctx.fill();}
   ctx.globalAlpha=1;
@@ -747,15 +1329,24 @@ function render(){
   if(state.expanded){ctx.globalAlpha=0.3;ctx.strokeRect(ms*cw*0.015,ms*ch*0.015,ms*cw*0.97,ms*ch*0.97);ctx.globalAlpha=1;}
   ctx.setLineDash([]);
   TREES.forEach(function(t){drawTree(t.x*ms*cw,t.y*ms*ch,t.s);});
+  state.placedZones.forEach(function(z){renderZone(z,z.x*ms*cw,z.y*ms*ch,z.w*ms*cw,z.h*ms*ch);});
   BUILDINGS.forEach(function(b){
     var bx=b.x*ms*cw,by=b.y*ms*ch,bw=b.w*ms*cw,bh=b.h*ms*ch;
     if(state.destroyedBuildings[b.id]){ctx.fillStyle="rgba(40,20,10,0.4)";ctx.fillRect(bx,by,bw,bh);ctx.strokeStyle="rgba(200,80,20,0.5)";ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.strokeRect(bx,by,bw,bh);ctx.setLineDash([]);ctx.fillStyle="rgba(200,100,30,0.7)";ctx.font=Math.floor(bh*0.35)+"px Georgia";ctx.textAlign="center";ctx.fillText("\uD83D\uDD25",bx+bw/2,by+bh/2+4);ctx.font="9px Georgia";ctx.fillText("RUINS",bx+bw/2,by+bh-3);return;}
     renderBuilding(b,bx,by,bw,bh,ms);
+    if(b.id==="refreshments")drawSmoke(bx,by,bw);
   });
   state.placedBuildings.forEach(function(b){
     var bx=b.x*ms*cw,by=b.y*ms*ch,bw=b.w*ms*cw,bh=b.h*ms*ch;
     renderBuilding(b,bx,by,bw,bh,ms);
+    if(b.typeId==="pasta_lair")drawSmoke(bx,by,bw);
   });
+  if(state.zoneMode&&state.selectedZone&&buildPreviewX!==undefined){
+    var sz=state.selectedZone,zpw=0.12*ms*cw,zph=0.09*ms*ch;
+    var zpx=buildPreviewX*ms*cw-zpw/2,zpy=buildPreviewY*ms*ch-zph/2;
+    ctx.globalAlpha=0.45;ctx.fillStyle=sz.color;ctx.fillRect(zpx,zpy,zpw,zph);
+    ctx.globalAlpha=1;ctx.strokeStyle="#FFFFFF";ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.strokeRect(zpx,zpy,zpw,zph);ctx.setLineDash([]);
+  }
   if(state.buildMode&&state.selectedBuildable&&buildPreviewX!==undefined){
     var s=state.selectedBuildable,bw=0.10*ms*cw,bh=0.07*ms*ch;
     var bx=buildPreviewX*ms*cw-bw/2,by=buildPreviewY*ms*ch-bh/2;
@@ -765,20 +1356,96 @@ function render(){
     ctx.strokeStyle="#FFFFFF";ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.strokeRect(bx,by,bw,bh);ctx.setLineDash([]);
     ctx.globalAlpha=1;
   }
+  var narratorChar=null;
+  for(var ni=0;ni<state.characters.length;ni++){if(state.characters[ni].id==="narrator"){narratorChar=state.characters[ni];break;}}
+  // Footprints
+  var fpNow=Date.now();
+  for(var fpi=0;fpi<footprints.length;fpi++){
+    var fp=footprints[fpi];
+    var age=(fpNow-fp.born)/5000;
+    ctx.beginPath();ctx.arc(fp.x*ms*cw,fp.y*ms*ch,2,0,Math.PI*2);
+    ctx.fillStyle="rgba(80,60,30,"+(0.2*(1-age)).toFixed(3)+")";ctx.fill();
+  }
+  // Residents
+  var resNow=Date.now();
+  state.residents.forEach(function(res){
+    var rdx=res.tx-res.x,rdy=res.ty-res.y,rdist=Math.sqrt(rdx*rdx+rdy*rdy);
+    if(rdist<0.01){
+      if(resNow>res.waitUntil){var rt=getResidentTarget();res.tx=rt.tx;res.ty=rt.ty;res.waitUntil=resNow+5000+Math.random()*5000;}
+    }else{var resSp=state.weather==="rain"?0.0007:0.001;res.x+=rdx/rdist*resSp;res.y+=rdy/rdist*resSp;}
+    var rx=res.x*ms*cw,ry=res.y*ms*ch;
+    ctx.beginPath();ctx.arc(rx+1,ry+2,3,0,Math.PI*2);ctx.fillStyle="rgba(0,0,0,0.18)";ctx.fill();
+    ctx.beginPath();ctx.arc(rx,ry,4,0,Math.PI*2);ctx.fillStyle="#C8C0B0";ctx.fill();
+    ctx.strokeStyle="rgba(0,0,0,0.3)";ctx.lineWidth=1;ctx.stroke();
+    if(narratorChar&&!state.gamePaused){
+      var rndx=narratorChar.x-res.x,rndy=narratorChar.y-res.y;
+      if(Math.sqrt(rndx*rndx+rndy*rndy)<0.02){
+        if(!speechCooldowns[res.id]||resNow>speechCooldowns[res.id]){
+          var line=RESIDENT_LINES[Math.floor(Math.random()*RESIDENT_LINES.length)];
+          speechBubble={charId:res.id,text:line,born:resNow};speechCooldowns[res.id]=resNow+8000;
+        }
+      }
+    }
+  });
   state.characters.forEach(function(c){
     var dx=c.tx-c.x,dy=c.ty-c.y,dist=Math.sqrt(dx*dx+dy*dy);
-    if(dist<0.01){if(!c.clickTarget){c.tx=0.08+Math.random()*0.80;c.ty=0.08+Math.random()*0.80;}}
-    else{c.x+=(dx/dist)*c.speed;c.y+=(dy/dist)*c.speed;}
+    if(dist<0.01){
+      if(c.id==="narrator"){if(!c.clickTarget){c.tx=0.08+Math.random()*0.80;c.ty=0.08+Math.random()*0.80;}}
+      else if(c.ghost){
+        var wentToCemetery=false;
+        if(c.id==="mckinnon"&&Math.random()<0.3){
+          for(var gbi=0;gbi<state.placedBuildings.length;gbi++){if(state.placedBuildings[gbi].typeId==="cemetery"){var gcb=state.placedBuildings[gbi];c.tx=gcb.x+gcb.w/2+(Math.random()-0.5)*0.04;c.ty=gcb.y+gcb.h/2+(Math.random()-0.5)*0.04;wentToCemetery=true;break;}}
+        }
+        if(!wentToCemetery){c.tx=0.08+Math.random()*0.80;c.ty=0.08+Math.random()*0.80;}
+      }
+      else{var t=getStaffTarget(c);c.tx=t.tx;c.ty=t.ty;}
+    }else if(c.id==="narrator"&&state.narratorEnergy===0){/* blocked — needs rest */}
+    else{
+      var spd=c.speed;
+      if(state.weather==="rain")spd*=0.7;
+      if(c.id!=="narrator"&&!c.ghost&&(state.gameTime<480||state.gameTime>=1200))spd*=0.5;
+      c.x+=(dx/dist)*spd;c.y+=(dy/dist)*spd;
+    }
     var cx=c.x*ms*cw,cy=c.y*ms*ch,r=c.ghost?6:7;
-    if(c.ghost)ctx.globalAlpha=0.35+Math.sin(Date.now()/1000)*0.15;
+    if(c.ghost)ctx.globalAlpha=state.weather==="fog"?0.7:0.35+Math.sin(Date.now()/1000)*0.15;
     ctx.beginPath();ctx.arc(cx+1,cy+r,Math.max(1,r*0.7),0,Math.PI*2);ctx.fillStyle="rgba(0,0,0,0.2)";ctx.fill();
     ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle=c.color;ctx.fill();ctx.strokeStyle="rgba(0,0,0,0.4)";ctx.lineWidth=1.5;ctx.stroke();
     ctx.beginPath();ctx.arc(cx-1,cy-2,Math.max(1,r*0.35),0,Math.PI*2);ctx.fillStyle="rgba(255,255,255,0.25)";ctx.fill();
     ctx.globalAlpha=1;
+    // Mood indicator dot (non-narrator, non-ghost staff)
+    if(c.id!=="narrator"&&!c.ghost){
+      var moodOff=CHAR_MOOD_OFFSETS[c.id]||0;var mood=clamp(state.morale+moodOff,0,100);
+      ctx.beginPath();ctx.arc(cx,cy-r-20,3,0,Math.PI*2);
+      ctx.fillStyle=mood>60?"#60cc40":mood>30?"#cccc40":"#cc4040";ctx.fill();
+      ctx.strokeStyle="rgba(0,0,0,0.5)";ctx.lineWidth=1;ctx.stroke();
+    }
     ctx.font="bold 9px Georgia";ctx.textAlign="center";var nw=ctx.measureText(c.name).width;
     ctx.fillStyle="rgba(0,0,0,0.6)";ctx.fillRect(cx-nw/2-2,cy-r-13,nw+4,11);
     ctx.fillStyle=c.ghost?"#90C8E8":"#FFFFFF";ctx.fillText(c.name,cx,cy-r-4);
+    // Speech bubble proximity trigger
+    if(c.id!=="narrator"&&!c.ghost&&narratorChar&&!state.gamePaused){
+      var ndx=narratorChar.x-c.x,ndy=narratorChar.y-c.y;
+      if(Math.sqrt(ndx*ndx+ndy*ndy)<0.05){
+        if(!speechCooldowns[c.id]||Date.now()>speechCooldowns[c.id]){
+          var mOff=CHAR_MOOD_OFFSETS[c.id]||0;var m2=clamp(state.morale+mOff,0,100);
+          var mk=m2>60?"content":m2>30?"unhappy":"miserable";
+          var line=CHAR_SPEECH[c.id]?CHAR_SPEECH[c.id][mk]:null;
+          if(line){speechBubble={charId:c.id,text:line,born:Date.now()};speechCooldowns[c.id]=Date.now()+8000;}
+        }
+      }
+    }
   });
+  // Draw active speech bubble
+  if(speechBubble){
+    var sbAge=Date.now()-speechBubble.born;
+    if(sbAge>3000){speechBubble=null;}
+    else{
+      var sbChar=null;
+      for(var si=0;si<state.characters.length;si++){if(state.characters[si].id===speechBubble.charId){sbChar=state.characters[si];break;}}
+      if(!sbChar){for(var si=0;si<state.residents.length;si++){if(state.residents[si].id===speechBubble.charId){sbChar=state.residents[si];break;}}}
+      if(sbChar){drawSpeechBubble(speechBubble.text,sbChar.x*ms*cw,sbChar.y*ms*ch,sbAge>2500?1-(sbAge-2500)/500:1);}
+    }
+  }
   var now=Date.now();
   canvasNotifications=canvasNotifications.filter(function(n){return now-n.born<2000;});
   canvasNotifications.forEach(function(n){
@@ -791,6 +1458,28 @@ function render(){
     ctx.fillStyle="#E8D090";ctx.fillText(n.text,nx,ny);
     ctx.globalAlpha=1;
   });
+  if(state.narratorEnergy===0){
+    ctx.font="bold 13px Georgia";ctx.textAlign="center";
+    var rmsg="You need to rest.";var rtw=ctx.measureText(rmsg).width;
+    ctx.fillStyle="rgba(0,0,0,0.72)";ctx.fillRect(cw/2-rtw/2-10,ch/2-22,rtw+20,26);
+    ctx.fillStyle="#E8A070";ctx.fillText(rmsg,cw/2,ch/2-4);
+  }
+  // Rain overlay
+  if(state.weather==="rain"){
+    ctx.save();
+    ctx.strokeStyle="rgba(160,170,200,0.38)";ctx.lineWidth=1;
+    var rt=Date.now()/700;
+    for(var ri=0;ri<rainDrops.length;ri++){
+      var rd=rainDrops[ri];
+      var ry2=((rt*rd.speed+rd.phase)*ch)%ch;
+      ctx.beginPath();ctx.moveTo(rd.x*cw,ry2);ctx.lineTo(rd.x*cw+0.8,ry2+11);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // Fog overlay
+  if(state.weather==="fog"){
+    ctx.fillStyle="rgba(220,225,220,0.15)";ctx.fillRect(0,0,cw,ch);
+  }
 }
 
 var BUILDING_ACTIONS = {
@@ -813,6 +1502,8 @@ var BUILDING_ACTIONS = {
 };
 
 var interactCooldownUntil = 0;
+var lastFrameTime = 0;
+var narratorWalkAccum = 0;
 
 function findBuildingById(id){
   for(var i=0;i<BUILDINGS.length;i++){if(BUILDINGS[i].id===id)return BUILDINGS[i];}
@@ -843,7 +1534,8 @@ function updateInteractPrompt(){
   var b=getNearbyBuilding();
   var action=b?BUILDING_ACTIONS[b.id]:null;
   var needsRepair=b&&b.condition!==undefined&&b.condition<100;
-  if(!b||(!action&&!needsRepair)){el.style.display="none";return;}
+  var canRest=b&&(b.id==="saloon"||b.id==="infirmary"||b.restable===true);
+  if(!b||(!action&&!needsRepair&&!canRest)){el.style.display="none";return;}
   var onCooldown=Date.now()<interactCooldownUntil;
   var ms=state.mapScale||1;
   el.style.left=(b.x+b.w/2)*ms*cw+"px";
@@ -853,6 +1545,7 @@ function updateInteractPrompt(){
   document.getElementById("ip-building-name").textContent=b.name;
   el.dataset.buildingId=b.id;
   var repairBtn=document.getElementById("ip-repair-btn");
+  var restBtn=document.getElementById("ip-rest-btn");
   var actionBtn=document.getElementById("ip-action-btn");
   if(needsRepair){
     var canAffordRepair=state.budget>=200;
@@ -862,6 +1555,13 @@ function updateInteractPrompt(){
     repairBtn.style.opacity=(onCooldown||!canAffordRepair)?"0.4":"1";
   }else{
     repairBtn.style.display="none";
+  }
+  if(canRest){
+    restBtn.style.display="block";
+    restBtn.disabled=onCooldown;
+    restBtn.style.opacity=onCooldown?"0.4":"1";
+  }else{
+    restBtn.style.display="none";
   }
   if(action){
     actionBtn.style.display="block";
@@ -886,6 +1586,17 @@ function repairBuilding(){
   interactCooldownUntil=Date.now()+2000;
 }
 
+function restNarrator(){
+  if(Date.now()<interactCooldownUntil)return;
+  var buildingId=document.getElementById("interact-prompt").dataset.buildingId;
+  var b=findBuildingById(buildingId);
+  state.narratorEnergy=Math.min(100,state.narratorEnergy+40);
+  state.narratorStress=Math.max(0,state.narratorStress-10);
+  state.log.push({day:state.day,title:"Rested at: "+(b?b.name:"building")});
+  updateSidebar();updateLog();
+  interactCooldownUntil=Date.now()+10000;
+}
+
 function interactWithBuilding(){
   if(Date.now()<interactCooldownUntil)return;
   var buildingId=document.getElementById("interact-prompt").dataset.buildingId;
@@ -908,7 +1619,178 @@ function interactWithBuilding(){
   interactCooldownUntil=Date.now()+2000;
 }
 
-function gameLoop(){render();updateInteractPrompt();requestAnimationFrame(gameLoop);}
+function syncResidents(){
+  var target=Math.min(20,Math.floor(state.population/5));
+  while(state.residents.length<target){
+    var sx=0.3+Math.random()*0.6,sy=0.3+Math.random()*0.6;
+    for(var i=0;i<state.placedZones.length;i++){if(state.placedZones[i].type==="residential"){var rz=state.placedZones[i];sx=rz.x+rz.w/2+(Math.random()-0.5)*0.1;sy=rz.y+rz.h/2+(Math.random()-0.5)*0.1;break;}}
+    var n=state.residents.length;
+    state.residents.push({id:"resident_"+n,x:sx,y:sy,tx:sx,ty:sy,waitUntil:0});
+  }
+  while(state.residents.length>target)state.residents.pop();
+}
+
+function getResidentTarget(){
+  var preferred=["saloon","sweete","general","entry","refreshments","hostelry","gift"];
+  var usePreferred=Math.random()<0.6;
+  if(usePreferred){
+    var pref=[];
+    for(var i=0;i<preferred.length;i++){for(var j=0;j<BUILDINGS.length;j++){if(BUILDINGS[j].id===preferred[i]&&!state.destroyedBuildings[BUILDINGS[j].id]){pref.push(BUILDINGS[j]);break;}}}
+    for(var i=0;i<state.placedZones.length;i++){if(state.placedZones[i].type==="commercial")pref.push(state.placedZones[i]);}
+    if(pref.length>0){var b=pref[Math.floor(Math.random()*pref.length)];return{tx:b.x+b.w/2+(Math.random()-0.5)*0.03,ty:b.y+b.h/2+(Math.random()-0.5)*0.03};}
+  }
+  var all=[];
+  for(var i=0;i<BUILDINGS.length;i++){if(!state.destroyedBuildings[BUILDINGS[i].id])all.push(BUILDINGS[i]);}
+  for(var i=0;i<state.placedBuildings.length;i++)all.push(state.placedBuildings[i]);
+  for(var i=0;i<state.placedZones.length;i++)all.push(state.placedZones[i]);
+  if(all.length>0){var b2=all[Math.floor(Math.random()*all.length)];return{tx:b2.x+b2.w/2+(Math.random()-0.5)*0.03,ty:b2.y+b2.h/2+(Math.random()-0.5)*0.03};}
+  return{tx:0.1+Math.random()*0.8,ty:0.1+Math.random()*0.8};
+}
+
+function showMunicipalAmbitions(){
+  state.eventActive=true;state.gamePaused=true;
+  var b=document.getElementById("event-box");b.className="";
+  b.innerHTML='<div class="ev-day">Day '+state.day+'</div><div class="ev-title">MUNICIPAL AMBITIONS</div><div class="ev-text">Mr. A calls you into City Hall. He\'s got the bigscreen on. There\'s a PowerPoint. The first slide says CIVILWARLAND: A COMMUNITY. He says the investors are talking about residential. Residential, he says, like it\'s a word he just discovered. He says people want to live near history. I say people have been dying near this history for over a century. He says that\'s the kind of can-do attitude that got us here. He advances to a slide that just says ZONING in 72-point type and looks at me like I should be weeping with joy.</div><button class="ev-minor-btn" onclick="dismissMunicipalAmbitions()">Continue</button>';
+  document.getElementById("event-overlay").classList.add("active");
+}
+function dismissMunicipalAmbitions(){
+  document.getElementById("event-overlay").classList.remove("active");
+  state.eventActive=false;state.gamePaused=false;
+  state.townshipUnlocked=true;
+  document.getElementById("zone-toggle-btn").style.display="block";
+  updateSidebar();
+  state.log.push({day:state.day,title:"Township system unlocked"});updateLog();
+}
+
+function toggleZoneMenu(){
+  var overlay=document.getElementById("zone-menu-overlay");
+  var open=overlay.style.display==="block";
+  if(open){closeZoneMenu();}
+  else{
+    document.getElementById("build-menu-overlay").style.display="none";
+    document.getElementById("build-toggle-btn").classList.remove("active");
+    state.buildMode=false;state.selectedBuildable=null;canvas.classList.remove("build-mode");
+    overlay.style.display="block";document.getElementById("zone-toggle-btn").classList.add("active");renderZoneMenu();
+  }
+}
+function closeZoneMenu(){
+  document.getElementById("zone-menu-overlay").style.display="none";
+  document.getElementById("zone-toggle-btn").classList.remove("active");
+  state.zoneMode=false;state.selectedZone=null;canvas.classList.remove("build-mode");
+}
+function selectZone(id){
+  for(var i=0;i<ZONE_TYPES.length;i++){if(ZONE_TYPES[i].id===id){state.selectedZone=ZONE_TYPES[i];break;}}
+  state.zoneMode=true;canvas.classList.add("build-mode");renderZoneMenu();
+}
+function renderZoneMenu(){
+  var h="";
+  document.getElementById("zone-hint").textContent=state.zoneMode&&state.selectedZone?"Click to place "+state.selectedZone.name+". Click again to cancel.":"Select a zone type, then click to place it.";
+  ZONE_TYPES.forEach(function(z){
+    var canAfford=state.budget>=z.cost;
+    var sel=state.selectedZone&&state.selectedZone.id===z.id;
+    h+='<div class="build-item'+(sel?" selected":"")+(canAfford?"":" cant-afford")+'" onclick="'+(canAfford?"selectZone('"+z.id+"')":"")+'">';
+    h+='<div class="build-item-name">'+z.name+'</div>';
+    h+='<div class="build-item-cost'+(canAfford?"":" unaffordable")+'">$'+z.cost.toLocaleString()+(canAfford?"":" \u2014 can\'t afford")+'</div>';
+    h+='<div class="build-item-effects"><span style="font-size:9px;color:#7a8a6a;">'+z.desc+'</span></div>';
+    h+='</div>';
+  });
+  document.getElementById("zone-items").innerHTML=h;
+}
+
+function gameLoop(ts){
+  var delta=lastFrameTime?ts-lastFrameTime:0;
+  lastFrameTime=ts;
+  // Real-time clock: 90 real seconds = 1440 game minutes at 1x speed
+  if(!state.gamePaused&&!state.eventActive&&!state.gameOver){
+    state.gameTime+=delta*state.gameSpeed*(1440/90000);
+    if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}
+    updateTimeDisplay();
+  }
+  // Energy drain: walking narrator costs 1 energy per 3 real seconds
+  var narrator=null;
+  for(var i=0;i<state.characters.length;i++){if(state.characters[i].id==="narrator"){narrator=state.characters[i];break;}}
+  if(narrator&&state.narratorEnergy>0){
+    var ndx=narrator.tx-narrator.x,ndy=narrator.ty-narrator.y;
+    if(Math.sqrt(ndx*ndx+ndy*ndy)>=0.01){
+      narratorWalkAccum+=delta;
+      if(narratorWalkAccum>=3000){state.narratorEnergy=Math.max(0,state.narratorEnergy-1);narratorWalkAccum-=3000;updateSidebar();}
+    }else{narratorWalkAccum=0;}
+  }
+  // Footprint recording
+  if(narrator&&!state.gamePaused){
+    var nfDx=narrator.x-(lastFootprintX!==null?lastFootprintX:narrator.x);
+    var nfDy=narrator.y-(lastFootprintY!==null?lastFootprintY:narrator.y);
+    if(Math.sqrt(nfDx*nfDx+nfDy*nfDy)>0.018){
+      footprints.push({x:narrator.x,y:narrator.y,born:Date.now()});
+      lastFootprintX=narrator.x;lastFootprintY=narrator.y;
+    }
+    var fpPrune=Date.now();
+    footprints=footprints.filter(function(fp){return fpPrune-fp.born<5000;});
+  }
+  render();updateInteractPrompt();requestAnimationFrame(gameLoop);
+}
+
+// ── Tutorial ──────────────────────────────────────────────────
+var tutStep=0;
+var TUTORIAL_STEPS=[
+  {label:"The Map",     text:"Click anywhere to walk. You are the gold dot. This is your park.",
+   getTarget:function(){var r=document.getElementById("canvas").getBoundingClientRect();return{tx:r.left+r.width/2,ty:r.top+r.height*0.44,arrow:"down"};}},
+  {label:"Buildings",   text:"Walk to buildings to interact with them. Each one does something different.",
+   getTarget:function(){var r=document.getElementById("canvas").getBoundingClientRect();return{tx:r.left+r.width*0.38,ty:r.top+r.height*0.54,arrow:"down"};}},
+  {label:"Statistics",  text:"These are your problems. They all get worse on their own. Your job is to slow the decline.",
+   getTarget:function(){var sb=document.getElementById("sidebar").getBoundingClientRect();return{tx:sb.left,ty:sb.top+130,arrow:"right"};}},
+  {label:"The Clock",   text:"Survive thirty days. After that \u2014 if there is an after that \u2014 things change.",
+   getTarget:function(){var dd=document.getElementById("day-display").getBoundingClientRect();return{tx:dd.left+dd.width/2,ty:dd.top,arrow:"up"};}}
+];
+
+function showTutorialStep(n){
+  tutStep=n;
+  var step=TUTORIAL_STEPS[n];
+  var pos=step.getTarget();
+  var TW=268,TH=132,ARROW=11,GAP=10;
+  var tipLeft,tipTop,arrowX,arrowY;
+  switch(pos.arrow){
+    case "down": tipTop=Math.round(pos.ty-TH-ARROW-GAP); tipLeft=Math.round(pos.tx-TW/2); break;
+    case "up":   tipTop=Math.round(pos.ty+ARROW+GAP);    tipLeft=Math.round(pos.tx-TW/2); break;
+    case "right":tipLeft=Math.round(pos.tx-TW-ARROW-GAP);tipTop=Math.round(pos.ty-TH/2); break;
+    case "left": tipLeft=Math.round(pos.tx+ARROW+GAP);   tipTop=Math.round(pos.ty-TH/2); break;
+  }
+  // Clamp to viewport
+  tipLeft=Math.max(8,Math.min(window.innerWidth-TW-8,tipLeft));
+  tipTop=Math.max(8,Math.min(window.innerHeight-TH-8,tipTop));
+  // Arrow offset along the pointed edge (follows the actual target point)
+  if(pos.arrow==="down"||pos.arrow==="up")  arrowX=Math.max(16,Math.min(TW-16,Math.round(pos.tx-tipLeft)))+"px";
+  else arrowX="50%";
+  if(pos.arrow==="left"||pos.arrow==="right") arrowY=Math.max(16,Math.min(TH-16,Math.round(pos.ty-tipTop)))+"px";
+  else arrowY="50%";
+  var isLast=(n===TUTORIAL_STEPS.length-1);
+  var tip=document.getElementById("tutorial-tip");
+  tip.className="arrow-"+pos.arrow;
+  tip.style.left=tipLeft+"px"; tip.style.top=tipTop+"px";
+  tip.style.setProperty("--ax",arrowX); tip.style.setProperty("--ay",arrowY);
+  tip.innerHTML=
+    '<div class="tut-num">'+step.label+' \u00b7 '+(n+1)+' / '+TUTORIAL_STEPS.length+'</div>'+
+    '<div class="tut-body">'+step.text+'</div>'+
+    '<div class="tut-btns">'+
+    '<button class="tut-skip" onclick="tutDismiss()">Skip</button>'+
+    '<button class="tut-next" onclick="tutAdvance()">'+(isLast?'Got it':'Next \u2192')+'</button>'+
+    '</div>';
+  document.getElementById("tutorial-overlay").classList.add("active");
+}
+
+function tutAdvance(){
+  if(tutStep+1>=TUTORIAL_STEPS.length){tutDismiss();return;}
+  showTutorialStep(tutStep+1);
+}
+
+function tutDismiss(){
+  state.flags.tutorial_done=true;
+  document.getElementById("tutorial-overlay").classList.remove("active");
+}
+// ──────────────────────────────────────────────────────────────
+
+// Check for existing save on page load
+checkSaveOnTitleScreen();
 </script>
 </body>
 </html>
