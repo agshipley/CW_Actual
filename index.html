@@ -140,6 +140,30 @@
       #mobile-gate h2 { font-size:36px; font-weight:normal; letter-spacing:3px; margin-bottom:20px; color:#d4d0c4; }
       #mobile-gate p { font-size:13px; line-height:1.8; color:#8a8a7a; max-width:320px; }
     }
+    #assign-panel{display:none;position:absolute;top:0;left:0;width:226px;height:100%;background:rgba(16,22,12,0.97);overflow-y:auto;z-index:15;padding:14px 12px;border-right:1px solid #2a3420;}
+    #assign-panel .sb-label{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+    #assign-panel .close-btn{cursor:pointer;color:#7a8a6a;font-size:14px;line-height:1;}
+    #assign-panel .close-btn:hover{color:#c4c4a8;}
+    .assign-hint{font-size:9px;color:#7a8a6a;font-style:italic;margin-bottom:10px;line-height:1.5;}
+    .char-item{padding:7px 9px;border:1px solid #2a3420;margin-bottom:5px;background:rgba(26,30,20,0.5);}
+    .char-item.assignable{cursor:pointer;}
+    .char-item.assignable:hover{border-color:#5a6a48;background:rgba(50,66,38,0.2);}
+    .char-item.assigned-here{border-color:#4a6a3a;background:rgba(40,60,28,0.3);cursor:default;}
+    .char-item.at-other{opacity:0.5;cursor:default;}
+    .char-item-name{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#b0a888;margin-bottom:2px;}
+    .char-item-status{font-size:9px;color:#6a7a5a;font-style:italic;margin-bottom:3px;}
+    .char-trait-line{font-size:9px;line-height:1.5;margin-bottom:1px;}
+    .t-pos{color:#6a8a4a;}.t-neg{color:#9a5a4a;}.t-neu{color:#7a8a6a;}
+    #assign-preview{margin-top:8px;padding:8px;border:1px solid #2a3420;background:rgba(20,28,14,0.7);display:none;font-size:10px;color:#9a9a7a;line-height:1.7;}
+    #assign-preview .prev-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#5a6a4a;margin-bottom:5px;}
+    .p2-assign{margin-top:10px;padding-top:8px;border-top:1px solid #2a3420;}
+    .p2-staff-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+    .p2-sl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#5a6a4a;}
+    .p2-sn{font-size:12px;color:#c4c4a8;}
+    .p2-unstaffed{font-size:11px;color:#4a5a3a;font-style:italic;}
+    .p2-btn{background:none;border:1px solid #5a6a48;color:#b0a888;padding:3px 10px;font-family:Georgia,serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-right:4px;margin-bottom:4px;}
+    .p2-btn:hover{border-color:#8a9a6a;color:#c4c4a8;}
+    .p2-eff{font-size:9px;color:#7a8a6a;line-height:1.6;margin-top:4px;}
   </style>
 </head>
 <body>
@@ -155,6 +179,7 @@
   <button id="continue-btn" onclick="loadGame()" style="display:none;margin-bottom:10px;">Continue</button>
   <button onclick="startGame()">Enter the Park</button>
   <button id="newgame-btn" onclick="newGame()" style="display:none;margin-top:10px;font-size:11px;letter-spacing:2px;padding:10px 32px;opacity:0.65;">New Game</button>
+  <button onclick="startPhase2Game()" style="margin-top:20px;font-size:10px;letter-spacing:3px;padding:9px 28px;opacity:0.55;border-color:#4a6a5a;color:#90b898;">Skip to The Community</button>
   <div class="credit">After George Saunders</div>
 </div>
 <div id="game-screen">
@@ -171,12 +196,19 @@
       <div class="build-hint" id="zone-hint">Select a zone type, then click to place it.</div>
       <div id="zone-items"></div>
     </div>
+    <div id="assign-panel">
+      <div class="sb-label">Assign Staff <span class="close-btn" onclick="closeAssignPanel()">&#x2715;</span></div>
+      <div class="assign-hint" id="assign-panel-building"></div>
+      <div id="assign-char-list"></div>
+      <div id="assign-preview"></div>
+    </div>
     <div id="debug-panel">
       <div class="dbg-title">&#x26A0; Debug Mode</div>
       <button class="dbg-btn" onclick="dbgSkipToDay30()">Skip to Day 30</button>
       <button class="dbg-btn" onclick="dbgAddMoney()">Add $50,000</button>
       <button class="dbg-btn" onclick="dbgPlace10Buildings()">+10 Buildings</button>
       <button class="dbg-btn" onclick="dbgAllFlags()">All Flags</button>
+      <button class="dbg-btn" onclick="dbgSkipToPhase2()">Skip to Phase 2</button>
       <div class="dbg-row">
         <select id="dbg-stat-select">
           <option value="morale">Morale</option>
@@ -209,6 +241,8 @@
       <div class="stat-bar"><div class="stat-bar-fill" id="bar-gang" style="width:15%;background:#9a5a4a;"></div></div>
       <div class="stat-row"><span class="stat-name">Staff Morale</span><span class="stat-val" id="s-morale">60%</span></div>
       <div class="stat-bar"><div class="stat-bar-fill" id="bar-morale" style="width:60%;background:#4a7a8a;"></div></div>
+      <div class="stat-row" id="productivity-row" style="display:none;margin-top:4px;"><span class="stat-name">Productivity</span><span class="stat-val" id="s-productivity">50</span></div>
+      <div class="stat-bar" id="productivity-bar-wrap" style="display:none;"><div class="stat-bar-fill" id="bar-productivity" style="width:50%;background:#8a6a9a;"></div></div>
       <div class="stat-row" id="structures-row" style="display:none;margin-top:4px;"><span class="stat-name">Structures</span><span class="stat-val" id="s-structures">0</span></div>
     </div>
     <div class="sb-section">
@@ -252,20 +286,26 @@ var state = {
   townshipUnlocked: false, population: 0, approval: 50,
   residents: [],
   deficitDays: 0, lastEconBreakdown: null,
-  weather: "clear", weatherDaysLeft: 4, weatherEventPending: false
+  weather: "clear", weatherDaysLeft: 4, weatherEventPending: false,
+  productivity: 50,
+  phase2Active: false,
+  charAssignedTo: {},
+  charConsecutiveDays: {},
+  charEventsFired: {},
+  arrivedChars: {},
 };
 
 var BUILDABLE_STRUCTURES = [
-  {id:"settlers_shack",   name:"Settler's Shack",          cost:2000, color:"#B8A070",roof:"#987840", desc:"Where Mr. A started. One Union costume and a dream.",                              daily:{attendance:3}},
-  {id:"otoole_gazebo",    name:"O'Toole Gazebo",            cost:1500, color:"#A0C890",roof:null,       desc:"Good sightlines for clandestine employee observation.",                           daily:{attendance:2,morale:1}},
-  {id:"hostelry",         name:"Hostelry",                  cost:3000, color:"#C8B898",roof:"#A89878", desc:"Where the living boy tried to kiss Maribeth and found out she was spectral.",      daily:{attendance:4}},
-  {id:"towne_meeting",    name:"Towne Meeting Hall",         cost:4000, color:"#D8C8A0",roof:"#B8A880", desc:"For simulated democracy. Mrs. Dugan brings bread.",                               daily:{attendance:5,budget:100}},
-  {id:"watchtower",       name:"Watchtower",                cost:2500, color:"#8A7A60",roof:"#6A5A40", desc:"Eyes on the retaining wall.",                                                     daily:{gangThreat:-3}},
-  {id:"second_wall",      name:"Second Retaining Wall",     cost:5000, color:"#7A7A6A",roof:null,       desc:"They're tunneling in or coming over. Build higher.",                              daily:{gangThreat:-5}},
-  {id:"staff_quarters",   name:"Staff Quarters",            cost:3000, color:"#A89880",roof:"#887860", desc:"Somewhere to perform your Hatred Abatement Breathing.",                          daily:{morale:3}, restable:true},
-  {id:"pasta_lair",       name:"Melvin's Pasta Lair",       cost:2000, color:"#C87040",roof:"#A85020", desc:"A religious zealot who worked five jobs during the Depression.",                  daily:{morale:2,budget:-50}},
-  {id:"mckinnon_memorial",name:"McKinnon Memorial",         cost:3500, color:"#90B8D0",roof:"#70A0B8", desc:"For the family who owned this land before it was a parking lot.",                 daily:{morale:2,attendance:2}},
-  {id:"photo_gallery",    name:"Gettysburg Photo Gallery",  cost:2500, color:"#B0A888",roof:"#908868", desc:"Actual photos. The ones we used for the Desperate Patrol costumes.",              daily:{attendance:3}},
+  {id:"watchtower",       name:"Watchtower",             cost:2000,  color:"#8A7A60",roof:"#6A5A40", desc:"Eyes on the retaining wall. Whoever's up there sees everything, or claims to.",              daily:{gangThreat:-3}, capacity:1, upkeep:30},
+  {id:"schoolhouse",      name:"Frontier Schoolhouse",   cost:3000,  color:"#B0C8D8",roof:"#90A8B8", desc:"The curriculum covers the Civil War. Some would say exclusively. They would not be wrong.",  daily:{productivity:2,morale:1}, capacity:1, upkeep:40},
+  {id:"homestead",        name:"Pioneer Homestead",      cost:2500,  color:"#C8B898",roof:"#A89878", desc:"A working homestead. Also where Maribeth McKinnon keeps trying to kiss living boys.",        daily:{budget:10}, capacity:1, upkeep:20},
+  {id:"herb_garden",      name:"Medicinal Herb Garden",  cost:1500,  color:"#90C890",roof:null,       desc:"Samuel planted half of it. You have decided not to ask about the other half.",              daily:{morale:1}, capacity:1, upkeep:15},
+  {id:"artillery",        name:"Artillery Battery",      cost:4000,  color:"#7A7A6A",roof:null,       desc:"Two cannons. One works. The other is decorative, by necessity.",                            daily:{gangThreat:-5,morale:-2}, capacity:1, upkeep:50},
+  {id:"sutlers_tent",     name:"Sutler's Tent",          cost:1000,  color:"#D4B87A",roof:"#C09858", desc:"Frontier commerce. Whatever Nate is selling, this sells more of it.",                       daily:{budget:20}, capacity:1, upkeep:10},
+  {id:"telegraph",        name:"Telegraph Office",       cost:3500,  color:"#C8C0A0",roof:"#A8A080", desc:"Mostly receives complaints. Occasionally sends them.",                                      daily:{productivity:3}, capacity:1, upkeep:35},
+  {id:"officers_quarters",name:"Officers' Quarters",     cost:5000,  color:"#D8C8A0",roof:"#B8A880", desc:"Four walls and a door that closes. Luxury, by the standards of this place.",               daily:{morale:2,productivity:1}, capacity:2, upkeep:40, restable:true},
+  {id:"printing_press",   name:"Printing Press",         cost:4500,  color:"#B0A888",roof:"#908868", desc:"Produces a weekly newsletter. One official counts every copy. Nobody else reads it.",      daily:{productivity:2}, capacity:1, upkeep:45},
+  {id:"memorial_garden",  name:"Memorial Garden",        cost:2000,  color:"#707868",roof:null,       desc:"For the dead who stayed. There are more of them than there used to be.",                   daily:{morale:3}, capacity:0, upkeep:10},
   {id:"school",          name:"School",           cost:8000,  color:"#B0C8D8",roof:"#90A8B8", desc:"The curriculum covers the Civil War extensively. Some would say exclusively.",                                                                       daily:{approval:3},                      township:true, populationGrowthBonus:1},
   {id:"clinic",          name:"Clinic",           cost:6000,  color:"#D0E0D0",roof:"#B0C0B0", desc:"Dr. Pelz handles everything from knife wounds to frontier stew poisoning. She doesn't ask how.",                                                    daily:{approval:2,morale:1},             township:true},
   {id:"fire_station",    name:"Fire Station",     cost:7000,  color:"#D06040",roof:"#B04020", desc:"After the Anglican Church incident, this felt overdue.",                                                                                             daily:{gangThreat:-2,approval:1},        township:true},
@@ -279,6 +319,148 @@ var ZONE_TYPES = [
   {id:"residential", name:"Residential", cost:3000, color:"#A0B8D0", roof:null,     desc:"Allows population growth. Houses up to 10 residents per zone."},
   {id:"commercial",  name:"Commercial",  cost:4000, color:"#D0B870", roof:"#B09850", desc:"Generates $50/day per 10 residents. Requires population to produce revenue."},
   {id:"civic",       name:"Civic",       cost:5000, color:"#90C0A0", roof:"#70A080", desc:"Increases approval by +2/day. Counteracts natural approval decay."}
+];
+
+var PHASE2_CHAR_DATA = {
+  quinn:{desc:"Failed actor, world-class worrywart, ugly as sin but earnest.",traits:[
+    {name:"Aspiring Thespian",buildings:["thespian","worship"],effect:{morale:3},flavor:"Quinn is performing a one-man Hamlet. Attendance is up, though reviews are mixed on his decision to play Ophelia as well."},
+    {name:"Dread Disease Anxiety",buildings:null,effect:{productivity:-1},flavor:"Quinn has spent the last hour in Costuming, calculating the odds of contracting cholera from a beaver pelt."},
+    {name:"Six Kids, Broke",buildings:null,effect:{},flavor:"Quinn doesn't complain. He can't afford to.",passive:true,noPenalty:true}
+  ]},
+  sylvia:{desc:"Queen of info. S&M buff in training. Good at what she does, which is Security.",traits:[
+    {name:"Dirt Digger",buildings:["hoedown","saloon","cityhall"],effect:{productivity:3},flavor:"Sylvia has already figured out who's been stealing the period-authentic taffy. She's savoring the knowledge."},
+    {name:"Enjoys This Too Much",buildings:null,effect:{morale:-1},flavor:"Staff morale near Sylvia has declined. She seems energized by this.",multiStaff:true},
+    {name:"Federal Sources",buildings:null,effect:{},flavor:"Sylvia's federal sources have provided useful context. She won't say which sources.",passive:true}
+  ]},
+  samuel:{desc:"Showed up looking so completely Civil War they hired him on the spot. Doesn't say much. Eats raw weeds and berries.",traits:[
+    {name:"The Rectifier",buildings:null,effect:{gangThreat:-5},flavor:"The gang problem near [building] has resolved itself. You don't ask how."},
+    {name:"War Criminal",buildings:null,effect:{morale:-3},flavor:"Samuel is sharpening something behind [building]. Staff give him a wide berth."},
+    {name:"Autonomous",buildings:null,effect:{},passive:true,exclusive:true,flavor:null}
+  ]},
+  grayson:{desc:"Staff Ornithologist. Went way overboard on Howie's baseball candy. Gentle, precise, useless in a crisis.",traits:[
+    {name:"Ornithological Precision",buildings:["conifer","herb_garden","memorial_garden"],effect:{productivity:2},flavor:"Grayson has completed a comprehensive bird census. It is meticulous and nobody asked for it."},
+    {name:"Gentle Soul",buildings:null,effect:{morale:2},flavor:"Grayson brought donuts. He always brings donuts."},
+    {name:"Botches Under Pressure",buildings:null,effect:{productivity:-3},flavor:"Grayson has retreated to the supply closet. He says he needs to recalibrate.",crisisOnly:true}
+  ]},
+  ruth:{desc:"Former county clerk. Applied for a job she saw posted on a telephone pole that had been rained on, so she's not entirely sure what the job is.",traits:[
+    {name:"Bureaucratic Competence",buildings:["cityhall","telegraph","printing_press"],effect:{productivity:2},flavor:"Ruth has organized the files. All of them. There were files in the Saloon."},
+    {name:"By the Book",buildings:["brothel","saloon"],effect:{productivity:-1},flavor:"Ruth has submitted a formal complaint. In triplicate."},
+    {name:"Unflappable",buildings:null,effect:{},passive:true,flavor:"Ruth has seen worse. She was a county clerk.",noCrisisPenalty:true}
+  ]},
+  dub:{desc:"Dub heard there was work and showed up with his own hammer. He's been sleeping in the Blacksmith Shoppe and nobody told him he could stop.",traits:[
+    {name:"Born Builder",buildings:["blacksmith","officers_quarters","watchtower"],effect:{productivity:3},flavor:"Dub has been hammering since 5 AM. He doesn't know what he's building but it's going to be sturdy."},
+    {name:"Sleeps Anywhere",buildings:null,effect:{},passive:true,flavor:"Dub ate something he found near the creek. He seems fine."},
+    {name:"Not a People Person",buildings:["general","thespian","worship"],effect:{morale:-2},flavor:"A visitor asked Dub for directions. Dub stared at them until they left."}
+  ]},
+  connie:{desc:"Retired nurse. Says she came here because the air is cleaner. The air is not cleaner.",traits:[
+    {name:"Medical Professional",buildings:["infirmary","herb_garden"],effect:{morale:3},flavor:"Connie has diagnosed Quinn with nothing. He's not reassured."},
+    {name:"Seen Too Much",buildings:null,effect:{},passive:true,flavor:"Connie looked at the situation and said she'd seen worse in the ER on a Tuesday."},
+    {name:"Gossip",buildings:["saloon"],effect:{productivity:1},flavor:"Connie told Ruth about the hand in the marsh. Ruth is filing a report."}
+  ]},
+  terrence:{desc:"MBA from a university he won't name. Says he's here to 'explore alternative economic models.' He means he got fired.",traits:[
+    {name:"Financial Acumen",buildings:["general","sutlers_tent","cityhall"],effect:{budget:30},flavor:"Terrence has implemented dynamic pricing at the General Store. Visitors hate it. Revenue is up 40%."},
+    {name:"Consultant Brain",buildings:null,effect:{morale:-2},flavor:"Terrence has prepared a slide deck about [building]'s operational inefficiencies. Nobody asked."},
+    {name:"Spreadsheet Warrior",buildings:["telegraph","printing_press","cityhall"],effect:{productivity:2},flavor:"Terrence has created a tracking system. It tracks everything. Including itself."}
+  ]},
+  jolene:{desc:"Jolene ran the cancan line before the layoffs. Now she's back because — and she's very clear about this — she has no other options and this place owes her.",traits:[
+    {name:"Performer",buildings:["thespian","saloon"],effect:{morale:3},flavor:"Jolene's nightly show at the Saloon has become the one thing people look forward to. She hates that this makes her happy."},
+    {name:"Grudge Holder",buildings:["cityhall"],effect:{morale:-1},flavor:"Jolene stared at Mr. A's office door for nine minutes today. She didn't go in."},
+    {name:"Tough",buildings:null,effect:{gangThreat:-2},flavor:"A gang kid tried to start something near Jolene. She made a face and he left."}
+  ]},
+  hundt:{desc:"Came to minister to the community. Found no community, only a theme park with delusions of permanence. Stayed anyway.",traits:[
+    {name:"Spiritual Authority",buildings:["worship","memorial_garden"],effect:{morale:3},flavor:"Pastor Hundt held a service. Four people cried. He considers this a success."},
+    {name:"Moral Compass",buildings:null,effect:{},passive:true,flavor:"Pastor Hundt would like a word."},
+    {name:"Doesn't Understand Money",buildings:["general","sutlers_tent","saloon"],effect:{budget:-20},flavor:"Pastor Hundt has been distributing free merchandise to anyone who looks sad. Everyone looks sad."}
+  ]}
+};
+
+var PHASE2_BUILDING_META = {
+  cityhall:     {capacity:1,locked:"alsuga",unstaffed:{morale:-1},staffed:{productivity:1}},
+  thespian:     {capacity:2,unstaffed:{},staffed:{budget:50,morale:2}},
+  general:      {capacity:1,unstaffed:{budget:10},staffed:{budget:25}},
+  infirmary:    {capacity:1,unstaffed:{morale:-1},staffed:{morale:2}},
+  saloon:       {capacity:1,unstaffed:{budget:5},staffed:{budget:20,morale:1}},
+  worship:      {capacity:1,unstaffed:{},staffed:{budget:100,morale:2}},
+  canal:        {capacity:1,unstaffed:{},staffed:{budget:80}},
+  hoedown:      {capacity:1,unstaffed:{},staffed:{productivity:2}},
+  brothel:      {capacity:1,unstaffed:{budget:15,morale:-1},staffed:{budget:25}},
+  gift:         {capacity:1,unstaffed:{budget:5},staffed:{budget:15}},
+  refreshments: {capacity:1,unstaffed:{budget:5},staffed:{budget:15,attendance:1}},
+  everly:       {capacity:1,unstaffed:{},staffed:{morale:1,attendance:2}},
+  blacksmith:   {capacity:1,unstaffed:{},staffed:{productivity:1}},
+  conifer:      {capacity:0,unstaffed:{gangThreat:2},staffed:{}},
+  parking:      {capacity:0,unstaffed:{},staffed:{}},
+  kriegal:      {capacity:1,unstaffed:{},staffed:{}},
+  church:       {capacity:1,unstaffed:{},staffed:{morale:2,budget:50}},
+  sweete:       {capacity:1,unstaffed:{budget:5},staffed:{budget:15}},
+  green:        {capacity:0,unstaffed:{},staffed:{}},
+  entry:        {capacity:1,unstaffed:{},staffed:{budget:20,attendance:3}}
+};
+
+var PHASE2_MILESTONE_CHARS = [
+  {id:"ruth",   name:"Ruth Pratchett", color:"#C8C0A0",speed:.0015, arriveDay:35,  arrivePop:20,
+   arrivalText:"A woman in a cardigan walks into City Hall carrying a box of files that belong to her. She saw the job posting on a telephone pole. She says the posting was partially obscured by rain but she applied anyway. Her name is Ruth Pratchett. She was the Elgin County Clerk for fourteen years. She has opinions about filing systems. They are correct opinions.",
+   x:.40,y:.45},
+  {id:"dub",    name:"Dub Slattery",   color:"#A08060",speed:.002,  arriveDay:40,  arrivePop:30,
+   arrivalText:"A man named Dub shows up with a hammer and a canvas bag of tools. He heard there was work. He does not ask about pay. He sets up in the Blacksmith Shoppe and by nightfall has fixed three things that had been broken since before the park opened. Nobody told him to do this. Nobody asked him to stop.",
+   x:.12,y:.32},
+  {id:"connie", name:"Connie Avalon",  color:"#D0C0B0",speed:.0018, arriveDay:45,  arrivePop:40,
+   arrivalText:"Connie Avalon retired from Mercy General eighteen months ago. She says she came here for the air. You do not tell her what happened behind the Refreshments stand. She finds out anyway, because she talks to everyone, and everyone tells Connie things. She sets up a first aid station in the Infirmary without being asked.",
+   x:.85,y:.62},
+  {id:"terrence",name:"Terrence Yao", color:"#9090B0",speed:.002,  arriveDay:50,  arrivePop:50,
+   arrivalText:"A man with very clean shoes appears and says he's exploring alternative economic models. He has an MBA. He won't say from where. He has done a preliminary analysis of the park's revenue streams and has thoughts. He always has thoughts. Some of them are correct. He has prepared a slide deck.",
+   x:.38,y:.40},
+  {id:"jolene", name:"Jolene Mack",    color:"#C09080",speed:.002,  arriveDay:55,  arrivePop:60,
+   arrivalText:"Jolene Mack ran the cancan line for six years before the layoffs. She knows where every bolt and hinge in the Thespian Center is, and which ones are structural. She comes back because she has no other options. She makes this very clear. She does not want gratitude. She wants what she's owed.",
+   x:.27,y:.63},
+  {id:"hundt",  name:"Pastor Hundt",   color:"#B0A890",speed:.0015, arriveDay:60,  arrivePop:70,
+   arrivalText:"A man named Lewis Hundt drives up on a Tuesday morning with two suitcases and a Bible and the expression of someone who has already negotiated with God about this particular destination and lost the argument. He says he came to minister to the community. He gestures broadly at the park. He will stay, he says, because someone has to.",
+   x:.72,y:.46}
+];
+
+var PHASE2_EVENTS = [
+  {id:"quinns_big_break",title:"QUINN'S BIG BREAK",
+   condition:function(){return state.phase2Active&&!state.charEventsFired.quinns_big_break&&state.charAssignedTo["quinn"]==="thespian"&&(state.charConsecutiveDays["quinn"]||0)>=5&&state.morale>50;},
+   text:"Quinn appears in your office wearing the Grizzly suit and carrying a hand-typed manuscript. The play, he says. His original play. He wants to do a full production. He looks you in the eye and doesn't blink. You realize this is the bravest thing you have ever seen in this park.",
+   choices:[
+    {label:"Fund it",text:"You allocate three hundred dollars from the activity budget. Quinn produces 'Antietam: A Love Story.' It is historically inaccurate and unexpectedly moving. Attendance is up.",effect:{budget:-300,morale:10,attendance:5},flag:"quinns_big_break"},
+    {label:"Tell him not now",text:"Quinn nods. He folds up the manuscript. You see the exact moment he decides it doesn't matter. The Grizzly suit smells like six years of disappointment.",effect:{morale:-5,productivity:-2},flag:"quinns_big_break"}
+   ]},
+  {id:"sylvia_knows",title:"SYLVIA KNOWS TOO MUCH",
+   condition:function(){var ib=["hoedown","saloon","cityhall"];var a=state.charAssignedTo["sylvia"];return state.phase2Active&&!state.charEventsFired.sylvia_knows&&ib.indexOf(a)!==-1&&(state.charConsecutiveDays["sylvia"]||0)>=7;},
+   text:"Sylvia comes to find you on a Thursday. She has a file folder and an expression you have learned to associate with the moment before something gets complicated. She knows about the marsh. She knows about the hand. She knows about three other things you didn't know she knew about. She puts the folder on your desk and looks at you with something that might be sympathy.",
+   choices:[
+    {label:"Make a deal",text:"You negotiate. She wants a raise and a better building assignment. You give her both. She seals the folder and takes it with her. You don't ask what's in it.",effect:{budget:-800,productivity:5,morale:2},flag:"sylvia_knows"},
+    {label:"Call her bluff",text:"You tell her you don't know what she's talking about. She nods slowly, the way people nod when they're deciding whether you're stupid or strategic. She leaves the folder.",effect:{morale:-8,gangThreat:5},flag:"sylvia_knows",setFlag:"sylvia_folder"}
+   ]},
+  {id:"samuels_report",title:"SAMUEL'S REPORT",
+   condition:function(){if(!state.phase2Active||!state.flags.samuel_armed||state.charEventsFired.samuels_report)return false;var pb=["watchtower","artillery","second_wall"];var a=state.charAssignedTo["samuel"];if(!a)return false;var b=findBuildingById(a);var tid=b?(b.typeId||b.id):null;return pb.indexOf(tid)!==-1&&(state.charConsecutiveDays["samuel"]||0)>=10;},
+   text:"Samuel submits a report. It is handwritten, three pages, very precise. You read it twice. You understand why he wrote it by hand. Whatever happened to the gang activity on the south perimeter, there is no digital record of it and there won't be. He has included a map. There is a small X near the creek.",
+   choices:[
+    {label:"File it",text:"You put the report in the drawer with the other things you don't look at. The gang threat does not return to the south perimeter. You do not wonder why.",effect:{gangThreat:-10,morale:-5,productivity:2},flag:"samuels_report"},
+    {label:"Destroy it",text:"You burn the report in the sink in the infirmary. Samuel watches from the window. He nods. You've now done this twice.",effect:{gangThreat:-15,morale:-15,narratorStress:10},flag:"samuels_report"}
+   ]},
+  {id:"graysons_discovery",title:"GRAYSON'S DISCOVERY",
+   condition:function(){if(!state.phase2Active||state.flags.grayson_fired||state.charEventsFired.graysons_discovery)return false;var a=state.charAssignedTo["grayson"];if(!a)return false;var b=findBuildingById(a);var tid=b?(b.typeId||b.id):null;return(tid==="conifer"||tid==="herb_garden"||tid==="memorial_garden")&&(state.charConsecutiveDays["grayson"]||0)>=6;},
+   text:"Grayson comes in holding a piece of paper with the careful expression of someone who has found something they can't explain and is determined to explain it anyway. Pre-park settlement traces, he says. A foundation under the grove. Something that predates the canal, predates the park, predates any survey he can find. The investors, he says carefully, might be interested.",
+   choices:[
+    {label:"Report the finding",text:"You file a heritage report. A researcher arrives and uses the word 'significant' four times in the same sentence. Productivity goes up.",effect:{productivity:5,morale:3,budget:-200},flag:"graysons_discovery"},
+    {label:"Tell him to keep it quiet",text:"You tell Grayson this is not the moment. He looks at the paper, at you, and then puts it in his pocket. He says okay. He doesn't bring donuts the next day. He brings them the day after.",effect:{morale:-3,productivity:-2},flag:"graysons_discovery"}
+   ]},
+  {id:"pop25_mckinnon_night",title:"THE FIRST COMMUNITY MEETING",
+   condition:function(){return state.phase2Active&&state.population>=25&&!state.charEventsFired.pop25_mckinnon_night;},
+   text:"Twenty-five people have chosen to live within walking distance of a failing historical theme park. At the community meeting, a woman named Pratt raises her hand and says she's seen something in the Worship Center at night. It moves, she says. It goes through things. She is careful with her words. She is describing the McKinnons.",
+   choices:[
+    {label:"Acknowledge the ghosts",text:"You explain the McKinnons. You use the word 'historical' several times. Some residents leave. The ones who stay feel they've been let into something.",effect:{approval:5,morale:3,population:-2},flag:"pop25_mckinnon_night"},
+    {label:"Suggest raccoons",text:"You say it's probably raccoons. Pratt stares at you for eleven seconds. The McKinnon ghost waves from the back of the room. A man in the front row sees it and leaves without his coat.",effect:{approval:-8,morale:-2},flag:"pop25_mckinnon_night"}
+   ]},
+  {id:"pop100_the_question",title:"THE QUESTION",
+   condition:function(){return state.phase2Active&&state.population>=100&&!state.charEventsFired.pop100_the_question;},
+   text:"Mr. A calls you into the office. He's not playing with the putter. He sits behind his desk and looks at you the way he looked at you on Day One, which is to say: as if he's trying to figure out whether you're going to be a problem. He says: What did we make here. You don't know if it's a question. You think about the cannons and the marsh and the Desperate Patrol and Quinn performing Hamlet to an audience of thirty-eight people on a Tuesday night. You think about Samuel's garden. Mr. A is still looking at you.",
+   choices:[
+    {label:"Something worth keeping",text:"You say something worth keeping. He nods for a long time. He says he thought so too, once. He says he's not sure anymore. He tells you to get back to work. You do.",effect:{morale:8,productivity:5,approval:5},flag:"pop100_the_question",setFlag:"worth_keeping"},
+    {label:"The same mistakes, bigger",text:"You say we made the same mistakes on a larger scale. He laughs. It's a real laugh, not the other kind. He says that's probably right. He advances to a slide that just says PHASE THREE. You feel something complicated.",effect:{morale:-5,productivity:8,budget:5000},flag:"pop100_the_question",setFlag:"same_mistakes"}
+   ]}
 ];
 
 var BUILDINGS = [
@@ -603,6 +785,8 @@ function checkFailState(){
   if(state.morale<=0)return{title:"STAFF COLLAPSE",text:"The staff finally break. Quinn is last to leave, still in the Grizzly suit."};
   if(state.narratorStress>=100)return{title:"BREAKDOWN",text:"You're found in a closet performing Hatred Abatement Breathing for the ninth consecutive hour. Mr. A sends you home. You don't come back."};
   if(state.townshipUnlocked&&state.approval<20)return{title:"RECALL",text:"The residents of CivilWarLand have voted you out. The margin was decisive. Quinn abstained."};
+  if(state.phase2Active&&state.productivity<10)return{title:"COLLAPSE",text:"Nothing works. The Refreshments stand is serving creek water. The Infirmary has run out of everything except Confederate flags. Staff have stopped asking what to do and started doing whatever they want. What they want is to leave."};
+  if(state.phase2Active&&state.morale<10)return{title:"EXODUS",text:"Everyone who could leave has left. The ones who remain do so only because they have nowhere else to go. You count them. There are fewer than you thought."};
   return null;
 }
 
@@ -669,12 +853,15 @@ function applyMidnight(){
   state.morale=clamp(state.morale-1,0,100);
   state.attendance=clamp(state.attendance-1,0,100);
   state.narratorStress=clamp(state.narratorStress+1,0,100);
+  if(state.phase2Active){state.productivity=clamp(state.productivity-1,0,100);}
   // Building condition decay
   var extraDecay=state.gangThreat>50?2:0;
   BUILDINGS.forEach(function(b){if(!state.destroyedBuildings[b.id]&&b.condition!==undefined)b.condition=Math.max(0,b.condition-(1+Math.floor(Math.random()*4))-extraDecay);});
   state.placedBuildings.forEach(function(b){b.condition=Math.max(0,b.condition-(1+Math.floor(Math.random()*4))-extraDecay);});
   // Placed building daily effects (skip condemned)
-  for(var i=0;i<state.placedBuildings.length;i++){var pb=state.placedBuildings[i];if(pb.condition===0)continue;var d=pb.daily;if(d.budget)state.budget+=d.budget;if(d.attendance)state.attendance=clamp(state.attendance+d.attendance,0,100);if(d.gangThreat)state.gangThreat=clamp(state.gangThreat+d.gangThreat,0,100);if(d.morale)state.morale=clamp(state.morale+d.morale,0,100);if(d.approval&&state.townshipUnlocked)state.approval=clamp(state.approval+d.approval,0,100);}
+  if(!state.phase2Active){
+    for(var i=0;i<state.placedBuildings.length;i++){var pb=state.placedBuildings[i];if(pb.condition===0)continue;var d=pb.daily;if(d.budget)state.budget+=d.budget;if(d.attendance)state.attendance=clamp(state.attendance+d.attendance,0,100);if(d.gangThreat)state.gangThreat=clamp(state.gangThreat+d.gangThreat,0,100);if(d.morale)state.morale=clamp(state.morale+d.morale,0,100);if(d.approval&&state.townshipUnlocked)state.approval=clamp(state.approval+d.approval,0,100);}
+  }else{applyPhase2Daily();}
   // Small random drift
   state.attendance=clamp(state.attendance+Math.floor(Math.random()*3)-1,0,100);
   state.morale=clamp(state.morale+Math.floor(Math.random()*3)-1,0,100);
@@ -707,11 +894,13 @@ function applyMidnight(){
   var parkRevenue=state.attendance*12;
   var taxIncome=(state.townshipUnlocked&&state.population>=10)?state.population*8:0;
   var operatingCost=600+Math.floor(state.population*3);
-  var buildingUpkeep=state.placedBuildings.length*30;
-  var netIncome=parkRevenue+taxIncome+commercialIncome-operatingCost-buildingUpkeep;
+  var buildingUpkeep=0;for(var ui=0;ui<state.placedBuildings.length;ui++){var ubld=state.placedBuildings[ui];var utype=null;for(var usi=0;usi<BUILDABLE_STRUCTURES.length;usi++){if(BUILDABLE_STRUCTURES[usi].id===ubld.typeId){utype=BUILDABLE_STRUCTURES[usi];break;}}buildingUpkeep+=(utype&&utype.upkeep!==undefined)?utype.upkeep:30;}
+  var prodBonus=state.phase2Active?Math.round((state.productivity-50)*1.5):0;
+  var netIncome=parkRevenue+taxIncome+commercialIncome-operatingCost-buildingUpkeep+prodBonus;
   state.budget+=netIncome;
-  state.lastEconBreakdown={parkRevenue:parkRevenue,taxIncome:taxIncome,commercial:commercialIncome,operatingCost:operatingCost,buildingUpkeep:buildingUpkeep,net:netIncome};
+  state.lastEconBreakdown={parkRevenue:parkRevenue,taxIncome:taxIncome,commercial:commercialIncome,operatingCost:operatingCost,buildingUpkeep:buildingUpkeep,productivity:prodBonus||0,net:netIncome};
   if(netIncome<0){state.deficitDays++;}else{state.deficitDays=0;}
+  if(state.phase2Active){updateCharConsecutiveDays();}
   document.getElementById("day-num").textContent=state.day;
   updateSidebar();saveGame();
   var f=checkFailState();if(f){showFailEnd(f);return;}
@@ -730,6 +919,8 @@ function applyMidnight(){
       }
     }
     if(townEv){showTownshipEvent(townEv);}
+    else if(state.phase2Active&&checkCharArrivals()){}
+    else if(state.phase2Active&&checkPhase2Events()){}
     else if(state.weatherEventPending){
       state.weatherEventPending=false;
       var wme=state.weather==="rain"
@@ -825,7 +1016,7 @@ function sndThud(){
 // ──────────────────────────────────────────────────────────────
 
 var SAVE_KEY="civilwarland_save";
-var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns"];
+var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns","productivity","phase2Active","charAssignedTo","charConsecutiveDays","charEventsFired","arrivedChars"];
 
 function saveGame(){
   var s={};
@@ -846,6 +1037,11 @@ function loadGame(){
   // Restore non-saveable transient state
   state.selectedBuilding=null;state.gameOver=false;state.eventActive=false;
   state.buildMode=false;state.selectedBuildable=null;state.zoneMode=false;state.selectedZone=null;
+  if(state.productivity===undefined)state.productivity=50;
+  if(!state.charAssignedTo)state.charAssignedTo={};
+  if(!state.charConsecutiveDays)state.charConsecutiveDays={};
+  if(!state.charEventsFired)state.charEventsFired={};
+  if(!state.arrivedChars)state.arrivedChars={};
   state.gamePaused=true;state.weatherEventPending=false;
   // Boot into game
   document.getElementById("title-screen").style.display="none";
@@ -913,6 +1109,7 @@ function updateBudgetTooltip(){
   if(b.commercial>0)h+='<div class="eco-row"><span>Commercial</span><span class="eco-pos">'+fmtPos(b.commercial)+'</span></div>';
   h+='<div class="eco-row"><span>Operating costs</span><span class="eco-neg">'+fmtNeg(b.operatingCost)+'</span></div>';
   if(b.buildingUpkeep>0)h+='<div class="eco-row"><span>Building upkeep</span><span class="eco-neg">'+fmtNeg(b.buildingUpkeep)+'</span></div>';
+  if(b.productivity!==undefined&&b.productivity!==0)h+='<div class="eco-row"><span>Productivity</span><span class="'+(b.productivity>=0?'eco-pos':'eco-neg')+'">'+(b.productivity>=0?fmtPos(b.productivity):fmtNeg(b.productivity))+'</span></div>';
   h+='<div class="eco-row net"><span>Net</span><span class="'+(b.net>=0?'eco-pos':'eco-neg')+'">'+(b.net>=0?fmtPos(b.net):fmtNeg(b.net))+'</span></div>';
   el.innerHTML=h;
 }
@@ -986,10 +1183,59 @@ function triggerExpansion(){
   state.expanded=true;
   state.mapScale=0.5;
   document.getElementById("build-section").style.display="block";
+  state.phase2Active=true;
+  if(!state.charAssignedTo)state.charAssignedTo={};
+  if(!state.charConsecutiveDays)state.charConsecutiveDays={};
+  if(!state.charEventsFired)state.charEventsFired={};
+  if(!state.arrivedChars)state.arrivedChars={};
+  if(state.productivity===undefined)state.productivity=50;
+  state.charAssignedTo["alsuga"]="cityhall";
+  updateSidebar();
+  state.eventActive=true;
+  var b=document.getElementById("event-box");b.className="";
+  b.innerHTML='<div class="ev-day">Day '+state.day+'</div><div class="ev-title">THE COMMUNITY</div><div class="ev-text">The park is still there. The park will always be there. But something has shifted. People are arriving. Not visitors — people. They need things. They need someone to be in charge of things. Mr. A has decided that someone is you.<br><br>Assign staff to buildings by clicking any structure on the map. Each person has traits that make them better or worse at certain assignments. Buildings run themselves when unstaffed, or poorly. Some of them run themselves into the ground.<br><br>A new stat has appeared: <strong>Productivity</strong>. It measures how effectively the community operates. It decays on its own. Assigned staff with good matches offset the decay. Fall below 10 and the place stops functioning entirely. You know this because you have been watching it happen, slowly, for thirty days.</div><button class="ev-minor-btn" onclick="dismissPhase2Intro()">Take Stock</button>';
+  document.getElementById("event-overlay").classList.add("active");
+}
+function dismissPhase2Intro(){
+  document.getElementById("event-overlay").classList.remove("active");
+  state.eventActive=false;
+}
+
+function startPhase2Game(){
+  // Set Phase 2 starting conditions
+  state.day=31;state.budget=50000;state.attendance=55;state.gangThreat=8;state.morale=65;
+  state.expanded=true;state.mapScale=0.5;state.phase2Active=true;state.productivity=60;
+  state.narratorEnergy=80;state.narratorStress=20;state.deficitDays=0;
+  state.flags={tutorial_done:true,quinn_armed:true,samuel_armed:true};
+  state.charAssignedTo={"alsuga":"cityhall"};
+  state.charConsecutiveDays={};state.charEventsFired={};state.arrivedChars={};
+  state.usedMinorEvents=[];state.destroyedBuildings={};state.log=[];
+  state.placedBuildings=[];state.placedZones=[];state.residents=[];
+  state.gameTime=480;state.weather="clear";state.weatherDaysLeft=4;state.weatherEventPending=false;
+  BUILDINGS.forEach(function(b){b.condition=70;});
+  // Boot game
+  document.getElementById("title-screen").style.display="none";
+  document.getElementById("game-screen").classList.add("active");
+  initCanvas();
+  state.characters=INIT_CHARS.map(function(c){return Object.assign({},c,{tx:c.x+(Math.random()-0.5)*0.1,ty:c.y+(Math.random()-0.5)*0.1});});
+  state.characters.push({id:"samuel",name:"Samuel",x:.54,y:.20,tx:.54,ty:.20,color:"#8B4513",speed:.004});
+  for(var rdi=0;rdi<35;rdi++){rainDrops.push({x:Math.random(),phase:Math.random(),speed:0.28+Math.random()*0.18});}
+  canvas.addEventListener("click",onCanvasClick);
+  canvas.addEventListener("mousemove",onCanvasMouseMove);
+  document.getElementById("build-section").style.display="block";
+  document.getElementById("day-num").textContent=state.day;
+  updateTimeDisplay();setSpeed(0);updateSidebar();updateLog();
+  startDrone();gameLoop();
+  // Show intro
+  state.eventActive=true;
+  var b=document.getElementById("event-box");b.className="";
+  b.innerHTML='<div class="ev-day">Day 31</div><div class="ev-title">THE COMMUNITY</div><div class="ev-text">You have elected to begin in the aftermath. The first thirty days happened. You managed. The park is still standing, more or less. The gangs have been managed, more or less. Mr. A secured new funding, which is not something you expected him to be able to do, and yet here you are.<br><br>People are arriving. Not visitors — people. They need things. They need someone to be in charge of things. That is you.<br><br>Click any building to see its status and assign staff. Each person has traits that make them better or worse at certain assignments. A new stat called <strong>Productivity</strong> has appeared in the sidebar. It is already declining. This is consistent with everything else.</div><button class="ev-minor-btn" onclick="dismissPhase2Intro()">Take Stock</button>';
+  document.getElementById("event-overlay").classList.add("active");
 }
 
 var buildPreviewX, buildPreviewY;
 var canvasNotifications = [];
+var grassPatches = (function(){var a=[];for(var i=0;i<40;i++){a.push({x:Math.random(),y:Math.random(),s:20+Math.random()*60,dark:Math.random()>0.5});}return a;})();
 var speechBubble = null;
 var speechCooldowns = {};
 var footprints = [];
@@ -1155,6 +1401,13 @@ function updateSidebar(){
   document.getElementById("bar-gang").style.width=state.gangThreat+"%";
   document.getElementById("bar-morale").style.width=state.morale+"%";
   if(state.expanded){document.getElementById("structures-row").style.display="flex";document.getElementById("s-structures").textContent=state.placedBuildings.length;}
+  if(state.phase2Active){
+    document.getElementById("productivity-row").style.display="flex";
+    document.getElementById("productivity-bar-wrap").style.display="block";
+    document.getElementById("s-productivity").textContent=state.productivity;
+    document.getElementById("bar-productivity").style.width=state.productivity+"%";
+    document.getElementById("bar-productivity").style.background=state.productivity>=30?"#8a6a9a":"#cc2222";
+  }
   if(state.townshipUnlocked){
     document.getElementById("township-section").style.display="block";
     var resCnt=0;for(var i=0;i<state.placedZones.length;i++){if(state.placedZones[i].type==="residential")resCnt++;}
@@ -1177,8 +1430,33 @@ function updateSidebar(){
 
 function updateInfoPanel(){
   var p=document.getElementById("info-panel");
-  if(state.selectedBuilding)p.innerHTML='<div class="sb-label">Structure</div><div class="name">'+state.selectedBuilding.name+'</div><div class="desc">'+state.selectedBuilding.desc+'</div>';
-  else p.innerHTML='<div class="sb-label">Selected</div><div class="desc" style="color:#4a5a3a;">Click a building for details.</div>';
+  if(!state.selectedBuilding){p.innerHTML='<div class="sb-label">Selected</div><div class="desc" style="color:#4a5a3a;">Click a building for details.</div>';return;}
+  var b=state.selectedBuilding;
+  var h='<div class="sb-label">Structure</div><div class="name">'+b.name+'</div><div class="desc">'+b.desc+'</div>';
+  if(state.phase2Active){
+    var typeId=b.typeId||b.id;
+    var meta=PHASE2_BUILDING_META[typeId];
+    var cap=(meta?meta.capacity:(b.capacity!==undefined?b.capacity:1));
+    var locked=meta&&meta.locked;
+    h+='<div class="p2-assign">';
+    var assignedChars=getCharsAtBuilding(b.id);
+    if(assignedChars.length>0){
+      assignedChars.forEach(function(c){
+        h+='<div class="p2-staff-row"><span class="p2-sl">Staff</span><span class="p2-sn">'+c.name+'</span></div>';
+        if(!locked){h+='<button class="p2-btn" onclick="unassignChar(\''+c.id+'\')">Unassign</button>';}
+        var traits=getActiveTraitsAtBuilding(c.id,b.id);
+        if(traits.length>0){h+='<div class="p2-eff">';traits.forEach(function(t){var tot=traitEffectTotal(t.effect);h+='<span class="'+(tot>0?"t-pos":tot<0?"t-neg":"t-neu")+'">'+t.name+'</span> ';});h+='</div>';}
+      });
+    }else{
+      h+='<div class="p2-staff-row"><span class="p2-sl">Staff</span><span class="p2-unstaffed">UNSTAFFED</span></div>';
+    }
+    if(cap>0&&!locked&&assignedChars.length<cap){
+      h+='<button class="p2-btn" onclick="openAssignPanel(\''+b.id+'\')">Assign Staff</button>';
+    }
+    if(cap===0){h+='<div style="font-size:9px;color:#4a5a3a;margin-top:4px;font-style:italic;">Cannot be staffed.</div>';}
+    h+='</div>';
+  }
+  p.innerHTML=h;
 }
 
 function updateLog(){
@@ -1314,7 +1592,7 @@ function render(){
   ctx.fillStyle=grad;ctx.fillRect(0,0,cw,ch);
   if(br<1.0){ctx.fillStyle="rgba(5,10,30,"+(0.35*(1-br))+")";ctx.fillRect(0,0,cw,ch);}
   ctx.globalAlpha=0.08;
-  for(var gi=0;gi<40;gi++){var gx=Math.random()*cw,gy=Math.random()*ch,gs=20+Math.random()*60;ctx.beginPath();ctx.arc(gx,gy,gs,0,Math.PI*2);ctx.fillStyle=Math.random()>0.5?"#60B848":"#388828";ctx.fill();}
+  for(var gi=0;gi<grassPatches.length;gi++){var gp=grassPatches[gi];ctx.beginPath();ctx.arc(gp.x*cw,gp.y*ch,gp.s,0,Math.PI*2);ctx.fillStyle=gp.dark?"#388828":"#60B848";ctx.fill();}
   ctx.globalAlpha=1;
   ctx.strokeStyle="rgba(80,60,30,0.3)";ctx.lineWidth=Math.max(5,cw*0.007);
   PATHS.forEach(function(p){ctx.beginPath();ctx.moveTo(p.x1*ms*cw,p.y1*ms*ch);ctx.lineTo(p.x2*ms*cw,p.y2*ms*ch);ctx.stroke();});
@@ -1339,8 +1617,18 @@ function render(){
   state.placedBuildings.forEach(function(b){
     var bx=b.x*ms*cw,by=b.y*ms*ch,bw=b.w*ms*cw,bh=b.h*ms*ch;
     renderBuilding(b,bx,by,bw,bh,ms);
-    if(b.typeId==="pasta_lair")drawSmoke(bx,by,bw);
   });
+  if(state.phase2Active){
+    var allBldgs=BUILDINGS.filter(function(b){return !state.destroyedBuildings[b.id];}).concat(state.placedBuildings);
+    allBldgs.forEach(function(b){
+      var chrs=getCharsAtBuilding(b.id);
+      if(chrs.length>0){
+        var bx=b.x*ms*cw,by=b.y*ms*ch,bw=b.w*ms*cw;
+        ctx.beginPath();ctx.arc(bx+bw-5,by+bw*0.05,4,0,Math.PI*2);
+        ctx.fillStyle="#6a8a4a";ctx.fill();ctx.strokeStyle="rgba(0,0,0,0.4)";ctx.lineWidth=1;ctx.stroke();
+      }
+    });
+  }
   if(state.zoneMode&&state.selectedZone&&buildPreviewX!==undefined){
     var sz=state.selectedZone,zpw=0.12*ms*cw,zph=0.09*ms*ch;
     var zpx=buildPreviewX*ms*cw-zpw/2,zpy=buildPreviewY*ms*ch-zph/2;
@@ -1372,7 +1660,7 @@ function render(){
     var rdx=res.tx-res.x,rdy=res.ty-res.y,rdist=Math.sqrt(rdx*rdx+rdy*rdy);
     if(rdist<0.01){
       if(resNow>res.waitUntil){var rt=getResidentTarget();res.tx=rt.tx;res.ty=rt.ty;res.waitUntil=resNow+5000+Math.random()*5000;}
-    }else{var resSp=state.weather==="rain"?0.0007:0.001;res.x+=rdx/rdist*resSp;res.y+=rdy/rdist*resSp;}
+    }else if(!state.gamePaused){var resSp=state.weather==="rain"?0.0007:0.001;res.x+=rdx/rdist*resSp;res.y+=rdy/rdist*resSp;}
     var rx=res.x*ms*cw,ry=res.y*ms*ch;
     ctx.beginPath();ctx.arc(rx+1,ry+2,3,0,Math.PI*2);ctx.fillStyle="rgba(0,0,0,0.18)";ctx.fill();
     ctx.beginPath();ctx.arc(rx,ry,4,0,Math.PI*2);ctx.fillStyle="#C8C0B0";ctx.fill();
@@ -1390,7 +1678,7 @@ function render(){
   state.characters.forEach(function(c){
     var dx=c.tx-c.x,dy=c.ty-c.y,dist=Math.sqrt(dx*dx+dy*dy);
     if(dist<0.01){
-      if(c.id==="narrator"){if(!c.clickTarget){c.tx=0.08+Math.random()*0.80;c.ty=0.08+Math.random()*0.80;}}
+      if(c.id==="narrator"){c.clickTarget=false;}
       else if(c.ghost){
         var wentToCemetery=false;
         if(c.id==="mckinnon"&&Math.random()<0.3){
@@ -1401,10 +1689,13 @@ function render(){
       else{var t=getStaffTarget(c);c.tx=t.tx;c.ty=t.ty;}
     }else if(c.id==="narrator"&&state.narratorEnergy===0){/* blocked — needs rest */}
     else{
-      var spd=c.speed;
-      if(state.weather==="rain")spd*=0.7;
-      if(c.id!=="narrator"&&!c.ghost&&(state.gameTime<480||state.gameTime>=1200))spd*=0.5;
-      c.x+=(dx/dist)*spd;c.y+=(dy/dist)*spd;
+      var shouldMove=!state.gamePaused||(c.id==="narrator"&&c.clickTarget);
+      if(shouldMove){
+        var spd=c.speed;
+        if(state.weather==="rain")spd*=0.7;
+        if(c.id!=="narrator"&&!c.ghost&&(state.gameTime<480||state.gameTime>=1200))spd*=0.5;
+        c.x+=(dx/dist)*spd;c.y+=(dy/dist)*spd;
+      }
     }
     var cx=c.x*ms*cw,cy=c.y*ms*ch,r=c.ghost?6:7;
     if(c.ghost)ctx.globalAlpha=state.weather==="fog"?0.7:0.35+Math.sin(Date.now()/1000)*0.15;
@@ -1530,7 +1821,7 @@ function getNearbyBuilding(){
 
 function updateInteractPrompt(){
   var el=document.getElementById("interact-prompt");
-  if(!canvas||state.gameOver||state.eventActive){el.style.display="none";return;}
+  if(!canvas||state.gameOver||state.eventActive||state.gamePaused){el.style.display="none";return;}
   var b=getNearbyBuilding();
   var action=b?BUILDING_ACTIONS[b.id]:null;
   var needsRepair=b&&b.condition!==undefined&&b.condition<100;
@@ -1788,6 +2079,303 @@ function tutDismiss(){
   document.getElementById("tutorial-overlay").classList.remove("active");
 }
 // ──────────────────────────────────────────────────────────────
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE 2: THE COMMUNITY
+// ═══════════════════════════════════════════════════════════════
+
+function getBuildingTypeId(b){return b.typeId||b.id;}
+
+function getBuildingCapacity(b){
+  var tid=getBuildingTypeId(b);
+  if(PHASE2_BUILDING_META[tid])return PHASE2_BUILDING_META[tid].capacity;
+  for(var i=0;i<BUILDABLE_STRUCTURES.length;i++){if(BUILDABLE_STRUCTURES[i].id===tid)return BUILDABLE_STRUCTURES[i].capacity!==undefined?BUILDABLE_STRUCTURES[i].capacity:1;}
+  return 1;
+}
+
+function getCharsAtBuilding(buildingId){
+  return state.characters.filter(function(c){return state.charAssignedTo&&state.charAssignedTo[c.id]===buildingId;});
+}
+
+function getCharData(charId){return PHASE2_CHAR_DATA[charId]||null;}
+
+function getActiveTraitsAtBuilding(charId,buildingId){
+  var cd=getCharData(charId);if(!cd)return[];
+  var b=findBuildingById(buildingId);if(!b)return[];
+  var tid=getBuildingTypeId(b);
+  var active=[];
+  cd.traits.forEach(function(t){
+    if(t.passive)return;
+    var applies=false;
+    if(t.buildings===null){applies=true;}
+    else if(t.buildings&&t.buildings.indexOf(tid)!==-1){applies=true;}
+    if(applies)active.push(t);
+  });
+  return active;
+}
+
+function traitEffectTotal(eff){
+  var tot=0;
+  if(eff.morale)tot+=eff.morale;
+  if(eff.productivity)tot+=eff.productivity;
+  if(eff.budget)tot+=(eff.budget>0?1:-1);
+  if(eff.gangThreat)tot-=eff.gangThreat;
+  return tot;
+}
+
+function getAssignPreviewHTML(charId,buildingId){
+  var cd=getCharData(charId);if(!cd)return'';
+  var b=findBuildingById(buildingId);if(!b)return'';
+  var tid=getBuildingTypeId(b);
+  var h='<div class="prev-title">'+cd.desc+'</div>';
+  cd.traits.forEach(function(t){
+    if(t.passive){h+='<div class="char-trait-line t-neu">'+t.name+': '+(t.flavor||'Passive ability.')+'</div>';return;}
+    var applies=t.buildings===null||(t.buildings&&t.buildings.indexOf(tid)!==-1);
+    var cls=applies?'t-pos':'t-neu';
+    var tot=traitEffectTotal(t.effect||{});
+    if(applies&&tot<0)cls='t-neg';
+    var effStr=[];
+    if(t.effect){
+      if(t.effect.morale)effStr.push((t.effect.morale>0?'+':'')+t.effect.morale+' morale');
+      if(t.effect.productivity)effStr.push((t.effect.productivity>0?'+':'')+t.effect.productivity+' productivity');
+      if(t.effect.budget)effStr.push((t.effect.budget>0?'+$':'$')+t.effect.budget+'/day');
+      if(t.effect.gangThreat)effStr.push((t.effect.gangThreat<0?'+':'')+(-t.effect.gangThreat)+' security');
+    }
+    h+='<div class="char-trait-line '+cls+'">'+(applies?'\u2713 ':'\u25e6 ')+t.name+(effStr.length?' ('+effStr.join(', ')+')':'')+'</div>';
+    if(applies&&t.flavor)h+='<div class="char-trait-line t-neu" style="padding-left:8px;font-style:italic;">"'+t.flavor.replace('[building]',b.name)+'"</div>';
+  });
+  return h;
+}
+
+function openAssignPanel(buildingId){
+  var b=findBuildingById(buildingId);if(!b)return;
+  var panel=document.getElementById("assign-panel");
+  document.getElementById("assign-panel-building").textContent="Assign to: "+b.name;
+  renderAssignPanel(buildingId);
+  panel.style.display="block";
+  document.getElementById("assign-preview").style.display="none";
+  document.getElementById("assign-preview").innerHTML="";
+}
+
+function closeAssignPanel(){
+  document.getElementById("assign-panel").style.display="none";
+}
+
+function renderAssignPanel(buildingId){
+  var b=findBuildingById(buildingId);if(!b)return;
+  var cap=getBuildingCapacity(b);
+  var currentChars=getCharsAtBuilding(buildingId);
+  var assignableIds=["quinn","sylvia","samuel","grayson","ruth","dub","connie","terrence","jolene","hundt"];
+  var h="";
+  currentChars.forEach(function(c){
+    h+='<div class="char-item assigned-here">';
+    h+='<div class="char-item-name">'+c.name+' <span style="color:#4a6a3a;font-size:8px;">\u2713 HERE</span></div>';
+    var cd=getCharData(c.id);
+    if(cd)h+='<div class="char-item-status">'+cd.desc+'</div>';
+    h+='<button class="p2-btn" onclick="unassignChar(\''+c.id+'\');renderAssignPanel(\''+buildingId+'\')">Unassign</button>';
+    h+='</div>';
+  });
+  state.characters.forEach(function(c){
+    if(c.id==="narrator"||c.id==="mckinnon")return;
+    if(assignableIds.indexOf(c.id)===-1&&c.id!=="alsuga")return;
+    if(c.id==="alsuga")return;
+    if(state.charAssignedTo&&state.charAssignedTo[c.id]===buildingId)return;
+    var cd=getCharData(c.id);if(!cd)return;
+    var currentBuilding=state.charAssignedTo?state.charAssignedTo[c.id]:null;
+    var canAssign=!currentBuilding&&currentChars.length<cap;
+    if(c.id==="samuel"&&currentChars.length>0)canAssign=false;
+    for(var ei=0;ei<currentChars.length;ei++){var et=getCharData(currentChars[ei].id);if(et&&et.traits.some(function(t){return t.exclusive;}))canAssign=false;}
+    var cls="char-item"+(canAssign?" assignable":currentBuilding?" at-other":" at-other");
+    h+='<div class="'+cls+'"';
+    if(canAssign)h+=' onclick="assignCharToBuilding(\''+c.id+'\',\''+buildingId+'\');renderAssignPanel(\''+buildingId+'\')"';
+    h+=' onmouseenter="showAssignPreview(\''+c.id+'\',\''+buildingId+'\')" onmouseleave="hideAssignPreview()">';
+    h+='<div class="char-item-name">'+c.name+'</div>';
+    var bldgForName=currentBuilding?findBuildingById(currentBuilding):null;
+    h+='<div class="char-item-status">'+(currentBuilding?(bldgForName?'Currently at: '+bldgForName.name:'Currently assigned'):canAssign?'Available':'At capacity')+'</div>';
+    h+='</div>';
+  });
+  document.getElementById("assign-char-list").innerHTML=h||'<div class="assign-hint">No available staff to assign.</div>';
+}
+
+function showAssignPreview(charId,buildingId){
+  var el=document.getElementById("assign-preview");
+  el.innerHTML=getAssignPreviewHTML(charId,buildingId);
+  el.style.display="block";
+}
+
+function hideAssignPreview(){
+  document.getElementById("assign-preview").style.display="none";
+}
+
+function assignCharToBuilding(charId,buildingId){
+  if(!state.charAssignedTo)state.charAssignedTo={};
+  if(!state.charConsecutiveDays)state.charConsecutiveDays={};
+  var b=findBuildingById(buildingId);if(!b)return;
+  var cap=getBuildingCapacity(b);
+  var current=getCharsAtBuilding(buildingId);
+  if(current.length>=cap)return;
+  var cd=getCharData(charId);
+  if(cd&&cd.traits.some(function(t){return t.exclusive;})&&current.length>0)return;
+  for(var ei=0;ei<current.length;ei++){var et=getCharData(current[ei].id);if(et&&et.traits.some(function(t){return t.exclusive;}))return;}
+  state.charAssignedTo[charId]=buildingId;
+  state.charConsecutiveDays[charId]=0;
+  state.log.push({day:state.day,title:"Assigned "+charId+" to "+b.name});
+  updateInfoPanel();updateLog();sndPlace();
+}
+
+function unassignChar(charId){
+  if(!state.charAssignedTo)return;
+  delete state.charAssignedTo[charId];
+  if(state.charConsecutiveDays)delete state.charConsecutiveDays[charId];
+  updateInfoPanel();updateLog();
+  state.log.push({day:state.day,title:"Unassigned "+charId});
+}
+
+function updateCharConsecutiveDays(){
+  if(!state.charAssignedTo)return;
+  state.characters.forEach(function(c){
+    if(c.id==="narrator"||c.id==="mckinnon")return;
+    if(state.charAssignedTo[c.id]){
+      if(!state.charConsecutiveDays)state.charConsecutiveDays={};
+      state.charConsecutiveDays[c.id]=(state.charConsecutiveDays[c.id]||0)+1;
+    }
+  });
+}
+
+function applyPhase2Daily(){
+  BUILDINGS.forEach(function(b){
+    if(state.destroyedBuildings[b.id])return;
+    var meta=PHASE2_BUILDING_META[b.id];if(!meta)return;
+    var charsHere=getCharsAtBuilding(b.id);
+    var eff=(charsHere.length>0)?meta.staffed:meta.unstaffed;
+    applyBuildingEffect(eff);
+    charsHere.forEach(function(c){
+      var traits=getActiveTraitsAtBuilding(c.id,b.id);
+      traits.forEach(function(t){applyBuildingEffect(t.effect);});
+    });
+  });
+  state.placedBuildings.forEach(function(pb){
+    if(pb.condition===0)return;
+    var stype=null;for(var i=0;i<BUILDABLE_STRUCTURES.length;i++){if(BUILDABLE_STRUCTURES[i].id===pb.typeId){stype=BUILDABLE_STRUCTURES[i];break;}}
+    var cap=stype&&stype.capacity!==undefined?stype.capacity:1;
+    var charsHere=getCharsAtBuilding(pb.id);
+    var isStaffed=charsHere.length>0;
+    if(cap===0||isStaffed){
+      var d=pb.daily;
+      if(d){applyBuildingEffect(d);}
+    }
+    charsHere.forEach(function(c){
+      var traits=getActiveTraitsAtBuilding(c.id,pb.id);
+      traits.forEach(function(t){applyBuildingEffect(t.effect);});
+    });
+  });
+  if(state.flags.samuel_armed&&!state.flags.samuel_reported){
+    var samAssigned=state.charAssignedTo&&state.charAssignedTo["samuel"];
+    if(!samAssigned){state.gangThreat=clamp(state.gangThreat-3,0,100);}
+  }
+}
+
+function applyBuildingEffect(eff){
+  if(!eff)return;
+  if(eff.budget)state.budget+=eff.budget;
+  if(eff.attendance)state.attendance=clamp(state.attendance+eff.attendance,0,100);
+  if(eff.gangThreat)state.gangThreat=clamp(state.gangThreat+eff.gangThreat,0,100);
+  if(eff.morale)state.morale=clamp(state.morale+eff.morale,0,100);
+  if(eff.productivity)state.productivity=clamp(state.productivity+eff.productivity,0,100);
+  if(eff.approval&&state.townshipUnlocked)state.approval=clamp(state.approval+eff.approval,0,100);
+}
+
+function checkCharArrivals(){
+  if(!state.phase2Active)return false;
+  if(!state.arrivedChars)state.arrivedChars={};
+  for(var i=0;i<PHASE2_MILESTONE_CHARS.length;i++){
+    var mc=PHASE2_MILESTONE_CHARS[i];
+    if(state.arrivedChars[mc.id])continue;
+    if(state.day>=mc.arriveDay||state.population>=mc.arrivePop){
+      var alreadyIn=false;
+      for(var ci=0;ci<state.characters.length;ci++){if(state.characters[ci].id===mc.id){alreadyIn=true;break;}}
+      if(!alreadyIn){
+        state.arrivedChars[mc.id]=true;
+        state.characters.push({id:mc.id,name:mc.name,x:mc.x,y:mc.y,tx:mc.x,ty:mc.y,color:mc.color,speed:mc.speed});
+        state.eventActive=true;sndChime();
+        var b=document.getElementById("event-box");b.className="";
+        b.innerHTML='<div class="ev-day">Day '+state.day+'</div><div class="ev-title">NEW ARRIVAL: '+mc.name.toUpperCase()+'</div><div class="ev-text">'+mc.arrivalText+'</div><button class="ev-minor-btn" onclick="dismissCharArrival()">Continue</button>';
+        document.getElementById("event-overlay").classList.add("active");
+        return true;
+      } else {
+        state.arrivedChars[mc.id]=true;
+      }
+    }
+  }
+  return false;
+}
+
+function dismissCharArrival(){
+  document.getElementById("event-overlay").classList.remove("active");
+  state.eventActive=false;
+}
+
+function checkPhase2Events(){
+  if(!state.phase2Active||!PHASE2_EVENTS)return false;
+  if(!state.charEventsFired)state.charEventsFired={};
+  for(var i=0;i<PHASE2_EVENTS.length;i++){
+    var ev=PHASE2_EVENTS[i];
+    if(state.charEventsFired[ev.id])continue;
+    if(typeof ev.condition==="function"&&ev.condition()){
+      showPhase2Event(ev);
+      return true;
+    }
+  }
+  return false;
+}
+
+function showPhase2Event(ev){
+  state.eventActive=true;sndChime();
+  var b=document.getElementById("event-box");b.className="";
+  var h='<div class="ev-day">Day '+state.day+'</div><div class="ev-title">'+ev.title+'</div><div class="ev-text">'+ev.text+'</div><div class="ev-choices">';
+  ev.choices.forEach(function(c,i){h+='<button class="ev-choice-btn" onclick="makePhase2Choice(\''+ev.id+'\','+i+')"><span class="choice-label">'+c.label+'</span>'+c.text+'</button>';});
+  h+='</div>';b.innerHTML=h;
+  document.getElementById("event-overlay").classList.add("active");
+}
+
+function makePhase2Choice(eventId,idx){
+  var ev=null;for(var i=0;i<PHASE2_EVENTS.length;i++){if(PHASE2_EVENTS[i].id===eventId){ev=PHASE2_EVENTS[i];break;}}
+  if(!ev)return;
+  var c=ev.choices[idx];
+  if(!state.charEventsFired)state.charEventsFired={};
+  state.charEventsFired[eventId]=true;
+  if(c.effect){
+    if(c.effect.budget)state.budget+=c.effect.budget;
+    if(c.effect.attendance)state.attendance=clamp(state.attendance+c.effect.attendance,0,100);
+    if(c.effect.gangThreat)state.gangThreat=clamp(state.gangThreat+c.effect.gangThreat,0,100);
+    if(c.effect.morale)state.morale=clamp(state.morale+c.effect.morale,0,100);
+    if(c.effect.productivity)state.productivity=clamp(state.productivity+c.effect.productivity,0,100);
+    if(c.effect.approval&&state.townshipUnlocked)state.approval=clamp(state.approval+c.effect.approval,0,100);
+    if(c.effect.population)state.population=Math.max(0,state.population+c.effect.population);
+    if(c.effect.narratorStress)state.narratorStress=clamp(state.narratorStress+c.effect.narratorStress,0,100);
+  }
+  if(c.flag)state.charEventsFired[c.flag]=true;
+  if(c.setFlag)state.flags[c.setFlag]=true;
+  state.log.push({day:state.day,title:ev.title+" \u2192 "+c.label});
+  document.getElementById("event-overlay").classList.remove("active");
+  state.eventActive=false;updateSidebar();updateLog();
+  var f=checkFailState();if(f)showFailEnd(f);
+}
+
+function dbgSkipToPhase2(){
+  state.day=31;state.morale=60;state.attendance=60;state.gangThreat=10;state.budget=50000;
+  state.expanded=true;state.mapScale=0.5;
+  state.phase2Active=true;state.productivity=60;
+  if(!state.charAssignedTo)state.charAssignedTo={};
+  if(!state.charConsecutiveDays)state.charConsecutiveDays={};
+  if(!state.charEventsFired)state.charEventsFired={};
+  if(!state.arrivedChars)state.arrivedChars={};
+  state.charAssignedTo["alsuga"]="cityhall";
+  document.getElementById("build-section").style.display="block";
+  document.getElementById("productivity-row").style.display="flex";
+  document.getElementById("productivity-bar-wrap").style.display="block";
+  updateSidebar();
+}
 
 // Check for existing save on page load
 checkSaveOnTitleScreen();
