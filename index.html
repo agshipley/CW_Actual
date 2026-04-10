@@ -296,23 +296,23 @@ var state = {
 };
 
 var BUILDABLE_STRUCTURES = [
-  {id:"watchtower",       name:"Watchtower",             cost:2000,  color:"#8A7A60",roof:"#6A5A40", desc:"Eyes on the retaining wall. Whoever's up there sees everything, or claims to.",              daily:{gangThreat:-3}, capacity:1, upkeep:30},
-  {id:"schoolhouse",      name:"Frontier Schoolhouse",   cost:3000,  color:"#B0C8D8",roof:"#90A8B8", desc:"The curriculum covers the Civil War. Some would say exclusively. They would not be wrong.",  daily:{productivity:2,morale:1}, capacity:1, upkeep:40},
-  {id:"homestead",        name:"Pioneer Homestead",      cost:2500,  color:"#C8B898",roof:"#A89878", desc:"A working homestead. Also where Maribeth McKinnon keeps trying to kiss living boys.",        daily:{budget:10}, capacity:1, upkeep:20},
-  {id:"herb_garden",      name:"Medicinal Herb Garden",  cost:1500,  color:"#90C890",roof:null,       desc:"Samuel planted half of it. You have decided not to ask about the other half.",              daily:{morale:1}, capacity:1, upkeep:15},
-  {id:"artillery",        name:"Artillery Battery",      cost:4000,  color:"#7A7A6A",roof:null,       desc:"Two cannons. One works. The other is decorative, by necessity.",                            daily:{gangThreat:-5,morale:-2}, capacity:1, upkeep:50},
-  {id:"sutlers_tent",     name:"Sutler's Tent",          cost:1000,  color:"#D4B87A",roof:"#C09858", desc:"Frontier commerce. Whatever Nate is selling, this sells more of it.",                       daily:{budget:20}, capacity:1, upkeep:10},
-  {id:"telegraph",        name:"Telegraph Office",       cost:3500,  color:"#C8C0A0",roof:"#A8A080", desc:"Mostly receives complaints. Occasionally sends them.",                                      daily:{productivity:3}, capacity:1, upkeep:35},
-  {id:"officers_quarters",name:"Officers' Quarters",     cost:5000,  color:"#D8C8A0",roof:"#B8A880", desc:"Four walls and a door that closes. Luxury, by the standards of this place.",               daily:{morale:2,productivity:1}, capacity:2, upkeep:40, restable:true},
-  {id:"printing_press",   name:"Printing Press",         cost:4500,  color:"#B0A888",roof:"#908868", desc:"Produces a weekly newsletter. One official counts every copy. Nobody else reads it.",      daily:{productivity:2}, capacity:1, upkeep:45},
-  {id:"memorial_garden",  name:"Memorial Garden",        cost:2000,  color:"#707868",roof:null,       desc:"For the dead who stayed. There are more of them than there used to be.",                   daily:{morale:3}, capacity:0, upkeep:10},
-  {id:"school",          name:"School",           cost:8000,  color:"#B0C8D8",roof:"#90A8B8", desc:"The curriculum covers the Civil War extensively. Some would say exclusively.",                                                                       daily:{approval:3},                      township:true, populationGrowthBonus:1},
-  {id:"clinic",          name:"Clinic",           cost:6000,  color:"#D0E0D0",roof:"#B0C0B0", desc:"Dr. Pelz handles everything from knife wounds to frontier stew poisoning. She doesn't ask how.",                                                    daily:{approval:2,morale:1},             township:true},
-  {id:"fire_station",    name:"Fire Station",     cost:7000,  color:"#D06040",roof:"#B04020", desc:"After the Anglican Church incident, this felt overdue.",                                                                                             daily:{gangThreat:-2,approval:1},        township:true},
-  {id:"post_office",     name:"Post Office",      cost:4000,  color:"#C8C0A0",roof:"#A8A080", desc:"Mostly handles complaints about the ghosts and requests for Samuel to stop staring.",                                                                daily:{approval:2},                      township:true},
-  {id:"community_center",name:"Community Center", cost:10000, color:"#B8A8C8",roof:"#9888A8", desc:"Mr. A wanted to call it the Alsuga Center for Community Excellence. You talked him down to Community Center.",                                       daily:{approval:4,morale:3,budget:-100},  township:true},
-  {id:"water_tower",     name:"Water Tower",      cost:12000, color:"#8090A0",roof:null,       desc:"The water tastes like 1865. Which is to say, it tastes like iron and regret.",                                                                      daily:{},                                township:true},
-  {id:"cemetery",        name:"Cemetery",         cost:2000,  color:"#707868",roof:null,       desc:"For the residents who lived here. And the ones who died here before it was a town. And the ones in between.",                                       daily:{approval:1},                      township:true}
+  {id:"watchtower",       name:"Watchtower",             cost:2000,  color:"#8C6238",roof:"#5E3A1E", desc:"Eyes on the retaining wall. Whoever's up there sees everything, or claims to.",              daily:{gangThreat:-3}, capacity:1, upkeep:30},
+  {id:"schoolhouse",      name:"Frontier Schoolhouse",   cost:3000,  color:"#D4B878",roof:"#7A3A24", desc:"The curriculum covers the Civil War. Some would say exclusively. They would not be wrong.",  daily:{productivity:2,morale:1}, capacity:1, upkeep:40},
+  {id:"homestead",        name:"Pioneer Homestead",      cost:2500,  color:"#8C6238",roof:"#5E3A1E", desc:"A working homestead. Also where Maribeth McKinnon keeps trying to kiss living boys.",        daily:{budget:10}, capacity:1, upkeep:20},
+  {id:"herb_garden",      name:"Medicinal Herb Garden",  cost:1500,  color:"#9AAC94",roof:null,       desc:"Samuel planted half of it. You have decided not to ask about the other half.",              daily:{morale:1}, capacity:1, upkeep:15},
+  {id:"artillery",        name:"Artillery Battery",      cost:4000,  color:"#5E6E7C",roof:null,       desc:"Two cannons. One works. The other is decorative, by necessity.",                            daily:{gangThreat:-5,morale:-2}, capacity:1, upkeep:50},
+  {id:"sutlers_tent",     name:"Sutler's Tent",          cost:1000,  color:"#9C4A2E",roof:"#5E3A1E", desc:"Frontier commerce. Whatever Nate is selling, this sells more of it.",                       daily:{budget:20}, capacity:1, upkeep:10},
+  {id:"telegraph",        name:"Telegraph Office",       cost:3500,  color:"#5E6E7C",roof:"#3E4852", desc:"Mostly receives complaints. Occasionally sends them.",                                      daily:{productivity:3}, capacity:1, upkeep:35},
+  {id:"officers_quarters",name:"Officers' Quarters",     cost:5000,  color:"#D4B878",roof:"#7A3A24", desc:"Four walls and a door that closes. Luxury, by the standards of this place.",               daily:{morale:2,productivity:1}, capacity:2, upkeep:40, restable:true},
+  {id:"printing_press",   name:"Printing Press",         cost:4500,  color:"#8C6238",roof:"#5E3A1E", desc:"Produces a weekly newsletter. One official counts every copy. Nobody else reads it.",      daily:{productivity:2}, capacity:1, upkeep:45},
+  {id:"memorial_garden",  name:"Memorial Garden",        cost:2000,  color:"#9AAC94",roof:null,       desc:"For the dead who stayed. There are more of them than there used to be.",                   daily:{morale:3}, capacity:0, upkeep:10},
+  {id:"school",          name:"School",           cost:8000,  color:"#D4B878",roof:"#7A3A24", desc:"The curriculum covers the Civil War extensively. Some would say exclusively.",                                                                       daily:{approval:3},                      township:true, populationGrowthBonus:1},
+  {id:"clinic",          name:"Clinic",           cost:6000,  color:"#4E7068",roof:"#3E4852", desc:"Dr. Pelz handles everything from knife wounds to frontier stew poisoning. She doesn't ask how.",                                                    daily:{approval:2,morale:1},             township:true},
+  {id:"fire_station",    name:"Fire Station",     cost:7000,  color:"#5E6E7C",roof:"#3E4852", desc:"After the Anglican Church incident, this felt overdue.",                                                                                             daily:{gangThreat:-2,approval:1},        township:true},
+  {id:"post_office",     name:"Post Office",      cost:4000,  color:"#5E6E7C",roof:"#3E4852", desc:"Mostly handles complaints about the ghosts and requests for Samuel to stop staring.",                                                                daily:{approval:2},                      township:true},
+  {id:"community_center",name:"Community Center", cost:10000, color:"#D4B878",roof:"#7A3A24", desc:"Mr. A wanted to call it the Alsuga Center for Community Excellence. You talked him down to Community Center.",                                       daily:{approval:4,morale:3,budget:-100},  township:true},
+  {id:"water_tower",     name:"Water Tower",      cost:12000, color:"#8C6238",roof:null,       desc:"The water tastes like 1865. Which is to say, it tastes like iron and regret.",                                                                      daily:{},                                township:true},
+  {id:"cemetery",        name:"Cemetery",         cost:2000,  color:"#9AAC94",roof:null,       desc:"For the residents who lived here. And the ones who died here before it was a town. And the ones in between.",                                       daily:{approval:1},                      township:true}
 ];
 
 var ZONE_TYPES = [
@@ -464,26 +464,26 @@ var PHASE2_EVENTS = [
 ];
 
 var BUILDINGS = [
-  {id:"canal",name:"Erie Canal Lock",x:.08,y:.10,w:.12,h:.08,color:"#6EAAC4",roof:"#4E8AA4",desc:"90 feet of working canal. Coolie campsite diorama. Wrong ethnicity."},
-  {id:"hoedown",name:"Info Hoedown",x:.38,y:.06,w:.12,h:.07,color:"#D4B87A",roof:"#B49858",desc:"Near the McKinnon death-site. Ghosts frequent this area."},
-  {id:"conifer",name:"Conifer Grove",x:.70,y:.05,w:.14,h:.09,color:"#2D6B2D",roof:"#1D5B1D",desc:"Feinstein Memorial. Dense trees. Good cover for ambushes."},
-  {id:"blacksmith",name:"Blacksmith",x:.10,y:.28,w:.10,h:.07,color:"#8A7A6A",roof:"#6A5A4A",desc:"Old Tyme Skills Seminars. Poorly attended."},
-  {id:"saloon",name:"Nate's Saloon",x:.28,y:.25,w:.10,h:.07,color:"#C8A050",roof:"#A88030",desc:"In-park dining. Where gossip goes to thrive."},
-  {id:"kriegal",name:"Kriegal Place",x:.52,y:.18,w:.10,h:.07,color:"#C4A870",roof:"#A48850",desc:"Porch with butter churn. Samuel's station."},
-  {id:"everly",name:"Everly Mansion",x:.68,y:.22,w:.12,h:.08,color:"#E8DCC0",roof:"#B8A880",desc:"Grand facade. Currently featuring gang spray-paint."},
-  {id:"cityhall",name:"City Hall",x:.38,y:.38,w:.11,h:.08,color:"#D4A040",roof:"#B48020",desc:"Mr. Alsuga's office. Seat of questionable power."},
-  {id:"church",name:"Anglican Church",x:.15,y:.48,w:.10,h:.10,color:"#E0D8C8",roof:"#8B7D6B",desc:"Transported from Clydesville. $90,000 to refurbish."},
-  {id:"worship",name:"Worship Center",x:.72,y:.42,w:.12,h:.10,color:"#D4A070",roof:"#C08840",desc:"Former Siala utopian lodge. Gold dome. Baptisms: $300."},
-  {id:"thespian",name:"Thespian Center",x:.25,y:.60,w:.10,h:.07,color:"#A08060",roof:"#806040",desc:"Quinn's base. Wounded Grizzly suit storage."},
-  {id:"green",name:"Timeless Green",x:.42,y:.55,w:.16,h:.10,color:"#5CA048",roof:null,desc:"Open gathering area. Good for events and ambushes."},
-  {id:"general",name:"General Store",x:.55,y:.65,w:.10,h:.07,color:"#A8B878",roof:"#88A058",desc:"Penny candy. Fred Moore's domain."},
-  {id:"gift",name:"Gift Center",x:.68,y:.60,w:.12,h:.07,color:"#B8A888",roof:"#988868",desc:"Planters previously used as toilets by a part-timer."},
-  {id:"sweete",name:"Sweete Shoppe",x:.32,y:.72,w:.10,h:.06,color:"#E0C0A0",roof:"#C0A080",desc:"Staffed by reassigned simulated whores."},
-  {id:"brothel",name:"Cimarron Brothel",x:.82,y:.38,w:.10,h:.08,color:"#B07060",roof:"#904840",desc:"Uglier women now, per Verisimilitude standards."},
-  {id:"infirmary",name:"Infirmary",x:.84,y:.58,w:.09,h:.07,color:"#80B898",roof:"#609878",desc:"For knife-notched performers and other casualties."},
-  {id:"refreshments",name:"Refreshments",x:.05,y:.65,w:.10,h:.07,color:"#90B870",roof:"#70A050",desc:"Marsh behind it. Hand burial ground."},
-  {id:"entry",name:"Spaceship Entry",x:.42,y:.85,w:.16,h:.07,color:"#909090",roof:"#707070",desc:"Dated time-travel ride. Peeling helmets shaped like bowls."},
-  {id:"parking",name:"Parking",x:.65,y:.88,w:.20,h:.06,color:"#787870",roof:null,desc:"Former McKinnon cornfield. He calls the cars Beelzebubs."}
+  {id:"canal",name:"Erie Canal Lock",x:.08,y:.10,w:.12,h:.08,color:"#4E7068",roof:"#3E4852",desc:"90 feet of working canal. Coolie campsite diorama. Wrong ethnicity."},
+  {id:"hoedown",name:"Info Hoedown",x:.38,y:.06,w:.12,h:.07,color:"#D4B878",roof:"#7A3A24",desc:"Near the McKinnon death-site. Ghosts frequent this area."},
+  {id:"conifer",name:"Conifer Grove",x:.70,y:.05,w:.14,h:.09,color:"#5E6E54",roof:null,desc:"Feinstein Memorial. Dense trees. Good cover for ambushes."},
+  {id:"blacksmith",name:"Blacksmith",x:.10,y:.28,w:.10,h:.07,color:"#8C6238",roof:"#5E3A1E",desc:"Old Tyme Skills Seminars. Poorly attended."},
+  {id:"saloon",name:"Nate's Saloon",x:.28,y:.25,w:.10,h:.07,color:"#9C4A2E",roof:"#5E3A1E",desc:"In-park dining. Where gossip goes to thrive."},
+  {id:"kriegal",name:"Kriegal Place",x:.52,y:.18,w:.10,h:.07,color:"#8C6238",roof:"#5E3A1E",desc:"Porch with butter churn. Samuel's station."},
+  {id:"everly",name:"Everly Mansion",x:.68,y:.22,w:.12,h:.08,color:"#D4B878",roof:"#7A3A24",desc:"Grand facade. Currently featuring gang spray-paint."},
+  {id:"cityhall",name:"City Hall",x:.38,y:.38,w:.11,h:.08,color:"#5E6E7C",roof:"#3E4852",desc:"Mr. Alsuga's office. Seat of questionable power."},
+  {id:"church",name:"Anglican Church",x:.15,y:.48,w:.10,h:.10,color:"#D4B878",roof:"#7A3A24",desc:"Transported from Clydesville. $90,000 to refurbish."},
+  {id:"worship",name:"Worship Center",x:.72,y:.42,w:.12,h:.10,color:"#D4B878",roof:"#B8924A",desc:"Former Siala utopian lodge. Gold dome. Baptisms: $300."},
+  {id:"thespian",name:"Thespian Center",x:.25,y:.60,w:.10,h:.07,color:"#8C6238",roof:"#5E3A1E",desc:"Quinn's base. Wounded Grizzly suit storage."},
+  {id:"green",name:"Timeless Green",x:.42,y:.55,w:.16,h:.10,color:"#8A8458",roof:null,desc:"Open gathering area. Good for events and ambushes."},
+  {id:"general",name:"General Store",x:.55,y:.65,w:.10,h:.07,color:"#8C6238",roof:"#5E3A1E",desc:"Penny candy. Fred Moore's domain."},
+  {id:"gift",name:"Gift Center",x:.68,y:.60,w:.12,h:.07,color:"#D4B878",roof:"#7A3A24",desc:"Planters previously used as toilets by a part-timer."},
+  {id:"sweete",name:"Sweete Shoppe",x:.32,y:.72,w:.10,h:.06,color:"#D4B878",roof:"#7A3A24",desc:"Staffed by reassigned simulated whores."},
+  {id:"brothel",name:"Cimarron Brothel",x:.82,y:.38,w:.10,h:.08,color:"#9C4A2E",roof:"#5E3A1E",desc:"Uglier women now, per Verisimilitude standards."},
+  {id:"infirmary",name:"Infirmary",x:.84,y:.58,w:.09,h:.07,color:"#4E7068",roof:"#3E4852",desc:"For knife-notched performers and other casualties."},
+  {id:"refreshments",name:"Refreshments",x:.05,y:.65,w:.10,h:.07,color:"#8C6238",roof:"#5E3A1E",desc:"Marsh behind it. Hand burial ground."},
+  {id:"entry",name:"Spaceship Entry",x:.42,y:.85,w:.16,h:.07,color:"#5E6E7C",roof:"#3E4852",desc:"Dated time-travel ride. Peeling helmets shaped like bowls."},
+  {id:"parking",name:"Parking",x:.65,y:.88,w:.20,h:.06,color:"#6A6442",roof:null,desc:"Former McKinnon cornfield. He calls the cars Beelzebubs."}
 ];
 
 var TREES = [
