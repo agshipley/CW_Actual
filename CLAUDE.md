@@ -1,50 +1,61 @@
-# CivilWarLand in Bad Decline — Claude Code Guide
+## Saunders Voice (Non-Negotiable)
 
-## Project Overview
+Every piece of text the player reads must sound like the narrator of "CivilWarLand in Bad Decline": resigned, self-aware, darkly funny, wrapped in the language of corporate middle management. Even when things are going well. Especially when things are going well.
 
-A browser-based park management simulation game inspired by the George Saunders short story. The player is the Special Assistant at a failing Civil War theme park, making daily decisions for 30 days while story events intervene.
+Concrete markers of the voice:
+- Bureaucratic euphemism describing the absurd ("Revenue Impacting Event," "Verisimilitude Evaluation," "Exit Sealage")
+- Earnest effort applied to ridiculous ends, played straight
+- Comedy from juxtaposition — corporate language describing violence, genuine tenderness amid institutional collapse
+- Never joke about the sadness. Let the sadness and the jokes coexist without acknowledging each other.
+- The ghosts are real. The McKinnons are not a metaphor. Played completely straight.
 
-The entire game lives in a **single file**: `index.html`. No build step, no framework, no dependencies. Open in a browser to play.
+**Claude Code cannot read the source story.** All flavor text, character writing, and narrative content must be authored in claude.ai conversations first, then pasted into prompts verbatim. Do not ask Claude Code to "write in the Saunders voice" — it doesn't have the source material. Provide the lines.
 
-## Architecture
+## Core Creative Principle: Height to Fall From
 
-- **One file**: all HTML, CSS, and JS in `index.html` (~2383 lines as of Phase 2)
-- **Vanilla JS**: no modules, no bundler, no npm
-- **Global `state` object**: holds all game state (day, budget, attendance, morale, gangThreat, population, productivity, phase, buildings, characters, flags, etc.)
-- **Canvas rendering**: the park map is drawn on a `<canvas>` element via `drawMap()`
-- **Event system**: story events are objects in the `EVENTS` array, minor events in `MINOR_EVENTS`; fired by `checkEvents()` each day advance
+The game is about decline, but decline requires prior integrity. A fall is only a fall if there's a height to fall from. The park was built with sincerity — someone chose the Worship Center's gold dome, someone painted the Everly Mansion cream, someone cared — and what the player sees is that intention still visible underneath twenty years of wear.
 
-## Two Phases
+This principle governs all future visual and narrative work:
+- Base colors are "opening day 1975." Wear is added on top as damage, not baked in.
+- Decline should be visible *locally* (peeling paint, worn grass at doorways, one boarded window) not *globally* (everything desaturated into gray).
+- The player should be able to see both states at once — the intention and the failure. That tension is the whole game.
+- Mr. A cries when the church burns because he meant it. Honor that sincerity in every system.
 
-**Phase 1 (Days 1–30):** Original story-driven survival mode. Four daily actions, 13 story events, 6 endings + 4 fail states. Core stats: budget, attendance, morale, gangThreat.
+## Visual Style (as of April 2026)
 
-**Phase 2 (Days 31+, "The Community"):** Management sim layer. Triggers when `state.expanded === true`. Adds: population, productivity, character assignment, building upkeep, milestone characters. Active on `sims-mode` branch.
+**Current locked style:** sketchy hand-drawn pen-and-ink illustration with flat muted fills. Think storybook illustration or literary chapbook, not painterly rendering. This style was chosen because it plays to canvas's strengths (lines, shapes, flat fills) and can be rendered well on the first try.
 
-## Key Functions
+**Characters: LOCKED.** The `drawCharacter` function and its helpers (`makeWobble`, `wobbleLine`, `seededRand`, the `CHAR_VISUAL` object) represent the established visual system. Each character stores its wobble offsets once on `c.wobble` and they persist for the session — wobble is baked in at creation, never recomputed per frame, to avoid shimmering. Do not refactor this system without explicit direction.
 
-- `advanceDay()` — main game loop tick; applies daily decay, fires events, updates UI
-- `checkEvents()` — evaluates which story/minor events trigger today
-- `renderSidebar()` / `drawMap()` — all UI rendering
-- `startGame()` / `startPhase2Game()` — entry points
-- `dbgSkipToPhase2()` — debug shortcut to jump to Phase 2 state
+**Environment: in progress.** Grass palette has been revised to muted-but-living field green (`seasonGrassColors` season 0). Buildings still use their original saturated Phase 1 colors and need a matching pass. Trees, paths, retaining wall, zones, and weather overlays have not been touched.
 
-## Testing
+**Deferred: Disco Elysium painterly aesthetic.** An earlier attempt in April 2026 aimed at a cool-gray desaturated palette inspired by Disco Elysium. It read as bleak and dead — a misreading of the reference. Disco Elysium's Martinaise is actually *richly colored*, with wear applied on top of intentional design. Getting this right in canvas code would require significant environment art investment. Deferred until the game has the time to do it properly. Do not revisit without explicit direction.
 
-No test suite. Test by opening `index.html` in a browser. Use the **debug panel** (press `d` during gameplay) for:
-- Skip to day N
-- Force-trigger specific events
-- Skip to Phase 2 (`dbgSkipToPhase2()`)
+## Sketchy Drawing Primitives
 
-The "Skip to The Community" button on the title screen also jumps to Phase 2.
+The project has a reusable set of primitives for hand-drawn-feeling rendering:
+- `seededRand(seed, i)` — deterministic pseudorandom for stable wobble
+- `makeWobble(seed)` — generates a 32-pair offset array
+- `wobbleLine(x1, y1, x2, y2, wobble, wi)` — draws a line in 3 wobbled segments using stored offsets
 
-## Branches
+**Known quirk:** `wobbleLine` calls `ctx.moveTo` internally, which breaks continuous paths if chained for filled shapes. If you need a closed wobbled fill shape (e.g. a building wall), either extend `wobbleLine` with a "continue path" parameter or build the path manually with inline wobble. Do not chain `wobbleLine` calls expecting a closed filled polygon — it will render as disconnected strokes.
 
-- `main` — stable Phase 1 game
-- `sims-mode` — Phase 2 work in progress (The Community / Day 31+ layer)
+Any new hand-drawn element (buildings, trees, signage) should reuse these primitives for consistency.
 
-## Design Principles
+## Visual Work Cadence
 
-- **One file**: keep everything in `index.html`. Don't introduce build tools, modules, or external files.
-- **No frameworks**: vanilla JS and CSS only.
-- **Atmospheric tone**: Georgia serif font, dark muted green palette (`#1e2418` bg, `#d4d0c4` text). All copy should match the Saunders story's voice — bureaucratic dread, dark humor.
-- **Don't break Phase 1**: Phase 2 code should be gated behind `state.expanded` checks so it doesn't affect the base game.
+Visual passes should be scoped narrowly — one element type per pass (characters, then buildings, then trees, etc.). Do not attempt multi-element visual overhauls in a single prompt. The pattern is:
+1. Pick one element category
+2. Describe the approach before writing code
+3. Implement in a single helper function
+4. Reload and evaluate in isolation
+5. Lock or iterate, then move on
+
+Do not "also fix" adjacent visual elements during a pass. If something looks wrong outside the current scope, note it for the next pass.
+
+## Workflow Division
+
+- **claude.ai conversations**: design decisions, flavor text authoring, diagnosis, aesthetic direction, Saunders-voice content
+- **Claude Code (VS Code)**: all file edits, implementation, git operations, verification
+
+When in doubt, design in claude.ai first and hand completed prompts to Claude Code. Claude Code should not be asked to make open-ended creative decisions about tone, voice, or aesthetic direction.
