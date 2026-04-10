@@ -1774,22 +1774,42 @@ function render(){
 }
 
 var BUILDING_ACTIONS = {
-  cityhall:    {label:"Report to Mr. A",    effect:{budget:200, morale:-2}},
-  canal:       {label:"Inspect the Lock",   effect:{attendance:3}},
-  saloon:      {label:"Eat Lunch",          effect:{morale:4}},
-  thespian:    {label:"Check on Quinn",     effect:{morale:3}},
-  general:     {label:"Restock Shelves",    effect:{attendance:2, budget:-100}},
-  blacksmith:  {label:"Old Tyme Seminar",   effect:{attendance:1, morale:2}},
-  worship:     {label:"Book a Baptism",     effect:{budget:300}},
-  sweete:      {label:"Check Inventory",    effect:{attendance:1}},
-  gift:        {label:"Inspect Planters",   effect:{morale:1, attendance:1}},
-  infirmary:   {label:"Visit the Wounded",  effect:{morale:3}},
-  refreshments:{label:"Check the Marsh",    effect:{gangThreat:-2}},
-  conifer:     {label:"Scout for Gangs",    effect:{gangThreat:-4, morale:-2}},
-  everly:      {label:"Scrub Graffiti",     effect:{attendance:2, budget:-200}},
-  kriegal:     {label:"Check on Samuel",    effect:{gangThreat:-3}, flagRequired:"samuel_armed", flavorOnly:true},
-  entry:       {label:"Tinker with the Ride",effect:{attendance:2, budget:-150}},
-  parking:     {label:"Patrol the Lot",     effect:{gangThreat:-2}}
+  // Phase 1 original buildings
+  cityhall:         {label:"Report to Mr. A",       effect:{budget:500, morale:-3}},
+  canal:            {label:"Inspect the Lock",       effect:{attendance:5, budget:-100}},
+  saloon:           {label:"Eat Lunch",              effect:{morale:6, narratorStress:-5}},
+  thespian:         {label:"Check on Quinn",         effect:{morale:5, attendance:2}},
+  general:          {label:"Restock Shelves",        effect:{attendance:4, budget:-200}},
+  blacksmith:       {label:"Old Tyme Seminar",       effect:{attendance:3, morale:3}},
+  worship:          {label:"Book a Baptism",         effect:{budget:400, morale:2}},
+  sweete:           {label:"Check Inventory",        effect:{attendance:3, budget:150}},
+  gift:             {label:"Inspect Planters",       effect:{morale:2, attendance:3}},
+  infirmary:        {label:"Visit the Wounded",      effect:{morale:5, narratorStress:-5}},
+  refreshments:     {label:"Check the Marsh",        effect:{gangThreat:-4, morale:-2}},
+  conifer:          {label:"Scout for Gangs",        effect:{gangThreat:-6, morale:-3}},
+  everly:           {label:"Scrub Graffiti",         effect:{attendance:4, budget:-300}},
+  kriegal:          {label:"Check on Samuel",        effect:{gangThreat:-5}, flagRequired:"samuel_armed"},
+  entry:            {label:"Tinker with the Ride",   effect:{attendance:4, budget:-200}},
+  parking:          {label:"Patrol the Lot",         effect:{gangThreat:-3, morale:-1}},
+  // Phase 2 placed structures
+  watchtower:       {label:"Climb the Tower",        effect:{gangThreat:-8, morale:-2}},
+  schoolhouse:      {label:"Sit in on Class",        effect:{productivity:4, morale:2}},
+  homestead:        {label:"Check the Homestead",    effect:{budget:200, morale:2}},
+  herb_garden:      {label:"Tend the Garden",        effect:{morale:5, productivity:2}},
+  artillery:        {label:"Fire a Test Round",      effect:{attendance:4, gangThreat:-3, budget:-150}},
+  sutlers_tent:     {label:"Take Inventory",         effect:{budget:300, attendance:2}},
+  telegraph:        {label:"Send a Wire",            effect:{productivity:5, budget:-100}},
+  officers_quarters:{label:"Hold a Meeting",         effect:{productivity:4, morale:3}},
+  printing_press:   {label:"Review the Newsletter",  effect:{attendance:3, productivity:3}},
+  memorial_garden:  {label:"Pay Respects",           effect:{morale:6, narratorStress:-8}},
+  // Township buildings
+  school:           {label:"Visit the Class",        effect:{approval:3, morale:3}},
+  clinic:           {label:"Check on Patients",      effect:{morale:5, approval:2}},
+  fire_station:     {label:"Run a Drill",            effect:{gangThreat:-4, approval:2}},
+  post_office:      {label:"Sort the Mail",          effect:{approval:3, productivity:2}},
+  community_center: {label:"Host a Meeting",         effect:{approval:5, morale:3}},
+  water_tower:      {label:"Inspect the Tower",      effect:{approval:2, budget:-100}},
+  cemetery:         {label:"Walk the Cemetery",      effect:{morale:4, narratorStress:3}}
 };
 
 var interactCooldownUntil = 0;
@@ -1823,7 +1843,7 @@ function updateInteractPrompt(){
   var el=document.getElementById("interact-prompt");
   if(!canvas||state.gameOver||state.eventActive||state.gamePaused){el.style.display="none";return;}
   var b=getNearbyBuilding();
-  var action=b?BUILDING_ACTIONS[b.id]:null;
+  var action=b?(BUILDING_ACTIONS[b.id]||BUILDING_ACTIONS[b.typeId]):null;
   var needsRepair=b&&b.condition!==undefined&&b.condition<100;
   var canRest=b&&(b.id==="saloon"||b.id==="infirmary"||b.restable===true);
   if(!b||(!action&&!needsRepair&&!canRest)){el.style.display="none";return;}
@@ -1892,7 +1912,7 @@ function interactWithBuilding(){
   if(Date.now()<interactCooldownUntil)return;
   var buildingId=document.getElementById("interact-prompt").dataset.buildingId;
   if(!buildingId||state.destroyedBuildings[buildingId])return;
-  var action=BUILDING_ACTIONS[buildingId];
+  var action=BUILDING_ACTIONS[buildingId]||(b?BUILDING_ACTIONS[b.typeId]:null);
   if(!action)return;
   var b=findBuildingById(buildingId);
   if(!b)return;
@@ -1904,6 +1924,9 @@ function interactWithBuilding(){
     if(e.attendance)state.attendance=clamp(state.attendance+e.attendance,0,100);
     if(e.gangThreat)state.gangThreat=clamp(state.gangThreat+e.gangThreat,0,100);
     if(e.morale)state.morale=clamp(state.morale+e.morale,0,100);
+    if(e.productivity)state.productivity=clamp((state.productivity||50)+e.productivity,0,100);
+    if(e.approval)state.approval=clamp((state.approval||50)+e.approval,0,100);
+    if(e.narratorStress)state.narratorStress=clamp((state.narratorStress||0)+e.narratorStress,0,100);
   }
   state.log.push({day:state.day,title:action.label+": "+b.name+(applyEffect?"":" (no effect)")});
   updateSidebar();updateLog();
