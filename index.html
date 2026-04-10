@@ -1242,10 +1242,14 @@ var footprints = [];
 var lastFootprintX = null, lastFootprintY = null;
 var rainDrops = [];
 var seasonGrassColors = [
-  [[88,168,64],[76,152,56],[68,138,48],[60,120,40]],
-  [[92,168,48],[80,144,40],[70,130,34],[58,116,28]],
-  [[160,136,48],[136,112,32],[112,96,24],[96,80,20]],
-  [[96,120,88],[80,104,72],[64,88,56],[52,72,44]]
+  // Summer — cool sage, muted, overcast-day feel
+  [[110,120,100],[94,106,88],[80,92,76],[66,78,64]],
+  // Late summer — dry straw-warm but still muted, pulled toward gray
+  [[118,114,82],[104,100,70],[90,88,60],[76,74,50]],
+  // Autumn — desaturated rust, not cheerful orange
+  [[132,100,72],[114,86,58],[96,74,48],[80,62,40]],
+  // Winter — cold damp stone, blue-gray, no snow brightness
+  [[90,96,102],[76,82,90],[64,70,78],[54,60,68]]
 ];
 
 var CHAR_BUILDINGS = {quinn:"thespian",sylvia:"cityhall",grayson:"conifer",samuel:"conifer",alsuga:"cityhall"};
@@ -1916,8 +1920,9 @@ function render(){
   grad.addColorStop(1,"rgb("+Math.floor(sgc[3][0]*br)+","+Math.floor(sgc[3][1]*br)+","+Math.floor(sgc[3][2]*br)+")");
   ctx.fillStyle=grad;ctx.fillRect(0,0,cw,ch);
   if(br<1.0){ctx.fillStyle="rgba(5,10,30,"+(0.35*(1-br))+")";ctx.fillRect(0,0,cw,ch);}
+  ctx.fillStyle="rgba(180,195,205,0.04)";ctx.fillRect(0,0,cw,ch);
   ctx.globalAlpha=0.08;
-  for(var gi=0;gi<grassPatches.length;gi++){var gp=grassPatches[gi];ctx.beginPath();ctx.arc(gp.x*cw,gp.y*ch,gp.s,0,Math.PI*2);ctx.fillStyle=gp.dark?"#388828":"#60B848";ctx.fill();}
+  for(var gi=0;gi<grassPatches.length;gi++){var gp=grassPatches[gi];ctx.beginPath();ctx.arc(gp.x*cw,gp.y*ch,gp.s,0,Math.PI*2);ctx.fillStyle=gp.dark?"#3E4A38":"#6E7A62";ctx.fill();}
   ctx.globalAlpha=1;
   var rw=getRoadWobble();
   ctx.strokeStyle="rgba(80,60,30,0.3)";ctx.lineWidth=Math.max(5,cw*0.007);ctx.lineCap="round";
