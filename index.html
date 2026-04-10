@@ -1575,7 +1575,7 @@ function renderBuilding(b,bx,by,bw,bh,ms){
   // Condition bar
   var barY=ly+3;
   ctx.fillStyle="rgba(0,0,0,0.4)";ctx.fillRect(bx,barY,bw,3);
-  ctx.fillStyle=cond>=60?"#7ab0c8":cond>=30?"#aa8a30":"#aa3322";
+  ctx.fillStyle=cond>=60?"#c8a830":cond>=20?"#7a5828":"#aa3322";
   ctx.fillRect(bx,barY,bw*(cond/100),3);
 }
 
