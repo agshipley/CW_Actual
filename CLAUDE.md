@@ -29,7 +29,7 @@ This principle governs all future visual and narrative work:
 
 **Environment: in progress.** Grass palette has been revised to muted-but-living field green (`seasonGrassColors` season 0). Buildings still use their original saturated Phase 1 colors and need a matching pass. Trees, paths, retaining wall, zones, and weather overlays have not been touched.
 
-**Deferred: Disco Elysium painterly aesthetic.** An earlier attempt in April 2026 aimed at a cool-gray desaturated palette inspired by Disco Elysium. It read as bleak and dead — a misreading of the reference. Disco Elysium's Martinaise is actually *richly colored*, with wear applied on top of intentional design. Getting this right in canvas code would require significant environment art investment. Deferred until the game has the time to do it properly. Do not revisit without explicit direction.
+**Active aesthetic target: see `AESTHETIC.md`.** The brand guide at the repo root is the single source of truth for palette, composition rules, wear philosophy, and reference. All visual passes reference it. The target is Disco Elysium's Martinaise outdoor environments (Aleksander Rostov), translated into our existing sketchy pen-and-ink line style. Warm-dominant palette, cool shadows in recesses, warm lit windows as the hero accent, wear applied locally on top of intentional base colors.
 
 ## Sketchy Drawing Primitives
 
