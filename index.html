@@ -1242,14 +1242,14 @@ var footprints = [];
 var lastFootprintX = null, lastFootprintY = null;
 var rainDrops = [];
 var seasonGrassColors = [
-  // Summer — cool sage, muted, overcast-day feel
-  [[110,120,100],[94,106,88],[80,92,76],[66,78,64]],
-  // Late summer — dry straw-warm but still muted, pulled toward gray
-  [[118,114,82],[104,100,70],[90,88,60],[76,74,50]],
-  // Autumn — desaturated rust, not cheerful orange
-  [[132,100,72],[114,86,58],[96,74,48],[80,62,40]],
-  // Winter — cold damp stone, blue-gray, no snow brightness
-  [[90,96,102],[76,82,90],[64,70,78],[54,60,68]]
+  // Summer — real field green with dust in it, sun-caught highlights
+  [[122,142,96],[107,128,85],[90,106,68],[74,88,56]],
+  // Late summer — drier and yellower, green-dominant but warming
+  [[128,136,80],[112,120,68],[96,102,56],[80,86,44]],
+  // Autumn — warm rust and ochre dominance, still rich
+  [[148,108,64],[132,90,48],[112,76,36],[90,62,28]],
+  // Winter — cold damp dormant grass, muted blue-green life remaining
+  [[88,100,88],[74,86,80],[60,72,70],[48,60,60]]
 ];
 
 var CHAR_BUILDINGS = {quinn:"thespian",sylvia:"cityhall",grayson:"conifer",samuel:"conifer",alsuga:"cityhall"};
@@ -1920,9 +1920,8 @@ function render(){
   grad.addColorStop(1,"rgb("+Math.floor(sgc[3][0]*br)+","+Math.floor(sgc[3][1]*br)+","+Math.floor(sgc[3][2]*br)+")");
   ctx.fillStyle=grad;ctx.fillRect(0,0,cw,ch);
   if(br<1.0){ctx.fillStyle="rgba(5,10,30,"+(0.35*(1-br))+")";ctx.fillRect(0,0,cw,ch);}
-  ctx.fillStyle="rgba(180,195,205,0.04)";ctx.fillRect(0,0,cw,ch);
   ctx.globalAlpha=0.08;
-  for(var gi=0;gi<grassPatches.length;gi++){var gp=grassPatches[gi];ctx.beginPath();ctx.arc(gp.x*cw,gp.y*ch,gp.s,0,Math.PI*2);ctx.fillStyle=gp.dark?"#3E4A38":"#6E7A62";ctx.fill();}
+  for(var gi=0;gi<grassPatches.length;gi++){var gp=grassPatches[gi];ctx.beginPath();ctx.arc(gp.x*cw,gp.y*ch,gp.s,0,Math.PI*2);ctx.fillStyle=gp.dark?"#4E5C3C":"#829668";ctx.fill();}
   ctx.globalAlpha=1;
   var rw=getRoadWobble();
   ctx.strokeStyle="rgba(80,60,30,0.3)";ctx.lineWidth=Math.max(5,cw*0.007);ctx.lineCap="round";
@@ -1952,6 +1951,17 @@ function render(){
   ctx.setLineDash([]);
   TREES.forEach(function(t){drawTree(t.x*ms*cw,t.y*ms*ch,t.s);});
   state.placedZones.forEach(function(z){renderZone(z,z.x*ms*cw,z.y*ms*ch,z.w*ms*cw,z.h*ms*ch);});
+  // Worn dirt at building doorways — twenty years of foot traffic
+  ctx.save();
+  var dirtBldgs=BUILDINGS.filter(function(b){return !state.destroyedBuildings[b.id];}).concat(state.placedBuildings);
+  dirtBldgs.forEach(function(b){
+    var doorX=(b.x+b.w/2)*ms*cw, doorY=(b.y+b.h)*ms*ch;
+    ctx.save();ctx.scale(1,0.4);
+    ctx.beginPath();ctx.arc(doorX,doorY/0.4,10,0,Math.PI*2);
+    ctx.fillStyle="rgba(110,84,56,0.18)";ctx.fill();
+    ctx.restore();
+  });
+  ctx.restore();
   BUILDINGS.forEach(function(b){
     var bx=b.x*ms*cw,by=b.y*ms*ch,bw=b.w*ms*cw,bh=b.h*ms*ch;
     if(state.destroyedBuildings[b.id]){ctx.fillStyle="rgba(40,20,10,0.4)";ctx.fillRect(bx,by,bw,bh);ctx.strokeStyle="rgba(200,80,20,0.5)";ctx.setLineDash([4,4]);ctx.lineWidth=1;ctx.strokeRect(bx,by,bw,bh);ctx.setLineDash([]);ctx.fillStyle="rgba(200,100,30,0.7)";ctx.font=Math.floor(bh*0.35)+"px Georgia";ctx.textAlign="center";ctx.fillText("\uD83D\uDD25",bx+bw/2,by+bh/2+4);ctx.font="9px Georgia";ctx.fillText("RUINS",bx+bw/2,by+bh-3);return;}
