@@ -398,22 +398,22 @@ var PHASE2_BUILDING_META = {
 };
 
 var PHASE2_MILESTONE_CHARS = [
-  {id:"ruth",   name:"Ruth Pratchett", color:"#C8C0A0",speed:.0015, arriveDay:35,  arrivePop:20,
+  {id:"ruth",   name:"Ruth Pratchett", color:"#C8C0A0",speed:.00075, arriveDay:35,  arrivePop:20,
    arrivalText:"A woman in a cardigan walks into City Hall carrying a box of files that belong to her. She saw the job posting on a telephone pole. She says the posting was partially obscured by rain but she applied anyway. Her name is Ruth Pratchett. She was the Elgin County Clerk for fourteen years. She has opinions about filing systems. They are correct opinions.",
    x:.40,y:.45},
-  {id:"dub",    name:"Dub Slattery",   color:"#A08060",speed:.002,  arriveDay:40,  arrivePop:30,
+  {id:"dub",    name:"Dub Slattery",   color:"#A08060",speed:.001,  arriveDay:40,  arrivePop:30,
    arrivalText:"A man named Dub shows up with a hammer and a canvas bag of tools. He heard there was work. He does not ask about pay. He sets up in the Blacksmith Shoppe and by nightfall has fixed three things that had been broken since before the park opened. Nobody told him to do this. Nobody asked him to stop.",
    x:.12,y:.32},
-  {id:"connie", name:"Connie Avalon",  color:"#D0C0B0",speed:.0018, arriveDay:45,  arrivePop:40,
+  {id:"connie", name:"Connie Avalon",  color:"#D0C0B0",speed:.0009, arriveDay:45,  arrivePop:40,
    arrivalText:"Connie Avalon retired from Mercy General eighteen months ago. She says she came here for the air. You do not tell her what happened behind the Refreshments stand. She finds out anyway, because she talks to everyone, and everyone tells Connie things. She sets up a first aid station in the Infirmary without being asked.",
    x:.85,y:.62},
-  {id:"terrence",name:"Terrence Yao", color:"#9090B0",speed:.002,  arriveDay:50,  arrivePop:50,
+  {id:"terrence",name:"Terrence Yao", color:"#9090B0",speed:.001,  arriveDay:50,  arrivePop:50,
    arrivalText:"A man with very clean shoes appears and says he's exploring alternative economic models. He has an MBA. He won't say from where. He has done a preliminary analysis of the park's revenue streams and has thoughts. He always has thoughts. Some of them are correct. He has prepared a slide deck.",
    x:.38,y:.40},
-  {id:"jolene", name:"Jolene Mack",    color:"#C09080",speed:.002,  arriveDay:55,  arrivePop:60,
+  {id:"jolene", name:"Jolene Mack",    color:"#C09080",speed:.001,  arriveDay:55,  arrivePop:60,
    arrivalText:"Jolene Mack ran the cancan line for six years before the layoffs. She knows where every bolt and hinge in the Thespian Center is, and which ones are structural. She comes back because she has no other options. She makes this very clear. She does not want gratitude. She wants what she's owed.",
    x:.27,y:.63},
-  {id:"hundt",  name:"Pastor Hundt",   color:"#B0A890",speed:.0015, arriveDay:60,  arrivePop:70,
+  {id:"hundt",  name:"Pastor Hundt",   color:"#B0A890",speed:.00075, arriveDay:60,  arrivePop:70,
    arrivalText:"A man named Lewis Hundt drives up on a Tuesday morning with two suitcases and a Bible and the expression of someone who has already negotiated with God about this particular destination and lost the argument. He says he came to minister to the community. He gestures broadly at the park. He will stay, he says, because someone has to.",
    x:.72,y:.46}
 ];
@@ -509,12 +509,12 @@ var PATHS = [
 ];
 
 var INIT_CHARS = [
-  {id:"narrator",name:"You",x:.40,y:.42,color:"#E8D090",speed:.003},
-  {id:"alsuga",name:"Mr. Alsuga",x:.42,y:.40,color:"#D4A040",speed:.001},
-  {id:"quinn",name:"Quinn",x:.27,y:.62,color:"#C8A080",speed:.002},
-  {id:"sylvia",name:"Sylvia",x:.36,y:.40,color:"#D0B090",speed:.002},
-  {id:"grayson",name:"Grayson",x:.10,y:.12,color:"#80B060",speed:.0015},
-  {id:"mckinnon",name:"McKinnon Ghost",x:.40,y:.08,color:"#90C8E8",speed:.001,ghost:true}
+  {id:"narrator",name:"You",x:.40,y:.42,color:"#E8D090",speed:.0015},
+  {id:"alsuga",name:"Mr. Alsuga",x:.42,y:.40,color:"#D4A040",speed:.0005},
+  {id:"quinn",name:"Quinn",x:.27,y:.62,color:"#C8A080",speed:.001},
+  {id:"sylvia",name:"Sylvia",x:.36,y:.40,color:"#D0B090",speed:.001},
+  {id:"grayson",name:"Grayson",x:.10,y:.12,color:"#80B060",speed:.00075},
+  {id:"mckinnon",name:"McKinnon Ghost",x:.40,y:.08,color:"#90C8E8",speed:.0005,ghost:true}
 ];
 
 var DAILY_ACTIONS = [
@@ -591,7 +591,7 @@ var EVENTS = [
     {label:"Hire security firm",text:"Professional but expensive. And they're not cheap enough to stick around.",effect:{budget:-6000,attendance:3,gangThreat:-12,morale:5,stress:4}},
     {label:"Tough it out",text:"Hope it blows over. Everyone knows it won't.",effect:{budget:0,attendance:-12,gangThreat:18,morale:-12,stress:6}}]},
   {day:13,title:"SAMUEL ARRIVES",text:"A guy shows up at Personnel looking completely Civil War. His name is Samuel. Sylvia's federal sources say he was expelled from Vietnam for a bloodbath. His marksmanship scores go on for pages.",choices:[
-    {label:"Arm Samuel",text:"Mr. A says Sam's our man. You get off your indefensible high horse. You're handing a weapon to a man expelled from a war for excessive violence.",effect:{budget:-800,gangThreat:-20,morale:-15,attendance:0,stress:10},flag:"samuel_armed",addChar:{id:"samuel",name:"Samuel",x:.54,y:.20,color:"#8B4513",speed:.004}},
+    {label:"Arm Samuel",text:"Mr. A says Sam's our man. You get off your indefensible high horse. You're handing a weapon to a man expelled from a war for excessive violence.",effect:{budget:-800,gangThreat:-20,morale:-15,attendance:0,stress:10},flag:"samuel_armed",addChar:{id:"samuel",name:"Samuel",x:.54,y:.20,color:"#8B4513",speed:.002}},
     {label:"Keep him churning butter",text:"Samuel stays on the Kriegal porch. The gangs remain your problem. Mr. A's patience thins.",effect:{budget:0,gangThreat:8,morale:3,attendance:-3,stress:2},flag:"samuel_butter"}]},
   {day:17,title:"THE CHURCH BURNS",text:"The gangs have set fire to the Anglican Church. $90,000 to transport and refurbish, up in flames. You can see it from Mr. A's window. He breaks down in tears.",choices:[
     {label:"Call fire department",text:"Official response. The story gets out. Insurance covers some of it but the damage to reputation is real.",effect:{budget:-5000,attendance:-15,gangThreat:8,morale:-6,stress:8},destroy:"church"},
@@ -1218,7 +1218,7 @@ function startPhase2Game(){
   document.getElementById("game-screen").classList.add("active");
   initCanvas();
   state.characters=INIT_CHARS.map(function(c){return Object.assign({},c,{tx:c.x+(Math.random()-0.5)*0.1,ty:c.y+(Math.random()-0.5)*0.1});});
-  state.characters.push({id:"samuel",name:"Samuel",x:.54,y:.20,tx:.54,ty:.20,color:"#8B4513",speed:.004});
+  state.characters.push({id:"samuel",name:"Samuel",x:.54,y:.20,tx:.54,ty:.20,color:"#8B4513",speed:.002});
   for(var rdi=0;rdi<35;rdi++){rainDrops.push({x:Math.random(),phase:Math.random(),speed:0.28+Math.random()*0.18});}
   canvas.addEventListener("click",onCanvasClick);
   canvas.addEventListener("mousemove",onCanvasMouseMove);
@@ -1660,7 +1660,7 @@ function render(){
     var rdx=res.tx-res.x,rdy=res.ty-res.y,rdist=Math.sqrt(rdx*rdx+rdy*rdy);
     if(rdist<0.01){
       if(resNow>res.waitUntil){var rt=getResidentTarget();res.tx=rt.tx;res.ty=rt.ty;res.waitUntil=resNow+5000+Math.random()*5000;}
-    }else if(!state.gamePaused){var resSp=state.weather==="rain"?0.0007:0.001;res.x+=rdx/rdist*resSp;res.y+=rdy/rdist*resSp;}
+    }else if(!state.gamePaused){var resSp=state.weather==="rain"?0.00035:0.0005;res.x+=rdx/rdist*resSp;res.y+=rdy/rdist*resSp;}
     var rx=res.x*ms*cw,ry=res.y*ms*ch;
     ctx.beginPath();ctx.arc(rx+1,ry+2,3,0,Math.PI*2);ctx.fillStyle="rgba(0,0,0,0.18)";ctx.fill();
     ctx.beginPath();ctx.arc(rx,ry,4,0,Math.PI*2);ctx.fillStyle="#C8C0B0";ctx.fill();
@@ -1991,9 +1991,9 @@ function renderZoneMenu(){
 function gameLoop(ts){
   var delta=lastFrameTime?ts-lastFrameTime:0;
   lastFrameTime=ts;
-  // Real-time clock: 90 real seconds = 1440 game minutes at 1x speed
+  // Real-time clock: 45 real seconds = 1440 game minutes at 1x speed
   if(!state.gamePaused&&!state.eventActive&&!state.gameOver){
-    state.gameTime+=delta*state.gameSpeed*(1440/90000);
+    state.gameTime+=delta*state.gameSpeed*(1440/45000);
     if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}
     updateTimeDisplay();
   }
