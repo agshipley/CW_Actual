@@ -1566,106 +1566,93 @@ function drawTree(x,y,size){
 // ---------------------------------------------------------------------------
 var CHAR_VISUAL = {
   narrator: {
-    bodyColor:"rgba(110,95,78,0.88)",   // muted sepia-brown
+    bodyColor:"rgba(110,95,78,0.88)",
     headColor:"rgba(195,170,140,0.90)",
-    detailColor:"rgba(80,68,55,0.80)",
-    accentColor:"rgba(90,80,65,0.70)",  // tie hint
-    height:24, headR:4.5,
-    style:"narrator"
+    detailColor:"rgba(72,60,48,0.88)",
+    accentColor:"rgba(90,78,62,0.75)",
+    height:24, headR:4.5, style:"narrator"
   },
   alsuga: {
-    bodyColor:"rgba(148,118,55,0.85)",  // dusty gold
+    bodyColor:"rgba(148,118,55,0.85)",
     headColor:"rgba(200,175,135,0.90)",
-    detailColor:"rgba(100,80,35,0.80)",
-    accentColor:"rgba(120,95,40,0.70)",
-    height:22, headR:4,
-    style:"alsuga"
+    detailColor:"rgba(100,80,35,0.88)",
+    accentColor:"rgba(120,95,40,0.75)",
+    height:22, headR:4, style:"alsuga"
   },
   quinn: {
-    bodyColor:"rgba(95,110,130,0.85)",  // faded slate-blue — theatrical
+    bodyColor:"rgba(95,110,130,0.85)",
     headColor:"rgba(190,165,140,0.90)",
-    detailColor:"rgba(65,80,100,0.80)",
-    accentColor:"rgba(120,100,75,0.70)",
-    height:26, headR:4.5,              // taller, more upright
-    style:"quinn"
+    detailColor:"rgba(58,72,90,0.88)",
+    accentColor:"rgba(115,95,72,0.75)",
+    height:26, headR:4.5, style:"quinn"
   },
   sylvia: {
-    bodyColor:"rgba(72,78,82,0.90)",    // dark slate — security
+    bodyColor:"rgba(72,78,82,0.90)",
     headColor:"rgba(175,150,125,0.90)",
-    detailColor:"rgba(45,50,55,0.85)",
-    accentColor:"rgba(90,90,90,0.70)",
-    height:22, headR:4,                // compact
-    style:"sylvia"
+    detailColor:"rgba(42,48,52,0.92)",
+    accentColor:"rgba(88,88,88,0.75)",
+    height:22, headR:4, style:"sylvia"
   },
   grayson: {
-    bodyColor:"rgba(88,108,72,0.85)",   // washed-out olive-green
+    bodyColor:"rgba(88,108,72,0.85)",
     headColor:"rgba(185,162,130,0.90)",
-    detailColor:"rgba(60,78,48,0.80)",
-    accentColor:"rgba(78,95,60,0.70)",
-    height:22, headR:4,                // slight hunch in style
-    style:"grayson"
+    detailColor:"rgba(56,75,44,0.88)",
+    accentColor:"rgba(72,92,56,0.75)",
+    height:22, headR:4, style:"grayson"
   },
   samuel: {
-    bodyColor:"rgba(62,48,38,0.92)",    // dark umber — angular, wrong
+    bodyColor:"rgba(62,48,38,0.92)",
     headColor:"rgba(155,128,100,0.90)",
-    detailColor:"rgba(40,30,22,0.90)",
-    accentColor:"rgba(85,55,35,0.80)",
-    height:26, headR:4.5,
-    style:"samuel"
+    detailColor:"rgba(38,28,20,0.94)",
+    accentColor:"rgba(82,52,32,0.85)",
+    height:26, headR:4.5, style:"samuel"
   },
   mckinnon: {
     bodyColor:"rgba(144,200,232,0.55)",
     headColor:"rgba(180,220,245,0.55)",
-    detailColor:"rgba(100,170,210,0.45)",
-    accentColor:"rgba(120,185,220,0.40)",
-    height:24, headR:4.5,
-    style:"ghost"
+    detailColor:"rgba(100,170,210,0.50)",
+    accentColor:"rgba(120,185,220,0.42)",
+    height:24, headR:4.5, style:"ghost"
   }
 };
 
-// Seed a simple per-character deterministic PRNG so wobble is stable
 function seededRand(seed,i){
   var x=Math.sin(seed*9301+i*49297+233720)*93942;
-  return x-(Math.floor(x));
+  return x-Math.floor(x);
 }
 
-// Generate wobble offset array for a character (stored once on c.wobble)
 function makeWobble(seed){
   var w=[];
-  for(var i=0;i<32;i++){
-    w.push((seededRand(seed,i*2)-0.5)*1.4);
-    w.push((seededRand(seed,i*2+1)-0.5)*1.4);
+  for(var i=0;i<64;i++){
+    w.push((seededRand(seed,i*2  )-0.5)*1.3);
+    w.push((seededRand(seed,i*2+1)-0.5)*1.3);
   }
   return w;
 }
 
-// Draw a wobbly line from (x1,y1) to (x2,y2) using stored offsets at index wi
-function wobbleLine(x1,y1,x2,y2,wobble,wi){
-  var steps=3;
-  ctx.moveTo(x1+wobble[(wi*2)%32],y1+wobble[(wi*2+1)%32]);
-  for(var s=1;s<=steps;s++){
-    var t=s/steps;
-    var mx=x1+(x2-x1)*t;
-    var my=y1+(y2-y1)*t;
-    var ox=s<steps?wobble[((wi+s)*2)%32]:0;
-    var oy=s<steps?wobble[((wi+s)*2+1)%32]:0;
-    ctx.lineTo(mx+ox,my+oy);
-  }
+// Stroke a wobbly line. Caller does ctx.beginPath() before; this does moveTo
+// then adds intermediate lineTo points, ending at (x2,y2).
+function sketchStroke(x1,y1,x2,y2,wb,wi){
+  var n=wb.length;
+  ctx.moveTo(x1+wb[wi%n],              y1+wb[(wi+1)%n]);
+  ctx.lineTo(x1+(x2-x1)*0.35+wb[(wi+2)%n], y1+(y2-y1)*0.35+wb[(wi+3)%n]);
+  ctx.lineTo(x1+(x2-x1)*0.70+wb[(wi+4)%n], y1+(y2-y1)*0.70+wb[(wi+5)%n]);
+  ctx.lineTo(x2,                        y2);
 }
 
 function drawCharacter(c,px,py){
-  // Initialise stable wobble offsets once per character
   if(!c.wobble){
     var seed=0;
-    for(var ci=0;ci<c.id.length;ci++)seed+=c.id.charCodeAt(ci);
+    for(var ci=0;ci<c.id.length;ci++) seed+=c.id.charCodeAt(ci);
     c.wobble=makeWobble(seed);
   }
   var wb=c.wobble;
   var vis=CHAR_VISUAL[c.id]||{
-    bodyColor:"rgba(120,100,80,0.85)",headColor:"rgba(190,165,135,0.90)",
-    detailColor:"rgba(80,65,50,0.80)",accentColor:"rgba(100,82,62,0.70)",
-    height:22,headR:4,style:"generic"
+    bodyColor:"rgba(120,100,80,0.85)", headColor:"rgba(190,165,135,0.90)",
+    detailColor:"rgba(80,65,50,0.88)", accentColor:"rgba(100,82,62,0.75)",
+    height:22, headR:4, style:"generic"
   };
+
   var h=vis.height, hr=vis.headR;
   var isGhost=(c.ghost===true);
   var alpha=isGhost?(state.weather==="fog"?0.72:0.35+Math.sin(Date.now()/1000)*0.14):1;
@@ -1675,44 +1662,44 @@ function drawCharacter(c,px,py){
   ctx.lineCap="round";
   ctx.lineJoin="round";
 
-  // Drop shadow ellipse
+  // Drop shadow — scaled arc instead of ellipse for compatibility
+  ctx.save();
+  ctx.scale(1,0.38);
   ctx.beginPath();
-  ctx.ellipse(px+1,py+2,6,2.5,0,0,Math.PI*2);
-  ctx.fillStyle="rgba(0,0,0,0.18)";
+  ctx.arc(px+1,(py+3)/0.38,5.5,0,Math.PI*2);
+  ctx.fillStyle="rgba(0,0,0,0.20)";
   ctx.fill();
+  ctx.restore();
 
-  // --- Body geometry (all in local coords from foot point py) ---
-  var footY=py;
-  var legTop=footY-h*0.32;   // where legs meet torso
-  var torsoBot=legTop;
-  var torsoTop=footY-h*0.72;
-  var neckY=footY-h*0.78;
-  var headCY=footY-h*0.88;
+  var footY  = py;
+  var torsoBot = footY  - h*0.32;
+  var torsoTop = footY  - h*0.72;
+  var headCY   = footY  - h*0.88;
 
-  // Style-specific tweaks
-  var hunchOffset=(vis.style==="grayson")?3:0;  // grayson leans forward
-  var torsoWidth= vis.style==="sylvia"?5.5:(vis.style==="samuel"?6.5:5);
-  var shoulderW = torsoWidth+1.5;
+  var hunchX = (vis.style==="grayson") ? 2.5 : 0;
+  var tw = vis.style==="sylvia" ? 5.5 : (vis.style==="samuel" ? 6.5 : 5);
+  var sw = tw + 1.5;
 
-  // Legs — two strokes, slightly splayed
+  // Legs — each is its own stroke path so sketchStroke's moveTo is correct
   ctx.strokeStyle=vis.detailColor;
   ctx.lineWidth=1.6;
-  // Left leg
   ctx.beginPath();
-  wobbleLine(px-2,torsoBot, px-2.5+wb[0],footY+wb[1], wb,0);
+  sketchStroke(px-2, torsoBot, px-2.5+wb[0]*0.6, footY, wb, 0);
   ctx.stroke();
-  // Right leg
   ctx.beginPath();
-  wobbleLine(px+2,torsoBot, px+2.5+wb[2],footY+wb[3], wb,2);
+  sketchStroke(px+2, torsoBot, px+2.5+wb[8]*0.6, footY, wb, 8);
   ctx.stroke();
 
-  // Torso fill (closed shape)
+  // Torso — closed polygon built directly from wobbled vertices (no moveTo mid-path)
+  var tlx=px-sw+wb[16],    tly=torsoTop+wb[17];
+  var blx=px-tw+hunchX+wb[18], bly=torsoBot+wb[19];
+  var brx=px+tw+wb[20],    bry=torsoBot+wb[21];
+  var trx=px+sw+wb[22],    tryY=torsoTop+wb[23];
   ctx.beginPath();
-  ctx.moveTo(px-shoulderW+wb[4], torsoTop+wb[5]);
-  wobbleLine(px-shoulderW+wb[4],torsoTop+wb[5], px-torsoWidth+hunchOffset+wb[6],torsoBot+wb[7], wb,6);
-  wobbleLine(px-torsoWidth+hunchOffset+wb[6],torsoBot+wb[7], px+torsoWidth+wb[8],torsoBot+wb[9], wb,8);
-  wobbleLine(px+torsoWidth+wb[8],torsoBot+wb[9], px+shoulderW+wb[10],torsoTop+wb[11], wb,10);
-  wobbleLine(px+shoulderW+wb[10],torsoTop+wb[11], px-shoulderW+wb[4],torsoTop+wb[5], wb,12);
+  ctx.moveTo(tlx,tly);
+  ctx.lineTo(blx,bly);
+  ctx.lineTo(brx,bry);
+  ctx.lineTo(trx,tryY);
   ctx.closePath();
   ctx.fillStyle=vis.bodyColor;
   ctx.fill();
@@ -1720,94 +1707,86 @@ function drawCharacter(c,px,py){
   ctx.lineWidth=1.5;
   ctx.stroke();
 
-  // Style details drawn over torso
+  // Style details over torso
+  ctx.lineWidth=1.3;
   if(vis.style==="narrator"){
-    // Thin tie line down centre
     ctx.beginPath();
-    ctx.moveTo(px+wb[14],torsoTop+4+wb[15]);
-    ctx.lineTo(px+wb[16],torsoBot-2+wb[17]);
-    ctx.strokeStyle=vis.accentColor;
-    ctx.lineWidth=1.2;
-    ctx.stroke();
+    ctx.moveTo(px+wb[24],    torsoTop+4+wb[25]);
+    ctx.lineTo(px+wb[26],    torsoBot-2+wb[27]);
+    ctx.strokeStyle=vis.accentColor; ctx.stroke();
   } else if(vis.style==="sylvia"){
-    // Dark collar/lapel V
     ctx.beginPath();
-    ctx.moveTo(px-2+wb[14],torsoTop+1+wb[15]);
-    ctx.lineTo(px+wb[16],torsoTop+5+wb[17]);
-    ctx.lineTo(px+2+wb[18],torsoTop+1+wb[19]);
-    ctx.strokeStyle=vis.accentColor;
-    ctx.lineWidth=1.3;
-    ctx.stroke();
+    ctx.moveTo(px-2+wb[24],  torsoTop+1+wb[25]);
+    ctx.lineTo(px+wb[26],    torsoTop+5+wb[27]);
+    ctx.lineTo(px+2+wb[28],  torsoTop+1+wb[29]);
+    ctx.strokeStyle=vis.accentColor; ctx.stroke();
   } else if(vis.style==="samuel"){
-    // Angular diagonal strap / suspender across chest — something slightly wrong
     ctx.beginPath();
-    ctx.moveTo(px-shoulderW+1+wb[14],torsoTop+2+wb[15]);
-    ctx.lineTo(px+torsoWidth-1+wb[16],torsoBot-2+wb[17]);
-    ctx.strokeStyle=vis.accentColor;
-    ctx.lineWidth=1.4;
-    ctx.stroke();
+    ctx.moveTo(px-sw+1+wb[24], torsoTop+2+wb[25]);
+    ctx.lineTo(px+tw-1+wb[26], torsoBot-2+wb[27]);
+    ctx.strokeStyle=vis.accentColor; ctx.lineWidth=1.5; ctx.stroke();
   } else if(vis.style==="quinn"){
-    // Upright posture — slight collar ruffle
     ctx.beginPath();
-    ctx.moveTo(px-2+wb[14],torsoTop+wb[15]);
-    ctx.lineTo(px+wb[16],torsoTop+3+wb[17]);
-    ctx.lineTo(px+2+wb[18],torsoTop+wb[19]);
-    ctx.strokeStyle=vis.accentColor;
-    ctx.lineWidth=1.2;
-    ctx.stroke();
+    ctx.moveTo(px-2+wb[24],  torsoTop+wb[25]);
+    ctx.lineTo(px+wb[26],    torsoTop+3+wb[27]);
+    ctx.lineTo(px+2+wb[28],  torsoTop+wb[29]);
+    ctx.strokeStyle=vis.accentColor; ctx.stroke();
   } else if(vis.style==="grayson"){
-    // Pocket on chest side — naturalist touch
-    ctx.strokeRect(px-torsoWidth+hunchOffset+wb[14],torsoTop+4+wb[15],3.5,3);
+    ctx.strokeStyle=vis.detailColor;
+    ctx.strokeRect(px-tw+hunchX+wb[24], torsoTop+4+wb[25], 3.5, 3);
   }
 
-  // Head fill
+  // Head
+  var hx=px+hunchX*0.4+wb[30], hy=headCY+wb[31];
   ctx.beginPath();
-  ctx.arc(px+hunchOffset*0.3+wb[20],headCY+wb[21],hr,0,Math.PI*2);
+  ctx.arc(hx, hy, hr, 0, Math.PI*2);
   ctx.fillStyle=vis.headColor;
   ctx.fill();
   ctx.strokeStyle=vis.detailColor;
   ctx.lineWidth=1.5;
   ctx.stroke();
 
-  // Hat / head accessory
+  // Hat / accessory
   if(vis.style==="grayson"){
-    // Wide-brimmed naturalist hat
-    var hx=px+hunchOffset*0.3+wb[20], hy=headCY+wb[21];
+    // Wide brim
     ctx.beginPath();
-    ctx.moveTo(hx-6+wb[22],hy-hr+1+wb[23]);
-    ctx.lineTo(hx+6+wb[24],hy-hr+1+wb[25]);
+    ctx.moveTo(hx-6+wb[32], hy-hr+1+wb[33]);
+    ctx.lineTo(hx+6+wb[34], hy-hr+1+wb[35]);
     ctx.strokeStyle=vis.detailColor; ctx.lineWidth=1.6; ctx.stroke();
+    // Crown
     ctx.beginPath();
-    ctx.moveTo(hx-3+wb[26],hy-hr+1+wb[27]);
-    ctx.lineTo(hx-2+wb[28],hy-hr-3+wb[29]);
-    ctx.lineTo(hx+2+wb[26],hy-hr-3+wb[27]);
-    ctx.lineTo(hx+3+wb[28],hy-hr+1+wb[29]);
+    ctx.moveTo(hx-2.5+wb[36], hy-hr+1+wb[37]);
+    ctx.lineTo(hx-2+wb[38],   hy-hr-3.5+wb[39]);
+    ctx.lineTo(hx+2+wb[40],   hy-hr-3.5+wb[41]);
+    ctx.lineTo(hx+2.5+wb[42], hy-hr+1+wb[43]);
     ctx.strokeStyle=vis.detailColor; ctx.lineWidth=1.4; ctx.stroke();
   } else if(vis.style==="alsuga"){
-    // Small pompous brimmed hat
-    var hx=px+wb[20], hy=headCY+wb[21];
+    // Brim
     ctx.beginPath();
-    ctx.moveTo(hx-5+wb[22],hy-hr+0.5+wb[23]);
-    ctx.lineTo(hx+5+wb[24],hy-hr+0.5+wb[25]);
+    ctx.moveTo(hx-5+wb[32], hy-hr+wb[33]);
+    ctx.lineTo(hx+5+wb[34], hy-hr+wb[35]);
     ctx.strokeStyle=vis.detailColor; ctx.lineWidth=1.5; ctx.stroke();
+    // Crown block
     ctx.fillStyle=vis.accentColor;
-    ctx.fillRect(hx-2.5+wb[26],hy-hr-3+wb[27],5,3);
+    ctx.fillRect(hx-2.5+wb[36], hy-hr-3.5+wb[37], 5, 3.5);
+    ctx.strokeStyle=vis.detailColor; ctx.lineWidth=1.2;
+    ctx.strokeRect(hx-2.5+wb[36], hy-hr-3.5+wb[37], 5, 3.5);
   }
 
-  // Face dot (eye hint — single mark)
+  // Eye dot
   ctx.beginPath();
-  ctx.arc(px+hunchOffset*0.3+1+wb[20],headCY-0.5+wb[21],0.9,0,Math.PI*2);
+  ctx.arc(hx+1, hy-0.5, 0.9, 0, Math.PI*2);
   ctx.fillStyle=vis.detailColor;
   ctx.fill();
 
   ctx.restore();
 
-  // Mood indicator dot — positioned above head
+  // Mood indicator — above head, outside save/restore
   if(c.id!=="narrator"&&!isGhost){
     var moodOff=CHAR_MOOD_OFFSETS[c.id]||0;
     var mood=clamp(state.morale+moodOff,0,100);
     ctx.beginPath();
-    ctx.arc(px,headCY-hr-6,2.5,0,Math.PI*2);
+    ctx.arc(px, headCY-hr-6, 2.5, 0, Math.PI*2);
     ctx.fillStyle=mood>60?"#6ab84a":mood>30?"#b8a83a":"#b84a3a";
     ctx.fill();
     ctx.strokeStyle="rgba(0,0,0,0.45)";
@@ -1820,9 +1799,9 @@ function drawCharacter(c,px,py){
   ctx.textAlign="center";
   var nw=ctx.measureText(c.name).width;
   ctx.fillStyle="rgba(0,0,0,0.55)";
-  ctx.fillRect(px-nw/2-2,headCY-hr-18,nw+4,11);
+  ctx.fillRect(px-nw/2-2, headCY-hr-18, nw+4, 11);
   ctx.fillStyle=isGhost?"#90C8E8":"#FFFFFF";
-  ctx.fillText(c.name,px,headCY-hr-9);
+  ctx.fillText(c.name, px, headCY-hr-9);
 }
 
 function drawSmoke(bx,by,bw){
