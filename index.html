@@ -971,7 +971,19 @@ function applyMidnight(){
     var resCount=0,comCount=0,civCount=0;
     for(var zi=0;zi<state.placedZones.length;zi++){var zt=state.placedZones[zi].type;if(zt==="residential")resCount++;else if(zt==="commercial")comCount++;else if(zt==="civic")civCount++;}
     var waterTowers=0,schools=0;
-    for(var pbi=0;pbi<state.placedBuildings.length;pbi++){var pbt=state.placedBuildings[pbi].typeId;if(pbt==="water_tower")waterTowers++;else if(pbt==="school")schools++;}
+    for(var pbi=0;pbi<state.placedBuildings.length;pbi++){
+      var pb2=state.placedBuildings[pbi];
+      if(pb2.typeId==="water_tower"){waterTowers++;}
+      else if(pb2.typeId==="school"&&!pb2.underConstruction&&pb2.condition!==0){
+        // Only contributes if within 0.25 map units of a residential zone
+        var scx=pb2.x+(pb2.w||0)/2,scy=pb2.y+(pb2.h||0)/2;
+        for(var sri=0;sri<state.placedZones.length;sri++){
+          var srz=state.placedZones[sri];if(srz.type!=="residential")continue;
+          var srx=srz.x+srz.w/2,sry=srz.y+srz.h/2;
+          if(Math.sqrt((scx-srx)*(scx-srx)+(scy-sry)*(scy-sry))<0.25){schools++;break;}
+        }
+      }
+    }
     var resCap=resCount*10;
     if(waterTowers>0)resCap+=waterTowers*20;else resCap=Math.min(resCap,30);
     if(state.population<resCap)state.population=Math.min(resCap,state.population+resCount+schools);
