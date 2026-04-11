@@ -1985,7 +1985,17 @@ function renderZone(z,zx,zy,zw,zh){
   ctx.globalAlpha=0.22;ctx.fillStyle=z.color;ctx.fillRect(zx,zy,zw,zh);ctx.globalAlpha=1;
   ctx.strokeStyle=z.color;ctx.lineWidth=1.5;ctx.setLineDash([5,3]);ctx.strokeRect(zx,zy,zw,zh);ctx.setLineDash([]);
   var lbl={residential:"RES",commercial:"COM",civic:"CIV"}[z.type]||z.type.slice(0,3).toUpperCase();
-  ctx.font="bold 9px Georgia";ctx.textAlign="center";ctx.fillStyle=z.color;ctx.fillText(lbl,zx+zw/2,zy+zh/2+3);
+  var sub="";
+  if(z.type==="residential"){sub="10 pop";}
+  else if(z.type==="commercial"){
+    var czx=z.x+z.w/2,czy=z.y+z.h/2,rev=0;
+    for(var ri=0;ri<state.placedZones.length;ri++){var rz=state.placedZones[ri];if(rz.type!=="residential")continue;var rzx=rz.x+rz.w/2,rzy=rz.y+rz.h/2;if(Math.sqrt((czx-rzx)*(czx-rzx)+(czy-rzy)*(czy-rzy))<0.15)rev+=50;}
+    sub=rev>0?"$"+rev+"/day":"no income";
+  }
+  else if(z.type==="civic"){sub="+2 appr";}
+  ctx.font="bold 9px Georgia";ctx.textAlign="center";ctx.fillStyle=z.color;
+  if(sub){ctx.fillText(lbl,zx+zw/2,zy+zh/2-1);ctx.font="8px Georgia";ctx.fillText(sub,zx+zw/2,zy+zh/2+9);}
+  else{ctx.fillText(lbl,zx+zw/2,zy+zh/2+3);}
 }
 
 function drawTree(x,y,size,nx,ny){
