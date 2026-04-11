@@ -1297,6 +1297,7 @@ function startPhase2Game(){
   document.getElementById("build-section").style.display="block";
   document.getElementById("day-num").textContent=state.day;
   updateTimeDisplay();setSpeed(0);updateSidebar();updateLog();
+  renderDailyActions();
   startDrone();gameLoop();
   // Show intro
   state.eventActive=true;
