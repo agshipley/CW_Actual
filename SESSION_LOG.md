@@ -1,3 +1,30 @@
+## Session 2026-04-11 (afternoon)
+Cycles completed: 7
+Changes made:
+1. `perf: cache interior room atmosphere gradients, replace scuff ellipses with arc` — 7 per-frame gradient creates → rebuilt once on interior entry; 5 ctx.ellipse → ctx.arc; eliminates first-entry GC lag
+2. `feat: condition bars on Phase 2 placed buildings` — green/amber/red 3px bar below each placed building in Phase 2 when condition < 100%
+3. `fix: school pop growth requires proximity to residential zone` — aligns mechanic with info panel display and PHASE2_ROADMAP spec; placement decisions now matter
+4. `feat: Phase 2 building hover tooltips` — building name + staffed/unstaffed daily output on canvas hover; implements PHASE2_ROADMAP 1B
+5. `feat: gang threat affects resident approval` — gangThreat < 20: +1/day; gangThreat > 50: -2/day; wires safety into approval
+6. `feat: zone labels show population capacity and revenue` — residential: "10 pop"; commercial: "$X/day"; civic: "+2 appr"; implements PHASE2_ROADMAP 1B zones
+7. `feat: commercial zones near residential +1 approval/day` — employment feedback loop per PHASE2_ROADMAP 3A
+8. `feat: park/garden proximity boosts residential approval` — memorial_garden/herb_garden within 0.20 of residential: +1 approval/day; synergy display added; school label corrected to "+1 pop/day"
+
+Stopped because: 8-cycle limit reached
+
+Next priority:
+- PHASE2_ROADMAP 2A: fire station synergy (needs fire event system — human design task)
+- PHASE2_ROADMAP 3A: remaining resident simulation factors (housing quality display, per-zone resident tracking)
+- PHASE2_ROADMAP 5B: stat trend arrows in sidebar (improving/declining since last midnight)
+- PHASE2_ROADMAP 5B: assignment panel showing character availability across all buildings (not just one)
+
+Blockers for human:
+- Fire station synergy requires fire destruction events to be designed and authored (Saunders-voiced)
+- PHASE2_ROADMAP 3B expanded event pool (20+ township events, 15+ character events) — authoring in claude.ai required
+- PHASE2_ROADMAP 4A population milestones (pop 150, 200, The Offer, The Ending) — authoring required
+
+---
+
 ## Session 2026-04-11
 Cycles completed: 8
 Changes made:

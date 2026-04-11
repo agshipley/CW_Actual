@@ -80,13 +80,15 @@ Implementation:
 3. Space arrivals across days 65-120+ and population 80-200+
 4. Write 1-2 character events per new character
 
-### 📋 1B — Interactive map
+### 🔧 1B — Interactive map
 Phase 2 map should support:
 - Click on any building to see its status, staff, and production
 - Visual indicators: staffed (green dot — already implemented), condition bars, production arrows
 - Hover to see building name and daily output summary
 - Zones show population count and revenue
 - Camera pan/scroll for expanded territory (currently fixed view)
+
+*Partially implemented 2026-04-11: click selection (✅ existing), staffed dot (✅ existing), condition bars (✅), hover tooltips (✅), zone population/revenue labels (✅). Camera pan and production arrows still pending.*
 
 ### 📋 1C — Building interaction in Phase 2
 In Phase 2, entering buildings should show a MANAGEMENT VIEW, not a dialogue tree:
@@ -102,14 +104,16 @@ This replaces Phase 1's conversation system. The building interior renders the s
 
 ## LAYER 2: ECONOMIC DEPTH
 
-### 📋 2A — Building synergies
+### 🔧 2A — Building synergies
 Buildings near each other should produce synergy bonuses:
-- Clinic near Residential: +health modifier → slower approval decay
-- School near Residential: +population growth rate
-- Fire Station near anything: prevents fire-based destruction events in radius
-- Commercial zone near Residential: already implemented (revenue per adjacent res zone)
+- ✅ Clinic near Residential: +1 approval/day (applyPhase2Daily + getSynergiesForBuilding display)
+- ✅ School near Residential: +1 pop/day growth (applyMidnight proximity check, 0.25 threshold)
+- ❌ Fire Station near anything: prevents fire-based destruction events in radius — **blocked: needs fire event system designed first**
+- ✅ Commercial zone near Residential: $50/day revenue (applyMidnight) + +1 approval/day (employment)
 
 Implementation: In `applyPhase2Daily()`, check proximity between buildings and apply synergy bonuses. Display synergies in the building info panel.
+
+*Partially implemented 2026-04-11: clinic, school, commercial zone synergies done. Fire station pending fire events.*
 
 ### ✅ 2B — Upkeep scaling
 Current: flat upkeep per building (defined in BUILDABLE_STRUCTURES).
@@ -122,7 +126,7 @@ This creates a long-term economic pressure that mirrors the Saunders principle: 
 
 *Implemented 2026-04-11: builtDay stored on completion, 1.5x multiplier >30 days, 2x multiplier for condition <50, stacking.*
 
-### 📋 2C — Revenue diversification
+### ✅ 2C — Revenue diversification
 Current revenue sources: park attendance × $12/visitor, tax income, commercial zones.
 Target: add building-specific revenue streams:
 - Worship Center baptisms: $300 per event (random, ~2/week)
@@ -132,6 +136,8 @@ Target: add building-specific revenue streams:
 - Sutler's Tent: flat daily
 
 Each revenue source should appear as a named line in the budget tooltip.
+
+*Implemented 2026-04-11: baptisms ($300/event, ~2/week), performances ($200/event, requires Quinn or Jolene), General Store (attendance-scaled). All appear as named lines in budget tooltip.*
 
 ### 💡 2D — Economic events
 Events triggered by economic conditions:
@@ -144,7 +150,7 @@ Events triggered by economic conditions:
 
 ## LAYER 3: COMMUNITY DEPTH
 
-### 📋 3A — Resident simulation
+### 🔧 3A — Resident simulation
 Current: Residents are dots that wander between zones and buildings.
 Target: Residents have simple needs that aggregate into approval:
 - **Housing quality**: Residential zones near parks/gardens → +approval
@@ -154,6 +160,8 @@ Target: Residents have simple needs that aggregate into approval:
 - **Proximity to problems**: Residential near Brothel → -approval (already implemented)
 
 Approval is the aggregate of these factors, not a single number that decays arbitrarily.
+
+*Partially implemented 2026-04-11: gang threat safety modifier (✅), commercial zone employment +approval (✅), garden/park proximity +approval (✅), brothel proximity one-time event (✅ existing). Housing quality display and per-zone tracking still pending.*
 
 ### 📋 3B — Community events (expanded pool)
 Current: 8 township events + 6 character events.
