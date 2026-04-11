@@ -995,9 +995,18 @@ function applyMidnight(){
   var operatingCost=600+Math.floor(state.population*3);
   var buildingUpkeep=0;for(var ui=0;ui<state.placedBuildings.length;ui++){var ubld=state.placedBuildings[ui];var utype=null;for(var usi=0;usi<BUILDABLE_STRUCTURES.length;usi++){if(BUILDABLE_STRUCTURES[usi].id===ubld.typeId){utype=BUILDABLE_STRUCTURES[usi];break;}}var baseUpkeep=(utype&&utype.upkeep!==undefined)?utype.upkeep:30;var upkeepMult=1;if(ubld.builtDay&&(state.day-ubld.builtDay)>30)upkeepMult*=1.5;if(ubld.condition<50)upkeepMult*=2;buildingUpkeep+=Math.round(baseUpkeep*upkeepMult);}
   var prodBonus=state.phase2Active?Math.round((state.productivity-50)*1.5):0;
-  var netIncome=parkRevenue+taxIncome+commercialIncome-operatingCost-buildingUpkeep+prodBonus;
+  // Named revenue streams (Phase 2 diversification — visible in budget tooltip)
+  var baptismRevenue=0,performanceRevenue=0,storeRevenue=0;
+  if(state.phase2Active){
+    if(!state.destroyedBuildings.worship&&Math.random()<2/7)baptismRevenue=300;
+    var thespianStaff=getCharsAtBuilding("thespian");
+    var hasPerformer=thespianStaff.some(function(c){return c.id==="quinn"||c.id==="jolene";});
+    if(hasPerformer&&Math.random()<0.5)performanceRevenue=200;
+    if(!state.destroyedBuildings.general)storeRevenue=Math.floor(state.attendance*1.5);
+  }
+  var netIncome=parkRevenue+taxIncome+commercialIncome+baptismRevenue+performanceRevenue+storeRevenue-operatingCost-buildingUpkeep+prodBonus;
   state.budget+=netIncome;
-  state.lastEconBreakdown={parkRevenue:parkRevenue,taxIncome:taxIncome,commercial:commercialIncome,operatingCost:operatingCost,buildingUpkeep:buildingUpkeep,productivity:prodBonus||0,net:netIncome};
+  state.lastEconBreakdown={parkRevenue:parkRevenue,taxIncome:taxIncome,commercial:commercialIncome,baptisms:baptismRevenue,performances:performanceRevenue,storeRevenue:storeRevenue,operatingCost:operatingCost,buildingUpkeep:buildingUpkeep,productivity:prodBonus||0,net:netIncome};
   if(netIncome<0){state.deficitDays++;}else{state.deficitDays=0;}
   if(state.phase2Active){updateCharConsecutiveDays();}
   document.getElementById("day-num").textContent=state.day;
@@ -1218,6 +1227,9 @@ function updateBudgetTooltip(){
   h+='<div class="eco-row"><span>Park revenue</span><span class="eco-pos">'+fmtPos(b.parkRevenue)+'</span></div>';
   if(b.taxIncome>0)h+='<div class="eco-row"><span>Tax income</span><span class="eco-pos">'+fmtPos(b.taxIncome)+'</span></div>';
   if(b.commercial>0)h+='<div class="eco-row"><span>Commercial</span><span class="eco-pos">'+fmtPos(b.commercial)+'</span></div>';
+  if(b.baptisms>0)h+='<div class="eco-row"><span>Baptisms</span><span class="eco-pos">'+fmtPos(b.baptisms)+'</span></div>';
+  if(b.performances>0)h+='<div class="eco-row"><span>Performances</span><span class="eco-pos">'+fmtPos(b.performances)+'</span></div>';
+  if(b.storeRevenue>0)h+='<div class="eco-row"><span>General Store</span><span class="eco-pos">'+fmtPos(b.storeRevenue)+'</span></div>';
   h+='<div class="eco-row"><span>Operating costs</span><span class="eco-neg">'+fmtNeg(b.operatingCost)+'</span></div>';
   if(b.buildingUpkeep>0)h+='<div class="eco-row"><span>Building upkeep</span><span class="eco-neg">'+fmtNeg(b.buildingUpkeep)+'</span></div>';
   if(b.productivity!==undefined&&b.productivity!==0)h+='<div class="eco-row"><span>Productivity</span><span class="'+(b.productivity>=0?'eco-pos':'eco-neg')+'">'+(b.productivity>=0?fmtPos(b.productivity):fmtNeg(b.productivity))+'</span></div>';
