@@ -318,6 +318,7 @@ var state = {
   selectedInteriorObj: null,
   hoveredInteriorObj: null,
   interiorUpgrades: {},
+  usedBuildingActions: {},
   interiorNarratorX: 0.5, interiorNarratorY: 0.85,
   interiorNarratorTX: 0.5, interiorNarratorTY: 0.85,
   interiorWalkingTo: null,
@@ -867,6 +868,7 @@ function dismissMinorEvent(){
 }
 
 function applyMidnight(){
+  state.usedBuildingActions={};
   state.day+=1;
   // Weather cycling
   state.weatherDaysLeft--;
@@ -1072,7 +1074,7 @@ function sndThud(){
 // ──────────────────────────────────────────────────────────────
 
 var SAVE_KEY="civilwarland_save";
-var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns","productivity","phase2Active","charAssignedTo","charConsecutiveDays","charEventsFired","arrivedChars","interiorUpgrades"];
+var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns","productivity","phase2Active","charAssignedTo","charConsecutiveDays","charEventsFired","arrivedChars","interiorUpgrades","usedBuildingActions"];
 
 function saveGame(){
   var s={};
@@ -1098,6 +1100,7 @@ function loadGame(){
   state.interiorNarratorTX=0.5;state.interiorNarratorTY=0.85;
   state.interiorWalkingTo=null;state.interiorTimeCostMsg=null;
   if(!state.interiorUpgrades)state.interiorUpgrades={};
+  if(!state.usedBuildingActions)state.usedBuildingActions={};
   if(state.productivity===undefined)state.productivity=50;
   if(!state.charAssignedTo)state.charAssignedTo={};
   if(!state.charConsecutiveDays)state.charConsecutiveDays={};
@@ -2518,10 +2521,11 @@ function updateInteractPrompt(){
     restBtn.style.display="none";
   }
   if(action){
+    var actionUsed=!!(state.usedBuildingActions&&state.usedBuildingActions[b.id]);
     actionBtn.style.display="block";
-    actionBtn.textContent=action.label;
-    actionBtn.disabled=onCooldown;
-    actionBtn.style.opacity=onCooldown?"0.4":"1";
+    actionBtn.textContent=actionUsed?action.label+" (done today)":action.label;
+    actionBtn.disabled=onCooldown||actionUsed;
+    actionBtn.style.opacity=(onCooldown||actionUsed)?"0.4":"1";
   }else{
     actionBtn.style.display="none";
   }
@@ -2564,6 +2568,7 @@ function interactWithBuilding(){
   if(Date.now()<interactCooldownUntil)return;
   var buildingId=document.getElementById("interact-prompt").dataset.buildingId;
   if(!buildingId||state.destroyedBuildings[buildingId])return;
+  if(state.usedBuildingActions[buildingId])return;
   var b=findBuildingById(buildingId);
   var action=BUILDING_ACTIONS[buildingId]||(b?BUILDING_ACTIONS[b.typeId]:null);
   if(!action)return;
@@ -2580,6 +2585,7 @@ function interactWithBuilding(){
     if(e.approval)state.approval=clamp((state.approval||50)+e.approval,0,100);
     if(e.narratorStress)state.narratorStress=clamp((state.narratorStress||0)+e.narratorStress,0,100);
   }
+  state.usedBuildingActions[buildingId]=true;
   state.log.push({day:state.day,title:action.label+": "+b.name+(applyEffect?"":" (no effect)")});
   updateSidebar();updateLog();
   state.gameTime+=30;if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}updateTimeDisplay();
