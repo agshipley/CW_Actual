@@ -1529,39 +1529,72 @@ function renderBuilding(b,bx,by,bw,bh,ms){
   ctx.moveTo(tlx+3,tly+3);ctx.lineTo(blx+3,bly+3);ctx.lineTo(brx+3,bry+3);ctx.lineTo(trx+3,tryY+3);
   ctx.closePath();ctx.fillStyle="rgba(0,0,0,0.18)";ctx.fill();
 
-  // Body fill + sketchy outline
+  // Body fill
   ctx.beginPath();
   ctx.moveTo(tlx,tly);ctx.lineTo(blx,bly);ctx.lineTo(brx,bry);ctx.lineTo(trx,tryY);
   ctx.closePath();
   ctx.fillStyle=bodyColor;ctx.fill();
-  ctx.strokeStyle="rgba(0,0,0,0.30)";ctx.lineWidth=1.3;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke();
+
+  // Subtle diagonal hatching clipped to body
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(tlx,tly);ctx.lineTo(blx,bly);ctx.lineTo(brx,bry);ctx.lineTo(trx,tryY);
+  ctx.closePath();ctx.clip();
+  ctx.strokeStyle="rgba(46,36,30,0.07)";ctx.lineWidth=0.9;
+  var hstep=Math.max(7,bw/5);
+  for(var hi=0;hi<9;hi++){
+    var hoff=wb[(32+hi*2)%64]*0.5;
+    ctx.beginPath();ctx.moveTo(bx+hi*hstep+hoff,by);ctx.lineTo(bx+hi*hstep+hoff-bh,by+bh);ctx.stroke();
+  }
+  ctx.restore();
+
+  // Warm umber sketchy outline (double-stroke for hand-drawn feel)
+  ctx.lineCap="round";ctx.lineJoin="round";
+  ctx.beginPath();
+  ctx.moveTo(tlx+wb[32]*0.3,tly+wb[33]*0.3);ctx.lineTo(blx+wb[34]*0.3,bly+wb[35]*0.3);
+  ctx.lineTo(brx+wb[36]*0.3,bry+wb[37]*0.3);ctx.lineTo(trx+wb[38]*0.3,tryY+wb[39]*0.3);
+  ctx.closePath();
+  ctx.strokeStyle="rgba(46,36,30,0.15)";ctx.lineWidth=2.5;ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(tlx,tly);ctx.lineTo(blx,bly);ctx.lineTo(brx,bry);ctx.lineTo(trx,tryY);
+  ctx.closePath();
+  ctx.strokeStyle="#2E241E";ctx.lineWidth=1.4;ctx.stroke();
 
   if(!isOpen){
-    // Wobbled roof triangle
-    var rlx=bx-2+wb[8],      rly=by+wb[9];
+    // Wobbled roof triangle — slightly slumped via asymmetric offsets
+    var rlx=bx-2+wb[8],      rly=by+wb[9]+wb[40]*0.5;
     var rpkx=bx+bw/2+wb[10], rpky=by-bh*0.25+wb[11];
-    var rrx=bx+bw+2+wb[12],  rry=by+wb[13];
+    var rrx=bx+bw+2+wb[12],  rry=by+wb[13]+wb[41]*0.5;
     ctx.beginPath();
     ctx.moveTo(rlx,rly);ctx.lineTo(rpkx,rpky);ctx.lineTo(rrx,rry);
     ctx.closePath();
     ctx.fillStyle=roofColor;ctx.fill();
-    ctx.strokeStyle="rgba(0,0,0,0.22)";ctx.lineWidth=1.2;ctx.stroke();
+    ctx.strokeStyle="#2E241E";ctx.lineWidth=1.3;ctx.stroke();
 
-    // Windows
+    // Windows (time-aware: lit warm at night, dark during day, condemned always unlit)
     var wc=Math.max(1,Math.floor(bw/20));
-    ctx.fillStyle="rgba(255,240,180,0.52)";
+    var isNight=state.gameTime<480||state.gameTime>=1080;
+    var isLit=isNight&&cond>0;
+    var winFill=isLit?"rgba(240,200,120,0.72)":"rgba(40,38,34,0.55)";
+    var winStroke=isLit?"#D4B878":"rgba(0,0,0,0.22)";
     for(var wIdx=0;wIdx<wc;wIdx++){
       var wx=bx+bw*(wIdx+1)/(wc+1)-2+wb[(14+wIdx*2)%64];
       var wy=by+bh*0.45-2+wb[(15+wIdx*2)%64];
-      ctx.fillRect(wx,wy,4,4);
-      ctx.strokeStyle="rgba(0,0,0,0.22)";ctx.lineWidth=0.8;ctx.strokeRect(wx,wy,4,4);
+      if(isLit){
+        var bloom=ctx.createRadialGradient(wx+2,wy+2,0,wx+2,wy+2,10);
+        bloom.addColorStop(0,"rgba(250,210,140,0.25)");
+        bloom.addColorStop(1,"rgba(250,210,140,0)");
+        ctx.fillStyle=bloom;ctx.fillRect(wx-8,wy-8,20,20);
+      }
+      ctx.fillStyle=winFill;ctx.fillRect(wx,wy,4,4);
+      ctx.strokeStyle=winStroke;ctx.lineWidth=0.8;ctx.strokeRect(wx,wy,4,4);
     }
     // Door
     ctx.fillStyle="rgba(0,0,0,0.20)";ctx.fillRect(bx+bw/2-3+wb[30],by+bh-8+wb[31],6,8);
     ctx.strokeStyle="rgba(0,0,0,0.28)";ctx.lineWidth=0.8;ctx.strokeRect(bx+bw/2-3+wb[30],by+bh-8+wb[31],6,8);
   }
 
-  // Condition red dot
+  // Condition dot
   if(cond>0&&cond<60){ctx.beginPath();ctx.arc(bx+bw-5,by+5,3,0,Math.PI*2);ctx.fillStyle="#cc3322";ctx.fill();}
 
   // Selection highlight
@@ -1633,17 +1666,51 @@ function renderZone(z,zx,zy,zw,zh){
 
 function drawTree(x,y,size){
   var season=Math.floor((state.day/30)%4);
-  ctx.fillStyle="rgba(0,0,0,0.15)";
-  ctx.beginPath();ctx.arc(x+2,y+size*0.6,Math.max(1,size*0.5),0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="#5A4A30";ctx.fillRect(x-1,y,2,size*0.4);
+  // Stable seed from position for per-tree wobble
+  var seed=Math.floor(x)+Math.floor(y)*137;
+  function tw(i){return(seededRand(seed,i)-0.5)*size*0.55;}
+  // Edge proximity for cool tinting (trees near map edges are hazier)
+  var edgeDist=Math.min(x/cw,1-x/cw,y/ch,1-y/ch);
+  var edgeFade=Math.max(0,Math.min(0.22,(0.12-edgeDist)*3));
+
+  // Trunk — slightly wobbled, warm umber
+  ctx.strokeStyle="#5A4228";ctx.lineWidth=Math.max(1.5,size*0.22);ctx.lineCap="round";
+  ctx.beginPath();
+  ctx.moveTo(x+tw(0)*0.4,y+size*0.35+tw(1)*0.3);
+  ctx.lineTo(x+tw(2)*0.3,y-size*0.05+tw(3)*0.2);
+  ctx.stroke();
+
   if(season===3){
-    ctx.strokeStyle="#4A3A22";ctx.lineWidth=1.5;
-    ctx.beginPath();ctx.moveTo(x,y+size*0.4);ctx.lineTo(x,y-size*0.3);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(x,y+size*0.1);ctx.lineTo(x-size*0.35,y-size*0.25);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(x,y+size*0.1);ctx.lineTo(x+size*0.35,y-size*0.25);ctx.stroke();
-  }else{
-    var cols=["#2D7A2D","#3A8A2A","#348030"];
-    for(var i=0;i<3;i++){ctx.beginPath();ctx.arc(x+(i-1)*size*0.2,y-size*0.1*i,Math.max(1,size*0.45-i),0,Math.PI*2);ctx.fillStyle=cols[i];ctx.fill();}
+    // Winter: bare branchy silhouette
+    ctx.strokeStyle="#4A3A22";ctx.lineWidth=1.1;
+    ctx.beginPath();ctx.moveTo(x+tw(4)*0.3,y+size*0.1);ctx.lineTo(x+tw(5)*0.5,y-size*0.3);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x+tw(6)*0.2,y);ctx.lineTo(x-size*0.32+tw(7)*0.4,y-size*0.18);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x+tw(8)*0.2,y);ctx.lineTo(x+size*0.32+tw(9)*0.4,y-size*0.15);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x+tw(10)*0.2,y-size*0.12);ctx.lineTo(x-size*0.18+tw(11)*0.3,y-size*0.28);ctx.stroke();
+    return;
+  }
+
+  // Foliage — irregular clumps, muted palette
+  var fCols=["#4A6838","#3A5828","#527840","#3E5E2E","#445A34"];
+  var nc=3+Math.floor(seededRand(seed,20)*2);
+  // Shadow under canopy
+  ctx.beginPath();ctx.arc(x+2,y+size*0.05,size*0.48,0,Math.PI*2);
+  ctx.fillStyle="rgba(0,0,0,0.12)";ctx.fill();
+  for(var i=0;i<nc;i++){
+    var fcx=x+tw(30+i*4)*1.1;
+    var fcy=y-size*0.05+tw(31+i*4)*0.7;
+    var fr=Math.max(size*0.28,size*0.44+tw(32+i*4)*0.4);
+    ctx.beginPath();ctx.arc(fcx,fcy,fr,0,Math.PI*2);
+    ctx.fillStyle=fCols[i%fCols.length];ctx.fill();
+  }
+  // Sketchy outline on canopy
+  ctx.strokeStyle="#2E241E";ctx.lineWidth=0.9;
+  ctx.beginPath();ctx.arc(x+tw(50)*0.5,y-size*0.05,size*0.45+tw(51)*0.2,0,Math.PI*2);ctx.stroke();
+
+  // Edge cool wash
+  if(edgeFade>0){
+    ctx.beginPath();ctx.arc(x,y,size*0.55,0,Math.PI*2);
+    ctx.fillStyle="rgba(80,100,120,"+edgeFade+")";ctx.fill();
   }
 }
 
@@ -1924,31 +1991,68 @@ function render(){
   for(var gi=0;gi<grassPatches.length;gi++){var gp=grassPatches[gi];ctx.beginPath();ctx.arc(gp.x*cw,gp.y*ch,gp.s,0,Math.PI*2);ctx.fillStyle=gp.dark?"#6A6442":"#A89A68";ctx.fill();}
   ctx.globalAlpha=1;
   var rw=getRoadWobble();
-  ctx.strokeStyle="rgba(80,60,30,0.3)";ctx.lineWidth=Math.max(5,cw*0.007);ctx.lineCap="round";
+  // Worn dirt edge — dark outer, slightly wider, irregular
+  ctx.strokeStyle="#5E4628";ctx.lineWidth=Math.max(8,cw*0.011);ctx.lineCap="round";ctx.globalAlpha=0.55;
   PATHS.forEach(function(p,pi){ctx.beginPath();sketchPath(p.x1*ms*cw,p.y1*ms*ch,p.x2*ms*cw,p.y2*ms*ch,rw,pi*4);ctx.stroke();});
-  ctx.strokeStyle="#A09060";ctx.lineWidth=Math.max(3,cw*0.004);
+  ctx.globalAlpha=1;
+  // Path core — compacted warm dirt
+  ctx.strokeStyle="#8C6A42";ctx.lineWidth=Math.max(5,cw*0.007);
   PATHS.forEach(function(p,pi){ctx.beginPath();sketchPath(p.x1*ms*cw,p.y1*ms*ch,p.x2*ms*cw,p.y2*ms*ch,rw,pi*4+64);ctx.stroke();});
+  // Highlight streak — lighter center worn by boots
+  ctx.strokeStyle="#A8845A";ctx.lineWidth=Math.max(2,cw*0.003);ctx.globalAlpha=0.35;
+  PATHS.forEach(function(p,pi){ctx.beginPath();sketchPath(p.x1*ms*cw,p.y1*ms*ch,p.x2*ms*cw,p.y2*ms*ch,rw,pi*4+128);ctx.stroke();});
+  ctx.globalAlpha=1;
   ctx.strokeStyle="rgba(120,180,220,0.3)";ctx.lineWidth=Math.max(5,cw*0.007);
   ctx.beginPath();ctx.moveTo(.08*ms*cw,.65*ms*ch);ctx.quadraticCurveTo(.12*ms*cw,.58*ms*ch,.10*ms*cw,.50*ms*ch);ctx.quadraticCurveTo(.08*ms*cw,.42*ms*ch,.12*ms*cw,.35*ms*ch);ctx.stroke();
   ctx.strokeStyle="#5090B0";ctx.lineWidth=Math.max(3,cw*0.004);
   ctx.beginPath();ctx.moveTo(.08*ms*cw,.65*ms*ch);ctx.quadraticCurveTo(.12*ms*cw,.58*ms*ch,.10*ms*cw,.50*ms*ch);ctx.quadraticCurveTo(.08*ms*cw,.42*ms*ch,.12*ms*cw,.35*ms*ch);ctx.stroke();
   var bw2=getRoadWobble();
-  ctx.strokeStyle="#8A7A60";ctx.lineWidth=3;ctx.lineCap="round";ctx.setLineDash([8,4]);
+  ctx.setLineDash([]);
   var bx0=cw*0.015,by0=ch*0.015,bx1=cw*0.985,by1=ch*0.985;
+  // Retaining wall — weathered concrete/slate, graffitied by gangs
+  // Shadow base (outset slightly)
+  ctx.strokeStyle="#3E4852";ctx.lineWidth=11;ctx.lineCap="round";ctx.lineJoin="round";ctx.globalAlpha=0.55;
+  ctx.beginPath();
+  ctx.moveTo(bx0+bw2[80]+2,by0+bw2[81]+2);ctx.lineTo(bx1+bw2[82]+2,by0+bw2[83]+2);
+  ctx.lineTo(bx1+bw2[84]+2,by1+bw2[85]+2);ctx.lineTo(bx0+bw2[86]+2,by1+bw2[87]+2);
+  ctx.closePath();ctx.stroke();
+  ctx.globalAlpha=1;
+  // Wall body — muted slate
+  ctx.strokeStyle="#5E6E7C";ctx.lineWidth=8;
   ctx.beginPath();
   ctx.moveTo(bx0+bw2[80],by0+bw2[81]);ctx.lineTo(bx1+bw2[82],by0+bw2[83]);
   ctx.lineTo(bx1+bw2[84],by1+bw2[85]);ctx.lineTo(bx0+bw2[86],by1+bw2[87]);
   ctx.closePath();ctx.stroke();
+  // Top highlight (light catches the wall cap)
+  ctx.strokeStyle="#8A9AA8";ctx.lineWidth=2;ctx.globalAlpha=0.45;
+  ctx.beginPath();
+  ctx.moveTo(bx0+bw2[80]-1,by0+bw2[81]-1);ctx.lineTo(bx1+bw2[82]-1,by0+bw2[83]-1);
+  ctx.lineTo(bx1+bw2[84]-1,by1+bw2[85]-1);ctx.lineTo(bx0+bw2[86]-1,by1+bw2[87]-1);
+  ctx.closePath();ctx.stroke();
+  ctx.globalAlpha=1;
+  // Crack marks at a few spots
+  ctx.strokeStyle="#3E4852";ctx.lineWidth=0.9;ctx.globalAlpha=0.55;
+  [[bx0+2,by0+ch*0.22],[bx0+cw*0.42,by0+2],[bx1-2,by1-ch*0.35],[bx0+cw*0.65,by1-2]].forEach(function(c,ci){
+    ctx.beginPath();ctx.moveTo(c[0]+bw2[(50+ci*5)%96],c[1]+bw2[(51+ci*5)%96]);
+    ctx.lineTo(c[0]+bw2[(52+ci*5)%96]*0.5+5,c[1]+bw2[(53+ci*5)%96]*0.5+7);ctx.stroke();
+  });
+  ctx.globalAlpha=1;
+  // Gang graffiti — muted rust and teal spray marks
+  [[bx0+cw*0.12,by0+1,"rgba(156,74,46,0.52)"],[bx0+cw*0.58,by0+1,"rgba(78,112,104,0.48)"],[bx1-2,by1-ch*0.38,"rgba(156,74,46,0.42)"]].forEach(function(g,gi){
+    ctx.strokeStyle=g[2];ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(g[0],g[1]+3);ctx.lineTo(g[0]+9+bw2[(60+gi*7)%96]*0.3,g[1]+3);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(g[0]+2,g[1]+1);ctx.lineTo(g[0]+bw2[(64+gi*7)%96]*0.3+7,g[1]+7);ctx.stroke();
+  });
+  ctx.setLineDash([]);
   if(state.expanded){
-    ctx.globalAlpha=0.3;
+    ctx.globalAlpha=0.3;ctx.strokeStyle="#5E6E7C";ctx.lineWidth=6;ctx.setLineDash([6,4]);
     var ex0=ms*cw*0.015,ey0=ms*ch*0.015,ex1=ms*cw*0.985,ey1=ms*ch*0.985;
     ctx.beginPath();
     ctx.moveTo(ex0+bw2[88],ey0+bw2[89]);ctx.lineTo(ex1+bw2[90],ey0+bw2[91]);
     ctx.lineTo(ex1+bw2[92],ey1+bw2[93]);ctx.lineTo(ex0+bw2[94],ey1+bw2[95]);
     ctx.closePath();ctx.stroke();
-    ctx.globalAlpha=1;
+    ctx.globalAlpha=1;ctx.setLineDash([]);
   }
-  ctx.setLineDash([]);
   TREES.forEach(function(t){drawTree(t.x*ms*cw,t.y*ms*ch,t.s);});
   state.placedZones.forEach(function(z){renderZone(z,z.x*ms*cw,z.y*ms*ch,z.w*ms*cw,z.h*ms*ch);});
   // Worn dirt at building doorways — twenty years of foot traffic
