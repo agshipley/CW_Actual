@@ -2506,13 +2506,16 @@ function updateInteractPrompt(){
   var restBtn=document.getElementById("ip-rest-btn");
   var actionBtn=document.getElementById("ip-action-btn");
   var enterBtn=document.getElementById("ip-enter-btn");
+  var tooTiredForAction=(state.narratorEnergy||0)<8;
+  var tooTiredForRepair=(state.narratorEnergy||0)<=0;
   if(needsRepair){
     var canAffordRepair=state.budget>=200;
     var alreadyRepaired=!!(state.repairedToday&&state.repairedToday[b.id]);
     repairBtn.style.display="block";
-    repairBtn.textContent=alreadyRepaired?"Repaired today":"Repair "+b.name+" ($200)";
-    repairBtn.disabled=onCooldown||!canAffordRepair||alreadyRepaired;
-    repairBtn.style.opacity=(onCooldown||!canAffordRepair||alreadyRepaired)?"0.4":"1";
+    var repairDisabled=onCooldown||!canAffordRepair||alreadyRepaired||tooTiredForRepair;
+    repairBtn.textContent=alreadyRepaired?"Repaired today":(tooTiredForRepair?"Repair "+b.name+" (too tired)":"Repair "+b.name+" ($200)");
+    repairBtn.disabled=repairDisabled;
+    repairBtn.style.opacity=repairDisabled?"0.4":"1";
   }else{
     repairBtn.style.display="none";
   }
@@ -2527,9 +2530,10 @@ function updateInteractPrompt(){
   if(action){
     var actionUsed=!!(state.usedBuildingActions&&state.usedBuildingActions[b.id]);
     actionBtn.style.display="block";
-    actionBtn.textContent=actionUsed?action.label+" (done today)":action.label;
-    actionBtn.disabled=onCooldown||actionUsed;
-    actionBtn.style.opacity=(onCooldown||actionUsed)?"0.4":"1";
+    var actionDisabled=onCooldown||actionUsed||tooTiredForAction;
+    actionBtn.textContent=actionUsed?(action.label+" (done today)"):(tooTiredForAction?(action.label+" (too tired)"):action.label);
+    actionBtn.disabled=actionDisabled;
+    actionBtn.style.opacity=actionDisabled?"0.4":"1";
     // Build effects preview
     var fxMap={budget:{label:"budget",fmt:function(v){return(v>0?"+$":"-$")+Math.abs(v);}},
                attendance:{label:"attendance",fmt:function(v){return(v>0?"+":"")+v;}},
@@ -2568,6 +2572,8 @@ function repairBuilding(){
   var b=findBuildingById(buildingId);
   if(!b)return;
   if(state.repairedToday[buildingId])return;
+  if(state.narratorEnergy<=0)return;
+  state.narratorEnergy=Math.max(0,state.narratorEnergy-10);
   state.budget-=200;
   b.condition=Math.min(100,b.condition+25);
   state.repairedToday[buildingId]=true;
@@ -2600,6 +2606,9 @@ function interactWithBuilding(){
   var action=BUILDING_ACTIONS[buildingId]||(b?BUILDING_ACTIONS[b.typeId]:null);
   if(!action)return;
   if(!b)return;
+  if(state.narratorEnergy<=0)return;
+  state.narratorEnergy=Math.max(0,state.narratorEnergy-8);
+  updateSidebar();
   var applyEffect=true;
   if(action.flagRequired&&!state.flags[action.flagRequired])applyEffect=false;
   if(applyEffect){
