@@ -266,6 +266,10 @@
       <div class="stat-row"><span class="stat-name" id="lbl-stress">Stress</span><span class="stat-val" id="s-stress">20%</span></div>
       <div class="stat-bar"><div class="stat-bar-fill" id="bar-stress" style="width:20%;background:#aa5a3a;"></div></div>
     </div>
+    <div class="sb-section" id="daily-action-section">
+      <div class="sb-label">Today's Order</div>
+      <div id="daily-action-buttons"></div>
+    </div>
     <div class="sb-section" id="township-section" style="display:none">
       <div class="sb-label">Township</div>
       <div class="stat-row"><span class="stat-name">Population</span><span class="stat-val" id="s-population">0</span></div>
@@ -320,6 +324,7 @@ var state = {
   interiorUpgrades: {},
   usedBuildingActions: {},
   repairedToday: {},
+  todaysAction: null,
   interiorNarratorX: 0.5, interiorNarratorY: 0.85,
   interiorNarratorTX: 0.5, interiorNarratorTY: 0.85,
   interiorWalkingTo: null,
@@ -804,6 +809,7 @@ function startGame(){
   if(debugMode)document.getElementById("debug-panel").style.display="block";
   updateTimeDisplay();
   setSpeed(0);
+  renderDailyActions();
   startDrone();
   gameLoop();
   if(!state.flags.tutorial_done)showTutorialStep(0);
@@ -869,7 +875,7 @@ function dismissMinorEvent(){
 }
 
 function applyMidnight(){
-  state.usedBuildingActions={};state.repairedToday={};
+  state.usedBuildingActions={};state.repairedToday={};state.todaysAction=null;
   state.day+=1;
   // Weather cycling
   state.weatherDaysLeft--;
@@ -1010,6 +1016,7 @@ function applyMidnight(){
       }
     }
   }
+  renderDailyActions();
 }
 function advanceDay(){if(state.gameOver||state.eventActive)return;applyMidnight();}
 
@@ -1075,7 +1082,7 @@ function sndThud(){
 // ──────────────────────────────────────────────────────────────
 
 var SAVE_KEY="civilwarland_save";
-var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns","productivity","phase2Active","charAssignedTo","charConsecutiveDays","charEventsFired","arrivedChars","interiorUpgrades","usedBuildingActions","repairedToday"];
+var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns","productivity","phase2Active","charAssignedTo","charConsecutiveDays","charEventsFired","arrivedChars","interiorUpgrades","usedBuildingActions","repairedToday","todaysAction"];
 
 function saveGame(){
   var s={};
@@ -1103,6 +1110,7 @@ function loadGame(){
   if(!state.interiorUpgrades)state.interiorUpgrades={};
   if(!state.usedBuildingActions)state.usedBuildingActions={};
   if(!state.repairedToday)state.repairedToday={};
+  if(state.todaysAction===undefined)state.todaysAction=null;
   if(state.productivity===undefined)state.productivity=50;
   if(!state.charAssignedTo)state.charAssignedTo={};
   if(!state.charConsecutiveDays)state.charConsecutiveDays={};
@@ -1124,6 +1132,7 @@ function loadGame(){
   }
   document.getElementById("day-num").textContent=state.day;
   updateTimeDisplay();setSpeed(0);updateSidebar();updateLog();
+  renderDailyActions();
   startDrone();
   gameLoop();
 }
@@ -1555,6 +1564,61 @@ function updateLog(){
   var h="";
   for(var i=state.log.length-1;i>=0;i--)h+='<div class="log-entry"><span class="log-day">Day '+state.log[i].day+'</span>'+state.log[i].title+'</div>';
   document.getElementById("log-entries").innerHTML=h;
+}
+
+function renderDailyActions(){
+  var container=document.getElementById("daily-action-buttons");
+  if(!container)return;
+  var fxGood={budget:1,attendance:1,morale:1,productivity:1,approval:1,gangThreat:-1,narratorStress:-1};
+  var fxFmt={
+    budget:function(v){return(v>0?"+$":"-$")+Math.abs(v);},
+    attendance:function(v){return(v>0?"+":"")+v+" att";},
+    gangThreat:function(v){return(v>0?"+":"")+v+" threat";},
+    morale:function(v){return(v>0?"+":"")+v+" morale";},
+    productivity:function(v){return(v>0?"+":"")+v+" prod";},
+    approval:function(v){return(v>0?"+":"")+v+" appr";},
+    narratorStress:function(v){return(v>0?"+":"")+v+" stress";}
+  };
+  var chosen=state.todaysAction;
+  var h="";
+  for(var i=0;i<DAILY_ACTIONS.length;i++){
+    var da=DAILY_ACTIONS[i];
+    var isChosen=chosen===da.id;
+    var isLocked=chosen!==null&&!isChosen;
+    var fxParts=[];
+    for(var fk in fxFmt){
+      var fv=da.effect[fk];
+      if(fv){
+        var isGood=(fxGood[fk]===1&&fv>0)||(fxGood[fk]===-1&&fv<0);
+        fxParts.push('<span style="color:'+(isGood?"#7A9A5A":"#9A5A4A")+';">'+fxFmt[fk](fv)+'</span>');
+      }
+    }
+    var btnStyle="display:block;width:100%;text-align:left;padding:6px 8px;margin-bottom:6px;background:"+(isChosen?"#3A2A12":"#2A1E10")+";border:1px solid "+(isChosen?"#C8B878":"#4A3A2A")+";color:"+(isLocked?"#5A4A3A":"#C8B878")+";cursor:"+(isLocked?"default":"pointer")+";opacity:"+(isLocked?"0.45":"1")+";font-family:inherit;font-size:10px;";
+    h+='<button style="'+btnStyle+'"'+(isLocked?" disabled":"")+' onclick="chooseDailyAction(\''+da.id+'\')">';
+    h+='<div style="font-weight:bold;margin-bottom:2px;">'+da.title+'</div>';
+    h+='<div style="color:#8A6A44;font-size:9px;margin-bottom:3px;">'+da.desc+'</div>';
+    if(fxParts.length)h+='<div style="display:flex;flex-wrap:wrap;gap:4px;font-size:9px;">'+fxParts.join("")+'</div>';
+    h+='</button>';
+  }
+  container.innerHTML=h;
+}
+
+function chooseDailyAction(id){
+  if(state.todaysAction!==null)return;
+  var da=null;
+  for(var i=0;i<DAILY_ACTIONS.length;i++){if(DAILY_ACTIONS[i].id===id){da=DAILY_ACTIONS[i];break;}}
+  if(!da)return;
+  state.todaysAction=id;
+  var e=da.effect;
+  if(e.budget)state.budget+=e.budget;
+  if(e.attendance)state.attendance=clamp(state.attendance+e.attendance,0,100);
+  if(e.gangThreat)state.gangThreat=clamp(state.gangThreat+e.gangThreat,0,100);
+  if(e.morale)state.morale=clamp(state.morale+e.morale,0,100);
+  if(e.productivity)state.productivity=clamp((state.productivity||50)+e.productivity,0,100);
+  if(e.approval)state.approval=clamp((state.approval||50)+e.approval,0,100);
+  state.log.push({day:state.day,title:"Today's Order: "+da.title});
+  updateSidebar();updateLog();
+  renderDailyActions();
 }
 
 function darkenColor(hex,pct){
