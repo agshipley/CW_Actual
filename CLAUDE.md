@@ -59,3 +59,12 @@ Do not "also fix" adjacent visual elements during a pass. If something looks wro
 - **Claude Code (VS Code)**: all file edits, implementation, git operations, verification
 
 When in doubt, design in claude.ai first and hand completed prompts to Claude Code. Claude Code should not be asked to make open-ended creative decisions about tone, voice, or aesthetic direction.
+
+## Project Documents
+
+- `AESTHETIC.md` — Visual brand guide. Palette, composition rules, wear philosophy, reference. Single source of truth for all art passes.
+- `VISUAL_STATE.md` — Living log of visual work in progress. Updated at the end of each pass.
+- `PHASE1_STYLE.md` — Design guidelines for Phase 1 (days 1–30). Dialogue-driven, Disco Elysium-inspired. Read before any Phase 1 feature work.
+- `PHASE2_STYLE.md` — Design guidelines for Phase 2 (day 31+). Management sim, RimWorld-inspired. Read before any Phase 2 feature work.
+- `PHASE1_ROADMAP.md` — Feature roadmap for Phase 1 with implementation layers and status tracking.
+- `PHASE2_ROADMAP.md` — Feature roadmap for Phase 2 with implementation layers and status tracking.
