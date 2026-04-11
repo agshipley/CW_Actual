@@ -899,6 +899,7 @@ function applyMidnight(){
     pb.constructionDaysLeft--;
     if(pb.constructionDaysLeft<=0){
       pb.underConstruction=false;
+      pb.builtDay=state.day;
       state.log.push({day:state.day,title:"Construction complete: "+pb.name});
       canvasNotifications.push({text:"COMPLETE: "+pb.name.toUpperCase(),x:pb.x+pb.w/2,y:pb.y,born:Date.now()});
     }
@@ -956,7 +957,7 @@ function applyMidnight(){
   var parkRevenue=state.attendance*12;
   var taxIncome=(state.townshipUnlocked&&state.population>=10)?state.population*8:0;
   var operatingCost=600+Math.floor(state.population*3);
-  var buildingUpkeep=0;for(var ui=0;ui<state.placedBuildings.length;ui++){var ubld=state.placedBuildings[ui];var utype=null;for(var usi=0;usi<BUILDABLE_STRUCTURES.length;usi++){if(BUILDABLE_STRUCTURES[usi].id===ubld.typeId){utype=BUILDABLE_STRUCTURES[usi];break;}}buildingUpkeep+=(utype&&utype.upkeep!==undefined)?utype.upkeep:30;}
+  var buildingUpkeep=0;for(var ui=0;ui<state.placedBuildings.length;ui++){var ubld=state.placedBuildings[ui];var utype=null;for(var usi=0;usi<BUILDABLE_STRUCTURES.length;usi++){if(BUILDABLE_STRUCTURES[usi].id===ubld.typeId){utype=BUILDABLE_STRUCTURES[usi];break;}}var baseUpkeep=(utype&&utype.upkeep!==undefined)?utype.upkeep:30;var upkeepMult=1;if(ubld.builtDay&&(state.day-ubld.builtDay)>30)upkeepMult*=1.5;if(ubld.condition<50)upkeepMult*=2;buildingUpkeep+=Math.round(baseUpkeep*upkeepMult);}
   var prodBonus=state.phase2Active?Math.round((state.productivity-50)*1.5):0;
   var netIncome=parkRevenue+taxIncome+commercialIncome-operatingCost-buildingUpkeep+prodBonus;
   state.budget+=netIncome;
