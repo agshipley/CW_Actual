@@ -987,7 +987,9 @@ function applyMidnight(){
     var resCap=resCount*10;
     if(waterTowers>0)resCap+=waterTowers*20;else resCap=Math.min(resCap,30);
     if(state.population<resCap)state.population=Math.min(resCap,state.population+resCount+schools);
-    state.approval=clamp(state.approval-1+civCount*2,0,100);
+    // Base approval decay + civic zone offset + gang safety modifier
+    var safetyMod=(state.phase2Active&&state.gangThreat<20)?1:(state.phase2Active&&state.gangThreat>50)?-2:0;
+    state.approval=clamp(state.approval-1+civCount*2+safetyMod,0,100);
     syncResidents();
     // Commercial income: 50 per nearby (within 0.15) residential zone for each commercial zone
     for(var ci2=0;ci2<state.placedZones.length;ci2++){
