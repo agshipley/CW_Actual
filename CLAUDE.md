@@ -68,3 +68,4 @@ When in doubt, design in claude.ai first and hand completed prompts to Claude Co
 - `PHASE2_STYLE.md` — Design guidelines for Phase 2 (day 31+). Management sim, RimWorld-inspired. Read before any Phase 2 feature work.
 - `PHASE1_ROADMAP.md` — Feature roadmap for Phase 1 with implementation layers and status tracking.
 - `PHASE2_ROADMAP.md` — Feature roadmap for Phase 2 with implementation layers and status tracking.
+- `AUTONOMOUS.md` — Instruction set for autonomous Claude Code development sessions. Read this to begin a self-directed loop.
