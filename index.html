@@ -318,6 +318,9 @@ var state = {
   selectedInteriorObj: null,
   hoveredInteriorObj: null,
   interiorUpgrades: {},
+  interiorNarratorX: 0.5, interiorNarratorY: 0.85,
+  interiorNarratorTX: 0.5, interiorNarratorTY: 0.85,
+  interiorWalkingTo: null,
 };
 
 var BUILDABLE_STRUCTURES = [
@@ -1073,6 +1076,9 @@ function loadGame(){
   state.selectedBuilding=null;state.gameOver=false;state.eventActive=false;
   state.buildMode=false;state.selectedBuildable=null;state.zoneMode=false;state.selectedZone=null;
   state.activeInterior=null;state.selectedInteriorObj=null;state.hoveredInteriorObj=null;
+  state.interiorNarratorX=0.5;state.interiorNarratorY=0.85;
+  state.interiorNarratorTX=0.5;state.interiorNarratorTY=0.85;
+  state.interiorWalkingTo=null;
   if(!state.interiorUpgrades)state.interiorUpgrades={};
   if(state.productivity===undefined)state.productivity=50;
   if(!state.charAssignedTo)state.charAssignedTo={};
@@ -2563,6 +2569,9 @@ function enterBuilding(){
   state.activeInterior=buildingId;
   state.selectedInteriorObj=null;
   state.hoveredInteriorObj=null;
+  state.interiorNarratorX=0.5;state.interiorNarratorY=0.85;
+  state.interiorNarratorTX=0.5;state.interiorNarratorTY=0.85;
+  state.interiorWalkingTo=null;
   state.gamePaused=true;
   document.getElementById("interact-prompt").style.display="none";
   var interior=BUILDING_INTERIORS[buildingId];
@@ -2584,14 +2593,32 @@ function leaveBuilding(){
 function onInteriorClick(mx_px,my_px){
   var interior=BUILDING_INTERIORS[state.activeInterior];
   if(!interior)return;
+  var nx=mx_px/cw, ny=my_px/ch;
   var clicked=null;
   interior.objects.forEach(function(obj){if(mx_px>=obj.x*cw&&mx_px<=(obj.x+obj.w)*cw&&my_px>=obj.y*ch&&my_px<=(obj.y+obj.h)*ch)clicked=obj;});
-  state.selectedInteriorObj=clicked?clicked.id:null;
+  if(clicked){
+    state.interiorNarratorTX=clicked.x+clicked.w/2;
+    state.interiorNarratorTY=Math.min(0.92,clicked.y+clicked.h+0.02);
+    state.interiorWalkingTo=clicked.id;
+    state.selectedInteriorObj=null;
+  } else {
+    state.interiorNarratorTX=nx;
+    state.interiorNarratorTY=ny;
+    state.interiorWalkingTo=null;
+    state.selectedInteriorObj=null;
+  }
   updateInteriorPanel();
 }
 
 function updateInteriorPanel(){
   var el=document.getElementById("interior-info-content");
+  if(state.interiorWalkingTo){
+    var wInterior=BUILDING_INTERIORS[state.activeInterior];
+    var wObj=null;
+    if(wInterior){for(var wi=0;wi<wInterior.objects.length;wi++){if(wInterior.objects[wi].id===state.interiorWalkingTo){wObj=wInterior.objects[wi];break;}}}
+    el.innerHTML='<span class="int-hint">Walking to '+(wObj?wObj.name:"...")+'...</span>';
+    return;
+  }
   if(!state.activeInterior||!state.selectedInteriorObj){
     el.innerHTML='<span class="int-hint">Click an object to examine it.</span>';
     return;
@@ -2706,6 +2733,32 @@ function renderInterior(){
 
   // --- Objects ---
   interior.objects.forEach(function(obj){renderInteriorObject(obj);});
+
+  // --- Narrator movement ---
+  var inx=state.interiorNarratorX, iny=state.interiorNarratorY;
+  var itx=state.interiorNarratorTX, ity=state.interiorNarratorTY;
+  var iddx=itx-inx, iddy=ity-iny;
+  var idist=Math.sqrt(iddx*iddx+iddy*iddy);
+  var ispeed=0.004;
+  if(idist>ispeed){
+    state.interiorNarratorX+=( iddx/idist)*ispeed;
+    state.interiorNarratorY+=(iddy/idist)*ispeed;
+  } else if(idist>0.001) {
+    state.interiorNarratorX=itx;
+    state.interiorNarratorY=ity;
+    if(state.interiorWalkingTo){
+      state.selectedInteriorObj=state.interiorWalkingTo;
+      state.interiorWalkingTo=null;
+      updateInteriorPanel();
+    }
+  }
+
+  // --- Draw narrator on top of objects ---
+  var intNarrator=null;
+  for(var ini=0;ini<state.characters.length;ini++){if(state.characters[ini].id==="narrator"){intNarrator=state.characters[ini];break;}}
+  if(intNarrator){
+    drawCharacter(intNarrator, state.interiorNarratorX*cw, state.interiorNarratorY*ch);
+  }
 }
 
 function renderInteriorObject(obj){
