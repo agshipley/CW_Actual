@@ -111,7 +111,7 @@ Buildings near each other should produce synergy bonuses:
 
 Implementation: In `applyPhase2Daily()`, check proximity between buildings and apply synergy bonuses. Display synergies in the building info panel.
 
-### 📋 2B — Upkeep scaling
+### ✅ 2B — Upkeep scaling
 Current: flat upkeep per building (defined in BUILDABLE_STRUCTURES).
 Target: upkeep scales with building age and condition.
 - New buildings: base upkeep
@@ -119,6 +119,8 @@ Target: upkeep scales with building age and condition.
 - Buildings with condition < 50: 2x upkeep (they cost more to keep running when they're falling apart)
 
 This creates a long-term economic pressure that mirrors the Saunders principle: the older things get, the more they cost to maintain, until eventually you can't afford them all.
+
+*Implemented 2026-04-11: builtDay stored on completion, 1.5x multiplier >30 days, 2x multiplier for condition <50, stacking.*
 
 ### 📋 2C — Revenue diversification
 Current revenue sources: park attendance × $12/visitor, tax income, commercial zones.
