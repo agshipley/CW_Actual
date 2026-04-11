@@ -987,9 +987,11 @@ function applyMidnight(){
     var resCap=resCount*10;
     if(waterTowers>0)resCap+=waterTowers*20;else resCap=Math.min(resCap,30);
     if(state.population<resCap)state.population=Math.min(resCap,state.population+resCount+schools);
-    // Base approval decay + civic zone offset + gang safety modifier
+    // Base approval decay + civic zone offset + gang safety modifier + employment (commercial near residential)
     var safetyMod=(state.phase2Active&&state.gangThreat<20)?1:(state.phase2Active&&state.gangThreat>50)?-2:0;
-    state.approval=clamp(state.approval-1+civCount*2+safetyMod,0,100);
+    var comNearRes=0;
+    for(var ci3=0;ci3<state.placedZones.length;ci3++){var cz3=state.placedZones[ci3];if(cz3.type!=="commercial")continue;var czx3=cz3.x+cz3.w/2,czy3=cz3.y+cz3.h/2;for(var ri3=0;ri3<state.placedZones.length;ri3++){var rz3=state.placedZones[ri3];if(rz3.type!=="residential")continue;var rzx3=rz3.x+rz3.w/2,rzy3=rz3.y+rz3.h/2;if(Math.sqrt((czx3-rzx3)*(czx3-rzx3)+(czy3-rzy3)*(czy3-rzy3))<0.15){comNearRes++;break;}}}
+    state.approval=clamp(state.approval-1+civCount*2+safetyMod+comNearRes,0,100);
     syncResidents();
     // Commercial income: 50 per nearby (within 0.15) residential zone for each commercial zone
     for(var ci2=0;ci2<state.placedZones.length;ci2++){
