@@ -3524,6 +3524,7 @@ var INTERIOR_DRAW_FUNCTIONS=(function(){
   return D;
 }());
 
+var _irgc={id:"",cw:0,ch:0};
 function renderInterior(){
   var interior=BUILDING_INTERIORS[state.activeInterior];
   if(!interior)return;
@@ -3533,21 +3534,26 @@ function renderInterior(){
   var isNight=state.gameTime<480||state.gameTime>=1080;
   var isDusk=(state.gameTime>=420&&state.gameTime<480)||(state.gameTime>=1020&&state.gameTime<1080);
   var iSeed=0;for(var ci=0;ci<state.activeInterior.length;ci++)iSeed+=state.activeInterior.charCodeAt(ci)*7;
+  // Gradient cache — rebuild only on interior change or canvas resize
+  if(_irgc.id!==state.activeInterior||_irgc.cw!==cw||_irgc.ch!==ch){
+    _irgc.id=state.activeInterior;_irgc.cw=cw;_irgc.ch=ch;
+    _irgc.wCG=ctx.createLinearGradient(cw*0.2,0,cw*0.8,0);_irgc.wCG.addColorStop(0,"rgba(0,0,0,0)");_irgc.wCG.addColorStop(0.1,"rgba(255,240,200,0.15)");_irgc.wCG.addColorStop(0.9,"rgba(255,240,200,0.15)");_irgc.wCG.addColorStop(1,"rgba(0,0,0,0)");
+    _irgc.wallGrad=ctx.createLinearGradient(0,0,0,floorY);_irgc.wallGrad.addColorStop(0,"rgba(0,0,0,0.30)");_irgc.wallGrad.addColorStop(0.20,"rgba(0,0,0,0.12)");_irgc.wallGrad.addColorStop(1,"rgba(0,0,0,0)");
+    _irgc.fwG=ctx.createLinearGradient(0,floorY*0.6,0,floorY);_irgc.fwG.addColorStop(0,"rgba(180,140,80,0)");_irgc.fwG.addColorStop(1,"rgba(180,140,80,0.06)");
+    _irgc.wpG=ctx.createLinearGradient(cw*0.5,ch,cw*0.5,floorY+ch*0.15);_irgc.wpG.addColorStop(0,"rgba(255,240,200,0.04)");_irgc.wpG.addColorStop(1,"rgba(255,240,200,0)");
+    var _vigR=Math.sqrt(cw*cw+ch*ch)*0.55;_irgc.vignette=ctx.createRadialGradient(cw*0.5,ch*0.5,_vigR*0.30,cw*0.5,ch*0.5,_vigR);_irgc.vignette.addColorStop(0,"rgba(0,0,0,0)");_irgc.vignette.addColorStop(1,"rgba(0,0,0,0.42)");
+    var _ls=INTERIOR_LIGHT_SOURCES[state.activeInterior];
+    if(_ls){var _wR={worship:1,saloon:1,thespian:1},_inf=(state.activeInterior==="infirmary"),_lsx=_ls.x*cw,_lsy=_ls.y*ch,_lsr=Math.sqrt(cw*cw+ch*ch)*0.70;_irgc.lsDay=ctx.createRadialGradient(_lsx,_lsy,0,_lsx,_lsy,_lsr);_irgc.lsDay.addColorStop(0,_wR[state.activeInterior]?"rgba(240,190,100,0.12)":(_inf?"rgba(180,200,220,0.10)":"rgba(160,180,200,0.10)"));_irgc.lsDay.addColorStop(1,"rgba(0,0,0,0)");_irgc.lsNight=ctx.createRadialGradient(_lsx,_lsy,0,_lsx,_lsy,_lsr);_irgc.lsNight.addColorStop(0,_wR[state.activeInterior]?"rgba(240,180,80,0.18)":(_inf?"rgba(180,200,220,0.12)":"rgba(240,180,80,0.14)"));_irgc.lsNight.addColorStop(1,"rgba(0,0,0,0)");}else{_irgc.lsDay=null;_irgc.lsNight=null;}
+    _irgc.scuffs=[];for(var _sc=0;_sc<5;_sc++){_irgc.scuffs.push({x:cw*(0.1+seededRand(iSeed,130+_sc*3)*0.80),y:floorY+ch*(0.05+seededRand(iSeed,131+_sc*3)*0.15),r:(cw*(0.015+seededRand(iSeed,132+_sc*3)*0.025)+ch*(0.005+seededRand(iSeed,133+_sc*3)*0.008))*0.5});}
+  }
   // --- Wall: base fill ---
   ctx.fillStyle=interior.bgColor;ctx.fillRect(0,0,cw,ch);
   // 1. Lighter center warm wash
-  var wCG=ctx.createLinearGradient(cw*0.2,0,cw*0.8,0);
-  wCG.addColorStop(0,"rgba(0,0,0,0)");wCG.addColorStop(0.1,"rgba(255,240,200,0.15)");
-  wCG.addColorStop(0.9,"rgba(255,240,200,0.15)");wCG.addColorStop(1,"rgba(0,0,0,0)");
-  ctx.fillStyle=wCG;ctx.fillRect(0,0,cw,floorY);
+  ctx.fillStyle=_irgc.wCG;ctx.fillRect(0,0,cw,floorY);
   // 2. Ceiling shadow (stronger)
-  var wallGrad=ctx.createLinearGradient(0,0,0,floorY);
-  wallGrad.addColorStop(0,"rgba(0,0,0,0.30)");wallGrad.addColorStop(0.20,"rgba(0,0,0,0.12)");wallGrad.addColorStop(1,"rgba(0,0,0,0)");
-  ctx.fillStyle=wallGrad;ctx.fillRect(0,0,cw,floorY);
+  ctx.fillStyle=_irgc.wallGrad;ctx.fillRect(0,0,cw,floorY);
   // 3. Floor-reflected warmth (lower 40%)
-  var fwG=ctx.createLinearGradient(0,floorY*0.6,0,floorY);
-  fwG.addColorStop(0,"rgba(180,140,80,0)");fwG.addColorStop(1,"rgba(180,140,80,0.06)");
-  ctx.fillStyle=fwG;ctx.fillRect(0,floorY*0.6,cw,floorY*0.4);
+  ctx.fillStyle=_irgc.fwG;ctx.fillRect(0,floorY*0.6,cw,floorY*0.4);
   // Crown molding suggestion at top
   ctx.strokeStyle="rgba(200,190,160,0.30)";ctx.lineWidth=1;ctx.beginPath();
   ctx.moveTo(0,2+(seededRand(iSeed,90)-0.5)*1.5);
@@ -3570,23 +3576,20 @@ function renderInterior(){
     ctx.strokeStyle="rgba(0,0,0,0.08)";ctx.lineWidth=1;ctx.lineCap="butt";ctx.beginPath();ctx.moveTo(0,py+wL);ctx.lineTo(cw*0.42+(seededRand(iSeed,pi*4+3)-0.5)*4,py+wM);ctx.lineTo(cw,py+wR);ctx.stroke();
   }
   // Floor: scuff marks
-  for(var sc=0;sc<5;sc++){var scX=cw*(0.1+seededRand(iSeed,130+sc*3)*0.80),scY=floorY+ch*(0.05+seededRand(iSeed,131+sc*3)*0.15),scRx=cw*(0.015+seededRand(iSeed,132+sc*3)*0.025),scRy=ch*(0.005+seededRand(iSeed,133+sc*3)*0.008);ctx.fillStyle="rgba(20,15,8,0.06)";ctx.beginPath();ctx.ellipse(scX,scY,scRx,scRy,0,0,Math.PI*2);ctx.fill();}
+  for(var sc=0;sc<5;sc++){ctx.fillStyle="rgba(20,15,8,0.06)";ctx.beginPath();ctx.arc(_irgc.scuffs[sc].x,_irgc.scuffs[sc].y,_irgc.scuffs[sc].r,0,Math.PI*2);ctx.fill();}
   // Floor: worn path from bottom-center
-  var wpG=ctx.createLinearGradient(cw*0.5,ch,cw*0.5,floorY+ch*0.15);wpG.addColorStop(0,"rgba(255,240,200,0.04)");wpG.addColorStop(1,"rgba(255,240,200,0)");ctx.fillStyle=wpG;ctx.beginPath();ctx.moveTo(cw*0.35,ch);ctx.lineTo(cw*0.65,ch);ctx.lineTo(cw*0.58,floorY+ch*0.15);ctx.lineTo(cw*0.42,floorY+ch*0.15);ctx.closePath();ctx.fill();
+  ctx.fillStyle=_irgc.wpG;ctx.beginPath();ctx.moveTo(cw*0.35,ch);ctx.lineTo(cw*0.65,ch);ctx.lineTo(cw*0.58,floorY+ch*0.15);ctx.lineTo(cw*0.42,floorY+ch*0.15);ctx.closePath();ctx.fill();
   // --- Baseboard ---
   var bwA=(seededRand(iSeed,80)-0.5)*2.5,bwB=(seededRand(iSeed,81)-0.5)*1.5,bwC=(seededRand(iSeed,82)-0.5)*2.5;
   ctx.strokeStyle="#2E241E";ctx.lineWidth=2.5;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(0,floorY+bwA);ctx.lineTo(cw*0.46,floorY+bwB);ctx.lineTo(cw,floorY+bwC);ctx.stroke();
   ctx.fillStyle="rgba(46,36,30,0.28)";ctx.fillRect(0,floorY,cw,5);
   // --- Light source radial gradient ---
-  var ls=INTERIOR_LIGHT_SOURCES[state.activeInterior];
-  if(ls){var warmR={worship:1,saloon:1,thespian:1},lsI=warmR[state.activeInterior]?(isNight?"rgba(240,180,80,0.18)":"rgba(240,190,100,0.12)"):(state.activeInterior==="infirmary"?(isNight?"rgba(180,200,220,0.12)":"rgba(180,200,220,0.10)"):(isNight?"rgba(240,180,80,0.14)":"rgba(160,180,200,0.10)"));var lsx=ls.x*cw,lsy=ls.y*ch,lsr=Math.sqrt(cw*cw+ch*ch)*0.70,lsg=ctx.createRadialGradient(lsx,lsy,0,lsx,lsy,lsr);lsg.addColorStop(0,lsI);lsg.addColorStop(1,"rgba(0,0,0,0)");ctx.fillStyle=lsg;ctx.fillRect(0,0,cw,ch);}
+  if(_irgc.lsDay){ctx.fillStyle=isNight?_irgc.lsNight:_irgc.lsDay;ctx.fillRect(0,0,cw,ch);}
   // Time-of-day overlays
   if(isNight){ctx.fillStyle="rgba(0,0,0,0.08)";ctx.fillRect(0,0,cw,ch);}
   if(isDusk){ctx.fillStyle="rgba(220,140,40,0.05)";ctx.fillRect(0,0,cw,ch);}
   // --- Vignette: stronger ---
-  var vigR=Math.sqrt(cw*cw+ch*ch)*0.55,vignette=ctx.createRadialGradient(cw*0.5,ch*0.5,vigR*0.30,cw*0.5,ch*0.5,vigR);
-  vignette.addColorStop(0,"rgba(0,0,0,0)");vignette.addColorStop(1,"rgba(0,0,0,0.42)");
-  ctx.fillStyle=vignette;ctx.fillRect(0,0,cw,ch);
+  ctx.fillStyle=_irgc.vignette;ctx.fillRect(0,0,cw,ch);
 
   // --- Room name (drawn after vignette so it stays readable) ---
   ctx.font="italic 12px Georgia";ctx.textAlign="left";ctx.fillStyle="#6A5A42";
