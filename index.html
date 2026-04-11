@@ -263,7 +263,7 @@
       <div class="sb-label">Your Condition</div>
       <div class="stat-row"><span class="stat-name">Energy</span><span class="stat-val" id="s-energy">80</span></div>
       <div class="stat-bar"><div class="stat-bar-fill" id="bar-energy" style="width:80%;background:#4a8aaa;"></div></div>
-      <div class="stat-row"><span class="stat-name">Stress</span><span class="stat-val" id="s-stress">20%</span></div>
+      <div class="stat-row"><span class="stat-name" id="lbl-stress">Stress</span><span class="stat-val" id="s-stress">20%</span></div>
       <div class="stat-bar"><div class="stat-bar-fill" id="bar-stress" style="width:20%;background:#aa5a3a;"></div></div>
     </div>
     <div class="sb-section" id="township-section" style="display:none">
@@ -1515,6 +1515,8 @@ function updateSidebar(){
   document.getElementById("s-stress").textContent=state.narratorStress+"%";
   document.getElementById("bar-stress").style.width=state.narratorStress+"%";
   document.getElementById("bar-stress").style.background=state.narratorStress<60?"#aa5a3a":"#cc2222";
+  var stressLbl=document.getElementById("lbl-stress");
+  if(stressLbl){stressLbl.style.color=state.narratorStress>=70?"#DD4422":(state.narratorStress>=50?"#C8A040":"");}
   updateBudgetTooltip();
 }
 
@@ -2613,13 +2615,20 @@ function interactWithBuilding(){
   if(action.flagRequired&&!state.flags[action.flagRequired])applyEffect=false;
   if(applyEffect){
     var e=action.effect;
-    if(e.budget)state.budget+=e.budget;
-    if(e.attendance)state.attendance=clamp(state.attendance+e.attendance,0,100);
-    if(e.gangThreat)state.gangThreat=clamp(state.gangThreat+e.gangThreat,0,100);
-    if(e.morale)state.morale=clamp(state.morale+e.morale,0,100);
-    if(e.productivity)state.productivity=clamp((state.productivity||50)+e.productivity,0,100);
-    if(e.approval)state.approval=clamp((state.approval||50)+e.approval,0,100);
-    if(e.narratorStress)state.narratorStress=clamp((state.narratorStress||0)+e.narratorStress,0,100);
+    // Under high stress, positive effects are reduced 25% (decisions suffer)
+    var stressedDecisions=(state.narratorStress||0)>=70;
+    function stressedVal(v,isGoodWhenNeg){
+      if(!stressedDecisions)return v;
+      if(isGoodWhenNeg){return v<0?Math.ceil(v*0.75):v;}
+      return v>0?Math.floor(v*0.75):v;
+    }
+    if(e.budget)state.budget+=stressedVal(e.budget,false);
+    if(e.attendance)state.attendance=clamp(state.attendance+stressedVal(e.attendance,false),0,100);
+    if(e.gangThreat)state.gangThreat=clamp(state.gangThreat+stressedVal(e.gangThreat,true),0,100);
+    if(e.morale)state.morale=clamp(state.morale+stressedVal(e.morale,false),0,100);
+    if(e.productivity)state.productivity=clamp((state.productivity||50)+stressedVal(e.productivity,false),0,100);
+    if(e.approval)state.approval=clamp((state.approval||50)+stressedVal(e.approval,false),0,100);
+    if(e.narratorStress)state.narratorStress=clamp((state.narratorStress||0)+stressedVal(e.narratorStress,true),0,100);
   }
   state.usedBuildingActions[buildingId]=true;
   state.log.push({day:state.day,title:action.label+": "+b.name+(applyEffect?"":" (no effect)")});
@@ -3023,7 +3032,8 @@ function gameLoop(ts){
     var ndx=narrator.tx-narrator.x,ndy=narrator.ty-narrator.y;
     if(Math.sqrt(ndx*ndx+ndy*ndy)>=0.01){
       narratorWalkAccum+=delta;
-      if(narratorWalkAccum>=3000){state.narratorEnergy=Math.max(0,state.narratorEnergy-1);narratorWalkAccum-=3000;updateSidebar();}
+      var walkDrainInterval=(state.narratorStress>=50)?2000:3000;
+      if(narratorWalkAccum>=walkDrainInterval){state.narratorEnergy=Math.max(0,state.narratorEnergy-1);narratorWalkAccum-=walkDrainInterval;updateSidebar();}
     }else{narratorWalkAccum=0;}
   }
   // Footprint recording
