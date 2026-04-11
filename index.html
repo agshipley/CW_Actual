@@ -2701,11 +2701,13 @@ function updateInteractPrompt(){
     var fxGood={budget:1,attendance:1,morale:1,productivity:1,approval:1,gangThreat:-1,narratorStress:-1};
     var fxParts=[];
     var fxE=action.effect;
+    var stressedPreview=(state.narratorStress||0)>=70;
     for(var fk in fxMap){
       if(fxE[fk]){
         var fv=fxE[fk];
+        if(stressedPreview){var isGoodWhenNeg=(fxGood[fk]===-1);if(isGoodWhenNeg){if(fv<0)fv=Math.ceil(fv*0.75);}else{if(fv>0)fv=Math.floor(fv*0.75);}}
         var isGood=(fxGood[fk]===1&&fv>0)||(fxGood[fk]===-1&&fv<0);
-        fxParts.push('<span style="color:'+(isGood?'#7A9A5A':'#9A5A4A')+';">'+fxMap[fk].fmt(fv)+'\u00a0'+fxMap[fk].label+'</span>');
+        fxParts.push('<span style="color:'+(isGood?(stressedPreview?'#6A8A4A':'#7A9A5A'):'#9A5A4A')+';">'+fxMap[fk].fmt(fv)+'\u00a0'+fxMap[fk].label+'</span>');
       }
     }
     fxEl.innerHTML=fxParts.join('');
