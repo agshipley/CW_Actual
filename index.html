@@ -234,7 +234,7 @@
       </div>
     </div>
     <div id="day-display"><span class="day-num" id="day-num">0</span><span class="day-label">Days</span><span id="time-display">8:00 AM</span></div>
-    <div id="interact-prompt"><div class="ip-name" id="ip-building-name"></div><button id="ip-repair-btn" style="display:none" onclick="repairBuilding()">Repair</button><button id="ip-rest-btn" style="display:none" onclick="restNarrator()">Rest</button><button id="ip-action-btn" style="display:none" onclick="interactWithBuilding()">Interact</button><button id="ip-enter-btn" style="display:none" onclick="enterBuilding()">Enter</button></div>
+    <div id="interact-prompt"><div class="ip-name" id="ip-building-name"></div><button id="ip-repair-btn" style="display:none" onclick="repairBuilding()">Repair</button><button id="ip-rest-btn" style="display:none" onclick="restNarrator()">Rest</button><button id="ip-action-btn" style="display:none" onclick="interactWithBuilding()">Interact</button><div id="ip-action-effects" style="font-size:9px;margin-top:4px;display:none;gap:6px;flex-wrap:wrap;"></div><button id="ip-enter-btn" style="display:none" onclick="enterBuilding()">Enter</button></div>
     <div id="interior-overlay">
       <div id="interior-header">
         <span class="int-room-name" id="interior-room-name"></span>
@@ -2520,14 +2520,36 @@ function updateInteractPrompt(){
   }else{
     restBtn.style.display="none";
   }
+  var fxEl=document.getElementById("ip-action-effects");
   if(action){
     var actionUsed=!!(state.usedBuildingActions&&state.usedBuildingActions[b.id]);
     actionBtn.style.display="block";
     actionBtn.textContent=actionUsed?action.label+" (done today)":action.label;
     actionBtn.disabled=onCooldown||actionUsed;
     actionBtn.style.opacity=(onCooldown||actionUsed)?"0.4":"1";
+    // Build effects preview
+    var fxMap={budget:{label:"budget",fmt:function(v){return(v>0?"+$":"-$")+Math.abs(v);}},
+               attendance:{label:"attendance",fmt:function(v){return(v>0?"+":"")+v;}},
+               gangThreat:{label:"threat",fmt:function(v){return(v>0?"+":"")+v;}},
+               morale:{label:"morale",fmt:function(v){return(v>0?"+":"")+v;}},
+               productivity:{label:"productivity",fmt:function(v){return(v>0?"+":"")+v;}},
+               approval:{label:"approval",fmt:function(v){return(v>0?"+":"")+v;}},
+               narratorStress:{label:"stress",fmt:function(v){return(v>0?"+":"")+v;}}};
+    var fxGood={budget:1,attendance:1,morale:1,productivity:1,approval:1,gangThreat:-1,narratorStress:-1};
+    var fxParts=[];
+    var fxE=action.effect;
+    for(var fk in fxMap){
+      if(fxE[fk]){
+        var fv=fxE[fk];
+        var isGood=(fxGood[fk]===1&&fv>0)||(fxGood[fk]===-1&&fv<0);
+        fxParts.push('<span style="color:'+(isGood?'#7A9A5A':'#9A5A4A')+';">'+fxMap[fk].fmt(fv)+'\u00a0'+fxMap[fk].label+'</span>');
+      }
+    }
+    fxEl.innerHTML=fxParts.join('');
+    fxEl.style.display=fxParts.length?"flex":"none";
   }else{
     actionBtn.style.display="none";
+    fxEl.style.display="none";
   }
   if(hasInterior){
     enterBtn.style.display="block";
