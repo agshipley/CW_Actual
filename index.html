@@ -2542,6 +2542,8 @@ function repairBuilding(){
   b.condition=Math.min(100,b.condition+25);
   state.log.push({day:state.day,title:"Repaired: "+b.name+" (+"+(25)+" condition)"});
   updateSidebar();updateLog();
+  state.gameTime+=30;if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}updateTimeDisplay();
+  document.getElementById("interact-prompt").style.display="none";
   interactCooldownUntil=Date.now()+2000;
 }
 
@@ -2553,6 +2555,8 @@ function restNarrator(){
   state.narratorStress=Math.max(0,state.narratorStress-10);
   state.log.push({day:state.day,title:"Rested at: "+(b?b.name:"building")});
   updateSidebar();updateLog();
+  state.gameTime+=60;if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}updateTimeDisplay();
+  document.getElementById("interact-prompt").style.display="none";
   interactCooldownUntil=Date.now()+10000;
 }
 
@@ -2578,6 +2582,8 @@ function interactWithBuilding(){
   }
   state.log.push({day:state.day,title:action.label+": "+b.name+(applyEffect?"":" (no effect)")});
   updateSidebar();updateLog();
+  state.gameTime+=30;if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}updateTimeDisplay();
+  document.getElementById("interact-prompt").style.display="none";
   interactCooldownUntil=Date.now()+2000;
 }
 
