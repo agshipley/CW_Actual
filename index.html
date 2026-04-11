@@ -2393,6 +2393,16 @@ function render(){
         ctx.fillStyle="#6a8a4a";ctx.fill();ctx.strokeStyle="rgba(0,0,0,0.4)";ctx.lineWidth=1;ctx.stroke();
       }
     });
+    // Condition bars on placed buildings (skip 100% and under-construction)
+    state.placedBuildings.forEach(function(pb){
+      if(pb.underConstruction)return;
+      var cond=pb.condition===undefined?100:pb.condition;
+      if(cond===100)return;
+      var pbx=pb.x*ms*cw,pby=pb.y*ms*ch,pbw=pb.w*ms*cw,pbh=pb.h*ms*ch;
+      var condCol=cond>=60?"#6a8a4a":(cond>=30?"#C8A040":"#CC4422");
+      ctx.fillStyle="rgba(0,0,0,0.30)";ctx.fillRect(pbx,pby+pbh+2,pbw,3);
+      ctx.fillStyle=condCol;ctx.fillRect(pbx,pby+pbh+2,Math.round(pbw*cond/100),3);
+    });
   }
   if(state.zoneMode&&state.selectedZone&&buildPreviewX!==undefined){
     var sz=state.selectedZone,zpw=0.12*ms*cw,zph=0.09*ms*ch;
