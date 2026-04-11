@@ -900,6 +900,23 @@ function applyMidnight(){
   if(!state.phase2Active){
     for(var i=0;i<state.placedBuildings.length;i++){var pb=state.placedBuildings[i];if(pb.condition===0||pb.underConstruction)continue;var d=pb.daily;if(d.budget)state.budget+=d.budget;if(d.attendance)state.attendance=clamp(state.attendance+d.attendance,0,100);if(d.gangThreat)state.gangThreat=clamp(state.gangThreat+d.gangThreat,0,100);if(d.morale)state.morale=clamp(state.morale+d.morale,0,100);if(d.approval&&state.townshipUnlocked)state.approval=clamp(state.approval+d.approval,0,100);}
   }else{applyPhase2Daily();}
+  // Interior upgrade daily effects
+  if(state.interiorUpgrades){
+    for(var uKey in state.interiorUpgrades){
+      if(!state.interiorUpgrades[uKey])continue;
+      var uParts=uKey.split(":");
+      var uBldgId=uParts[0],uObjId=uParts[1];
+      if(state.destroyedBuildings[uBldgId])continue;
+      var uBldg=findBuildingById(uBldgId);
+      if(uBldg&&uBldg.condition===0)continue;
+      var uInt=BUILDING_INTERIORS[uBldgId];
+      if(!uInt)continue;
+      for(var uOi=0;uOi<uInt.objects.length;uOi++){
+        var uObj=uInt.objects[uOi];
+        if(uObj.id===uObjId&&uObj.upgrade&&uObj.upgrade.dailyEffect){applyBuildingEffect(uObj.upgrade.dailyEffect);break;}
+      }
+    }
+  }
   // Small random drift
   state.attendance=clamp(state.attendance+Math.floor(Math.random()*3)-1,0,100);
   state.morale=clamp(state.morale+Math.floor(Math.random()*3)-1,0,100);
@@ -2377,13 +2394,13 @@ var BUILDING_INTERIORS = {
        upgrade:null},
       {id:"bigscreen", name:"The Bigscreen",     x:0.70, y:0.20, w:0.18, h:0.15, color:"#3A3A3A",
        desc:"The bigscreen. Mr. A watches it when he should be working. He watches it when he is working. The distinction has eroded.",
-       upgrade:{label:"Upgrade to Flat Panel \u2014 $3,000",cost:3000,effect:{morale:2,attendance:1},upgradedDesc:"The new flat panel. Mr. A says it makes him feel like a man who has made correct decisions. The content is the same."}},
+       upgrade:{label:"Upgrade to Flat Panel \u2014 $3,000",cost:3000,effect:{morale:2,attendance:1},dailyEffect:{attendance:1,productivity:-1},upgradedDesc:"The new flat panel. Mr. A says it makes him feel like a man who has made correct decisions. The content is the same."}},
       {id:"couch",     name:"The Office Couch",  x:0.15, y:0.55, w:0.15, h:0.08, color:"#7A6A52",
        desc:"The couch where Mr. A fell asleep the night the church burned. You mixed him a drink. Then another. He said it doesn\u2019t look good for men like you and I. He was right about that part.",
        upgrade:null},
       {id:"tank",      name:"The Corporate Tank",x:0.80, y:0.60, w:0.10, h:0.18, color:"#4E7068",
        desc:"The loach tank in the foyer. The kids try to get them to eat styrofoam. The loaches refuse. They are the most principled employees in the building.",
-       upgrade:{label:"New Fish \u2014 $500",cost:500,effect:{morale:1},upgradedDesc:"New fish. Tropical ones. They eat the styrofoam. The kids are delighted. The loaches are gone. Nobody asked where."}},
+       upgrade:{label:"New Fish \u2014 $500",cost:500,effect:{morale:1},dailyEffect:{morale:1},upgradedDesc:"New fish. Tropical ones. They eat the styrofoam. The kids are delighted. The loaches are gone. Nobody asked where."}},
       {id:"walkstick", name:"The Walking Stick",  x:0.28, y:0.30, w:0.04, h:0.14, color:"#5E3A1E",
        desc:"Mr. A\u2019s walking stick. He takes it to the Great Forest when he doesn\u2019t want to hear what you have to say. Which is often. The beeper goes with him. The beeper doesn\u2019t help.",
        upgrade:null}
@@ -2399,10 +2416,10 @@ var BUILDING_INTERIORS = {
        upgrade:null},
       {id:"basin",    name:"The Fake Marble Basin",    x:0.45, y:0.50, w:0.10, h:0.08, color:"#D4B878",
        desc:"The baptism font. Fake marble. We charge three hundred dollars to rent the room. The priest dips the baby\u2019s head in and for a moment everyone believes this is a real place where real things happen.",
-       upgrade:{label:"Replace with Real Marble \u2014 $2,000",cost:2000,effect:{budget:100,approval:2},upgradedDesc:"Real marble now. Cost a fortune. The baptisms feel more legitimate. Mr. A says the ROI on legitimacy is incalculable, which is another way of saying he hasn\u2019t calculated it."}},
+       upgrade:{label:"Replace with Real Marble \u2014 $2,000",cost:2000,effect:{budget:100,approval:2},dailyEffect:{budget:50},upgradedDesc:"Real marble now. Cost a fortune. The baptisms feel more legitimate. Mr. A says the ROI on legitimacy is incalculable, which is another way of saying he hasn\u2019t calculated it."}},
       {id:"mannequins",name:"The Mannequin Elderly Couple",x:0.75,y:0.55,w:0.10,h:0.14,color:"#8C7A68",
        desc:"The mannequin elderly couple clutching rosaries in the Invalid area. Justin in Prep keeps forgetting to remove them. The Foleys didn\u2019t notice. Other families have. One child asked if they were dead. Technically the answer is they were never alive, which is worse.",
-       upgrade:{label:"Remove Mannequins \u2014 $100",cost:100,effect:{attendance:2},upgradedDesc:"The mannequins are gone. The Invalid area is just an area now. It\u2019s not clear this is an improvement."}},
+       upgrade:{label:"Remove Mannequins \u2014 $100",cost:100,effect:{attendance:2},dailyEffect:{attendance:1,morale:-1},upgradedDesc:"The mannequins are gone. The Invalid area is just an area now. It\u2019s not clear this is an improvement."}},
       {id:"draperies",name:"The White Draperies",       x:0.10, y:0.20, w:0.08, h:0.40, color:"#D4D0C4",
        desc:"White draperies. We put them up to hide the original Siala woodwork, which featured carvings of their communal practices. The carvings were anatomically ambitious. The draperies are fire-retardant. This has become a relevant feature.",
        upgrade:null},
@@ -2411,7 +2428,7 @@ var BUILDING_INTERIORS = {
        upgrade:null},
       {id:"speaker",  name:"The Brahms Speaker",        x:0.20, y:0.70, w:0.06, h:0.06, color:"#5E6E7C",
        desc:"The speaker that pipes in Brahms. The volume knob broke in 1988. It has been playing at the same mezzo-piano for seven years. Brahms would have had opinions about this. We do not consult Brahms.",
-       upgrade:{label:"Fix Volume Knob \u2014 $200",cost:200,effect:{morale:1,attendance:1},upgradedDesc:"The volume knob works now. You can make Brahms louder or quieter. This is more power than anyone in this building has had since the Sialians."}}
+       upgrade:{label:"Fix Volume Knob \u2014 $200",cost:200,effect:{morale:1,attendance:1},dailyEffect:{morale:1},upgradedDesc:"The volume knob works now. You can make Brahms louder or quieter. This is more power than anyone in this building has had since the Sialians."}}
     ]
   },
   saloon: {
@@ -2421,10 +2438,10 @@ var BUILDING_INTERIORS = {
     objects: [
       {id:"bar",       name:"The Bar",                x:0.30, y:0.35, w:0.25, h:0.08, color:"#6A4228",
        desc:"Nate\u2019s bar. The wood is original to Clydesville. The glasses are from a restaurant supply catalog. The frontier stew is mostly potato. On good days it\u2019s entirely potato. On bad days it\u2019s potato and something else.",
-       upgrade:{label:"Restock the Top Shelf \u2014 $1,500",cost:1500,effect:{morale:3,budget:-50},upgradedDesc:"The top shelf has been restocked. Mr. A has already been through twice. The morale improvement is measurable. The budget impact is also measurable."}},
+       upgrade:{label:"Restock the Top Shelf \u2014 $1,500",cost:1500,effect:{morale:3,budget:-50},dailyEffect:{morale:2,budget:-50},upgradedDesc:"The top shelf has been restocked. Mr. A has already been through twice. The morale improvement is measurable. The budget impact is also measurable."}},
       {id:"stage",     name:"The Cancan Stage",       x:0.55, y:0.15, w:0.20, h:0.12, color:"#8C6238",
        desc:"The stage. Nine cancan girls, now seven due to scheduling complications Sylvia told you not to spread around. The remaining seven perform nightly. The choreography has been adjusted. The audience has not noticed, or is being kind.",
-       upgrade:{label:"Repair Stage Boards \u2014 $800",cost:800,effect:{attendance:3,morale:1},upgradedDesc:"The stage boards no longer creak during the high kicks. This was a safety issue that had been reclassified as a feature. It has now been reclassified back."}},
+       upgrade:{label:"Repair Stage Boards \u2014 $800",cost:800,effect:{attendance:3,morale:1},dailyEffect:{attendance:2},upgradedDesc:"The stage boards no longer creak during the high kicks. This was a safety issue that had been reclassified as a feature. It has now been reclassified back."}},
       {id:"sylvia_booth",name:"Sylvia\u2019s Corner Booth",x:0.10,y:0.55,w:0.12,h:0.10,color:"#5E4A38",
        desc:"The booth where Sylvia sits when she has information. She always has information. She pulls out her folder and says according to her review of the data, and then your day gets worse. She enjoys this. She calls herself an S&M buff in training. You believe her.",
        upgrade:null},
@@ -2433,7 +2450,7 @@ var BUILDING_INTERIORS = {
        upgrade:null},
       {id:"jukebox",   name:"The Jukebox",            x:0.85, y:0.30, w:0.08, h:0.14, color:"#7A6A52",
        desc:"The jukebox. It plays exclusively Civil War era songs, or rather, songs that someone in 1975 believed were Civil War era. Several are from World War I. One is clearly a Beach Boys song with different lyrics. Nobody has complained. This is not a place where people come to complain about the jukebox.",
-       upgrade:{label:"Update the Song List \u2014 $400",cost:400,effect:{morale:2},upgradedDesc:"New songs. Still historically dubious. Quinn has requested the addition of selections from Cats. This request has been noted and filed."}}
+       upgrade:{label:"Update the Song List \u2014 $400",cost:400,effect:{morale:2},dailyEffect:{morale:1},upgradedDesc:"New songs. Still historically dubious. Quinn has requested the addition of selections from Cats. This request has been noted and filed."}}
     ]
   }
 };
@@ -2634,6 +2651,19 @@ function updateInteriorPanel(){
   if(obj.upgrade&&!isUpgraded){
     var canAfford=state.budget>=obj.upgrade.cost;
     html+='<button class="int-upgrade-btn'+(canAfford?'':' cant-afford')+'" '+(canAfford?'onclick="doInteriorUpgrade()"':'')+'>'+obj.upgrade.label+'</button>';
+    if(obj.upgrade.dailyEffect){
+      var de=obj.upgrade.dailyEffect;
+      var deLabels={budget:'budget',attendance:'attendance',morale:'morale',gangThreat:'threat',productivity:'productivity',approval:'approval'};
+      var deHtml='';
+      for(var dk in deLabels){
+        if(de[dk]){
+          var dv=de[dk];
+          var dc=dv>0?'#6a8a4a':'#9a5a4a';
+          deHtml+='<span style="color:'+dc+';font-size:10px;">'+(dv>0?'+':'')+dv+'\u00a0'+deLabels[dk]+'/day</span> ';
+        }
+      }
+      if(deHtml)html+='<div style="margin-top:5px;line-height:1.9;">'+deHtml+'</div>';
+    }
   }
   el.innerHTML=html;
 }
