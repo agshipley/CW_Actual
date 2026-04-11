@@ -2526,6 +2526,28 @@ var BUILDING_INTERIORS = {
        upgrade:{label:"Update the Song List \u2014 $400",cost:400,effect:{morale:2},dailyEffect:{morale:1},upgradedDesc:"New songs. Still historically dubious. Quinn has requested the addition of selections from Cats. This request has been noted and filed."}}
     ]
   },
+  general: {
+    name: "General Store \u2014 Fred Moore\u2019s Domain",
+    bgColor: "#2A2014",
+    floorColor: "#5E4A30",
+    objects: [
+      {id:"penny_candy",  name:"The Penny Candy Display",         x:0.25, y:0.30, w:0.20, h:0.10, color:"#D4B878",
+       desc:"The penny candy display. Saltwater taffy, hard tasteless frontier candy, wooden whistles, toy soldiers made of soap. A kid pulled a butter knife on Fred Moore for a handful of this. Samuel killed him for it. The candy remains. It always remains.",
+       upgrade:null},
+      {id:"freds_counter",name:"Fred\u2019s Counter",             x:0.50, y:0.40, w:0.25, h:0.08, color:"#6A4A28",
+       desc:"Fred Moore\u2019s counter. Fred alerts Mr. A of Revenue Impacting Events. Fred performs Exit Sealage. Fred does what Fred is told. Fred has not had a raise in four years and does not expect one. Fred is correct.",
+       upgrade:{label:"New Cash Register \u2014 $600",cost:600,effect:{budget:200},dailyEffect:{budget:15},upgradedDesc:"The new register. It has a digital display. Fred says it makes him feel like they\u2019re in the twentieth century, which technically they are, but you take his point."}},
+      {id:"shelves",      name:"The Shelves",                     x:0.10, y:0.20, w:0.10, h:0.35, color:"#8C6238",
+       desc:"The shelves. Stocked with period-appropriate goods and period-inappropriate goods that have been relabeled. A bottle of Windex is now Frontier Glass Tonic. A bag of Doritos is Pioneer Corn Crisps. Nobody has complained. The Doritos sell well.",
+       upgrade:{label:"Restock Premium Items \u2014 $1,000",cost:1000,effect:{attendance:2},dailyEffect:{budget:25,attendance:1},upgradedDesc:"Premium items on the top shelf. Replica musket balls, commemorative plates, a coffee mug that says \u2018I Survived CivilWarLand\u2019 which is technically aspirational rather than factual for most visitors."}},
+      {id:"butter_knives",name:"The Butter Knife Rack",           x:0.78, y:0.35, w:0.08, h:0.12, color:"#7A7A6A",
+       desc:"The butter knife display. After the incident, Mr. A considered removing them. Then he considered the precedent. Then he considered the markup. The butter knives stayed.",
+       upgrade:null},
+      {id:"rie_log",      name:"The Revenue Impacting Event Log", x:0.75, y:0.60, w:0.12, h:0.08, color:"#5E4A38",
+       desc:"Fred\u2019s log of Revenue Impacting Events. Meticulous. Every stolen jawbreaker documented with date, time, and estimated retail value. The log for this quarter is thinner than last quarter\u2019s. Fred considers this progress. You consider it evidence of reduced foot traffic.",
+       upgrade:null}
+    ]
+  },
   thespian: {
     name: "Thespian Center \u2014 Quinn\u2019s Domain",
     bgColor: "#2E2418",
