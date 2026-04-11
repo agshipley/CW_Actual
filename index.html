@@ -1615,8 +1615,44 @@ function updateInfoPanel(){
     }
     if(cap===0){h+='<div style="font-size:9px;color:#4a5a3a;margin-top:4px;font-style:italic;">Cannot be staffed.</div>';}
     h+='</div>';
+    var syns=getSynergiesForBuilding(b);
+    if(syns.length){
+      h+='<div style="margin-top:5px;font-size:9px;color:#5A4A3A;"><span style="color:#8A6A44;">Synergies</span><br>';
+      for(var si=0;si<syns.length;si++){var sy=syns[si];h+='<div style="margin-top:2px;color:'+(sy.active?"#7A9A5A":"#4A3A2A")+';">'+(sy.active?"&#10003; ":"&#9675; ")+sy.label+' <span style="color:'+(sy.active?"#7A9A5A":"#4A3A2A")+';">'+sy.effectStr+'</span></div>';}
+      h+='</div>';
+    }
   }
   p.innerHTML=h;
+}
+
+// Returns array of {label, effectStr, active} for display in building info panel.
+// Only returns entries relevant to the given building.
+function getSynergiesForBuilding(b){
+  var results=[];
+  if(!state.townshipUnlocked)return results;
+  var typeId=b.typeId||b.id;
+  var bx=b.x+(b.w||0)/2,by=b.y+(b.h||0)/2;
+  // Clinic + Residential Zone → +1 approval/day
+  if(typeId==="clinic"){
+    var active=false;
+    for(var i=0;i<state.placedZones.length;i++){
+      var z=state.placedZones[i];if(z.type!=="residential")continue;
+      var zx=z.x+z.w/2,zy=z.y+z.h/2;
+      if(Math.sqrt((bx-zx)*(bx-zx)+(by-zy)*(by-zy))<0.20){active=true;break;}
+    }
+    results.push({label:"Clinic + Residential Zone",effectStr:"+1 approval/day",active:active});
+  }
+  // School + Residential Zone → +pop growth (placeholder; pop growth system TBD)
+  if(typeId==="school"){
+    var active=false;
+    for(var i=0;i<state.placedZones.length;i++){
+      var z=state.placedZones[i];if(z.type!=="residential")continue;
+      var zx=z.x+z.w/2,zy=z.y+z.h/2;
+      if(Math.sqrt((bx-zx)*(bx-zx)+(by-zy)*(by-zy))<0.25){active=true;break;}
+    }
+    results.push({label:"School + Residential Zone",effectStr:"+pop growth",active:active});
+  }
+  return results;
 }
 
 function updateLog(){

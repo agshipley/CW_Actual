@@ -1,7 +1,7 @@
 # AUTONOMOUS DEVELOPMENT LOOP
 ## CivilWarLand — Self-Directed Implementation
 
-**To start:** Open Claude Code in `~/projects/civilwarland/` and say:
+**To start:** Open Claude Code in `~/Desktop/Projects/CW_Actual/` and say:
 ```
 Read AUTONOMOUS.md and begin the loop.
 ```
