@@ -266,6 +266,10 @@
       <div class="stat-row"><span class="stat-name" id="lbl-stress">Stress</span><span class="stat-val" id="s-stress">20%</span></div>
       <div class="stat-bar"><div class="stat-bar-fill" id="bar-stress" style="width:20%;background:#aa5a3a;"></div></div>
     </div>
+    <div class="sb-section" id="thoughts-section" style="display:none">
+      <div class="sb-label">Narrator's Thoughts</div>
+      <div id="thoughts-list"></div>
+    </div>
     <div class="sb-section" id="daily-action-section">
       <div class="sb-label">Today's Order</div>
       <div id="daily-action-buttons"></div>
@@ -325,6 +329,7 @@ var state = {
   usedBuildingActions: {},
   repairedToday: {},
   todaysAction: null,
+  narratorThoughts: [],
   interiorNarratorX: 0.5, interiorNarratorY: 0.85,
   interiorNarratorTX: 0.5, interiorNarratorTY: 0.85,
   interiorWalkingTo: null,
@@ -559,6 +564,29 @@ var DAILY_ACTIONS = [
   {id:"staff",title:"Manage the Staff",desc:"Spend time soothing nerves, smoothing conflict, keeping people functional.",effect:{budget:-300,attendance:0,gangThreat:0,morale:8}},
   {id:"cuts",title:"Cut Corners",desc:"Save money now and let tomorrow absorb the damage.",effect:{budget:500,attendance:-4,gangThreat:3,morale:-6}}
 ];
+
+// Narrator's Thoughts — earned through specific choices. Persist for the playthrough. Provide daily effects.
+// Content authored per PHASE1_STYLE.md. Max 4 active thoughts.
+var NARRATOR_THOUGHTS = {
+  "flags_warm": {
+    text: "The flags are warm.",
+    desc: "You wrapped Quinn in a Confederate flag. It was warm.",
+    flagTrigger: "foley_massacre",
+    effect: {narratorStress: -1}
+  },
+  "dont_personal": {
+    text: "Don't take this too personal.",
+    desc: "You know what Samuel does. You can't unknow it.",
+    flagTrigger: "samuel_armed",
+    effect: {morale: -2}
+  },
+  "investing_future": {
+    text: "We're investing in the future.",
+    desc: "Mr. A's delusion has become operational. Revenue: +$100/day.",
+    specialTrigger: "deficit",
+    effect: {budget: 100}
+  }
+};
 
 // === MINOR EVENTS — flavor from the story, fire on non-story days ===
 var MINOR_EVENTS = [
@@ -806,7 +834,7 @@ function startGame(){
   if(debugMode)document.getElementById("debug-panel").style.display="block";
   updateTimeDisplay();
   setSpeed(0);
-  renderDailyActions();
+  checkNarratorThoughts();renderDailyActions();
   startDrone();
   gameLoop();
   if(!state.flags.tutorial_done)showTutorialStep(0);
@@ -873,6 +901,8 @@ function dismissMinorEvent(){
 
 function applyMidnight(){
   state.usedBuildingActions={};state.repairedToday={};state.todaysAction=null;state.narratorEnergy=100;
+  // Apply narrator thought daily effects
+  if(state.narratorThoughts){for(var nti=0;nti<state.narratorThoughts.length;nti++){var ntd=NARRATOR_THOUGHTS[state.narratorThoughts[nti]];if(!ntd)continue;var nte=ntd.effect;if(nte.budget)state.budget+=nte.budget;if(nte.morale)state.morale=clamp(state.morale+nte.morale,0,100);if(nte.narratorStress)state.narratorStress=clamp(state.narratorStress+nte.narratorStress,0,100);}}
   state.day+=1;
   // Weather cycling
   state.weatherDaysLeft--;
@@ -995,6 +1025,7 @@ function applyMidnight(){
       var fW=checkFailState();if(fW){dismissMinorEvent();showFailEnd(fW);return;}
     }
     else if(state.deficitDays>=5){
+      if(state.narratorThoughts&&state.narratorThoughts.indexOf("investing_future")<0&&state.narratorThoughts.length<4){state.narratorThoughts.push("investing_future");}
       state.deficitDays=0;
       var defMe={title:"DEFICIT SPENDING",text:"Mr. A says we're investing in the future. The future, you note, has been getting more expensive every quarter. He says that's what futures do.",effect:{budget:0,attendance:0,gangThreat:0,morale:-3,approval:0}};
       state.morale=clamp(state.morale+defMe.effect.morale,0,100);
@@ -1080,7 +1111,7 @@ function sndThud(){
 // ──────────────────────────────────────────────────────────────
 
 var SAVE_KEY="civilwarland_save";
-var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns","productivity","phase2Active","charAssignedTo","charConsecutiveDays","charEventsFired","arrivedChars","interiorUpgrades","usedBuildingActions","repairedToday","todaysAction"];
+var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns","productivity","phase2Active","charAssignedTo","charConsecutiveDays","charEventsFired","arrivedChars","interiorUpgrades","usedBuildingActions","repairedToday","todaysAction","narratorThoughts"];
 
 function saveGame(){
   var s={};
@@ -1114,6 +1145,7 @@ function loadGame(){
   if(!state.charConsecutiveDays)state.charConsecutiveDays={};
   if(!state.charEventsFired)state.charEventsFired={};
   if(!state.arrivedChars)state.arrivedChars={};
+  if(!state.narratorThoughts)state.narratorThoughts=[];
   state.gamePaused=true;state.weatherEventPending=false;
   // Boot into game
   document.getElementById("title-screen").style.display="none";
@@ -1130,7 +1162,7 @@ function loadGame(){
   }
   document.getElementById("day-num").textContent=state.day;
   updateTimeDisplay();setSpeed(0);updateSidebar();updateLog();
-  renderDailyActions();
+  checkNarratorThoughts();renderDailyActions();
   startDrone();
   gameLoop();
 }
@@ -1207,6 +1239,7 @@ function makeChoice(day,idx){
   if(c.effect.morale)state.morale=clamp(state.morale+c.effect.morale,0,100);
   if(c.effect.stress)state.narratorStress=clamp(state.narratorStress+c.effect.stress,0,100);
   if(c.flag)state.flags[c.flag]=true;
+  checkNarratorThoughts();
   if(c.destroy){
     var hasFireStation=false;
     for(var fsi=0;fsi<state.placedBuildings.length;fsi++){if(state.placedBuildings[fsi].typeId==="fire_station"){hasFireStation=true;break;}}
@@ -1526,6 +1559,7 @@ function updateSidebar(){
   var stressLbl=document.getElementById("lbl-stress");
   if(stressLbl){stressLbl.style.color=state.narratorStress>=70?"#DD4422":(state.narratorStress>=50?"#C8A040":"");}
   updateBudgetTooltip();
+  updateThoughtsPanel();
 }
 
 function updateInfoPanel(){
@@ -1582,6 +1616,31 @@ function updateLog(){
   var h="";
   for(var i=state.log.length-1;i>=0;i--)h+='<div class="log-entry"><span class="log-day">Day '+state.log[i].day+'</span>'+state.log[i].title+'</div>';
   document.getElementById("log-entries").innerHTML=h;
+}
+
+function checkNarratorThoughts(){
+  if(!state.narratorThoughts)state.narratorThoughts=[];
+  for(var tid in NARRATOR_THOUGHTS){
+    if(state.narratorThoughts.indexOf(tid)>=0)continue;
+    if(state.narratorThoughts.length>=4)break;
+    var t=NARRATOR_THOUGHTS[tid];
+    if(t.flagTrigger&&state.flags[t.flagTrigger]){state.narratorThoughts.push(tid);}
+  }
+}
+
+function updateThoughtsPanel(){
+  var sec=document.getElementById("thoughts-section");
+  var list=document.getElementById("thoughts-list");
+  if(!sec||!list)return;
+  if(!state.narratorThoughts||state.narratorThoughts.length===0){sec.style.display="none";return;}
+  sec.style.display="block";
+  var h="";
+  for(var i=0;i<state.narratorThoughts.length;i++){
+    var t=NARRATOR_THOUGHTS[state.narratorThoughts[i]];
+    if(!t)continue;
+    h+='<div style="margin-bottom:8px;"><div style="font-style:italic;color:#C8B878;font-size:11px;">\u201c'+t.text+'\u201d</div><div style="font-size:9px;color:#5A4A3A;margin-top:2px;">'+t.desc+'</div></div>';
+  }
+  list.innerHTML=h;
 }
 
 function renderDailyActions(){
@@ -3579,6 +3638,7 @@ function makePhase2Choice(eventId,idx){
   }
   if(c.flag)state.charEventsFired[c.flag]=true;
   if(c.setFlag)state.flags[c.setFlag]=true;
+  checkNarratorThoughts();
   state.log.push({day:state.day,title:ev.title+" \u2192 "+c.label});
   document.getElementById("event-overlay").classList.remove("active");
   state.eventActive=false;updateSidebar();updateLog();
