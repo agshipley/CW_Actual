@@ -674,7 +674,13 @@ var EVENTS = [
     {label:"Grab the boys and run",text:"You scoop up the kids and sprint for City Hall. Samuel fires anyway. One bird-watcher is wounded. But your boys are safe. For now.",effect:{budget:-5000,attendance:-22,gangThreat:5,morale:-18,stress:10}}]},
   {day:28,title:"EVELYN LEAVES",text:"Her note: 'I could never forgive you for putting our sons at risk. Good-bye forever you passive flake. Norm Hinkle has been a source of strength for several years, if you know what I mean.'",choices:[
     {label:"Go after them",text:"You drive to Hinkle's. Evelyn won't come to the door. Marcus waves from an upstairs window. You sit in the car until dawn. You accomplish nothing.",effect:{budget:0,attendance:-5,gangThreat:3,morale:-18,stress:8}},
-    {label:"Go back to work",text:"There is nothing left but the park. You sleep on your office floor. The janitor steps over you in the morning.",effect:{budget:0,attendance:0,gangThreat:0,morale:-12,stress:8},flag:"married_to_job"}]}
+    {label:"Go back to work",text:"There is nothing left but the park. You sleep on your office floor. The janitor steps over you in the morning.",effect:{budget:0,attendance:0,gangThreat:0,morale:-12,stress:8},flag:"married_to_job"}]},
+  {day:11,condition:"quinn_armed",title:"QUINN'S VEST",text:"Quinn is sleeping in the Thespian Center. He won't take off the vest.",choices:[
+    {label:"Continue",text:"",effect:{morale:-1}}]},
+  {day:14,condition:"grayson_fired",title:"THE EMPTY POST",text:"You pass his empty observation post. The orioles are there. He is not.",choices:[
+    {label:"Continue",text:"",effect:{morale:-1}}]},
+  {day:18,condition:"insurance_fraud",title:"THE INSPECTOR",text:"The insurance inspector's car is in the parking lot again.",choices:[
+    {label:"Continue",text:"",effect:{narratorStress:5}}]}
 ];
 
 var TOWNSHIP_EVENTS = [
@@ -1238,6 +1244,7 @@ function makeChoice(day,idx){
   if(c.effect.gangThreat)state.gangThreat=clamp(state.gangThreat+c.effect.gangThreat,0,100);
   if(c.effect.morale)state.morale=clamp(state.morale+c.effect.morale,0,100);
   if(c.effect.stress)state.narratorStress=clamp(state.narratorStress+c.effect.stress,0,100);
+  if(c.effect.narratorStress)state.narratorStress=clamp(state.narratorStress+c.effect.narratorStress,0,100);
   if(c.flag)state.flags[c.flag]=true;
   checkNarratorThoughts();
   if(c.destroy){
