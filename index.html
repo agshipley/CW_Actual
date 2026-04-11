@@ -2797,8 +2797,10 @@ function interactWithBuilding(){
 // ── Interior system ───────────────────────────────────────────
 function enterBuilding(){
   var buildingId=document.getElementById("interact-prompt").dataset.buildingId;
-  if(!buildingId||!BUILDING_INTERIORS[buildingId])return;
-  state.activeInterior=buildingId;
+  var interiorKey=BUILDING_INTERIORS[buildingId]?buildingId:null;
+  if(!interiorKey){var bb=findBuildingById(buildingId);if(bb&&bb.typeId&&BUILDING_INTERIORS[bb.typeId])interiorKey=bb.typeId;}
+  if(!interiorKey)return;
+  state.activeInterior=interiorKey;
   state.selectedInteriorObj=null;
   state.hoveredInteriorObj=null;
   state.interiorNarratorX=0.5;state.interiorNarratorY=0.85;
@@ -2807,7 +2809,7 @@ function enterBuilding(){
   interiorNotification=null;
   state.gamePaused=true;
   document.getElementById("interact-prompt").style.display="none";
-  var interior=BUILDING_INTERIORS[buildingId];
+  var interior=BUILDING_INTERIORS[interiorKey];
   document.getElementById("interior-room-name").textContent=interior.name;
   document.getElementById("interior-info-content").innerHTML='<span class="int-hint">Click an object to examine it.</span>';
   document.getElementById("interior-overlay").classList.add("active");
