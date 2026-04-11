@@ -165,6 +165,19 @@
     .p2-btn{background:none;border:1px solid #5a6a48;color:#b0a888;padding:3px 10px;font-family:Georgia,serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;margin-right:4px;margin-bottom:4px;}
     .p2-btn:hover{border-color:#8a9a6a;color:#c4c4a8;}
     .p2-eff{font-size:9px;color:#7a8a6a;line-height:1.6;margin-top:4px;}
+    /* Interior overlay */
+    #interior-overlay{display:none;position:absolute;bottom:0;left:0;right:0;background:rgba(26,20,14,0.97);border-top:2px solid #3A2A1E;padding:14px 16px 14px;z-index:20;min-height:90px;}
+    #interior-overlay.active{display:block;}
+    #interior-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+    .int-room-name{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:#8A6A44;}
+    .int-leave-btn{background:rgba(46,30,18,0.92);border:1px solid #6A5038;color:#C8B878;padding:6px 16px;font-family:Georgia,serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,220,160,0.07),0 1px 4px rgba(0,0,0,0.35);}
+    .int-leave-btn:hover{border-color:#C8B878;background:rgba(80,52,28,0.92);}
+    .int-hint{font-size:11px;color:#5A4A3A;font-style:italic;}
+    .int-obj-name{font-size:14px;color:#D4B878;margin-bottom:6px;}
+    .int-obj-desc{font-size:12px;color:#8A7A62;line-height:1.7;font-style:italic;}
+    .int-upgrade-btn{margin-top:10px;background:rgba(140,98,56,0.08);border:1px solid #8C6238;color:#2E241E;padding:8px 16px;font-family:Georgia,serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:block;}
+    .int-upgrade-btn:hover{background:rgba(140,98,56,0.18);border-color:#2E241E;}
+    .int-upgrade-btn.cant-afford{opacity:0.4;cursor:not-allowed;}
   </style>
 </head>
 <body>
@@ -221,7 +234,14 @@
       </div>
     </div>
     <div id="day-display"><span class="day-num" id="day-num">0</span><span class="day-label">Days</span><span id="time-display">8:00 AM</span></div>
-    <div id="interact-prompt"><div class="ip-name" id="ip-building-name"></div><button id="ip-repair-btn" style="display:none" onclick="repairBuilding()">Repair</button><button id="ip-rest-btn" style="display:none" onclick="restNarrator()">Rest</button><button id="ip-action-btn" style="display:none" onclick="interactWithBuilding()">Interact</button></div>
+    <div id="interact-prompt"><div class="ip-name" id="ip-building-name"></div><button id="ip-repair-btn" style="display:none" onclick="repairBuilding()">Repair</button><button id="ip-rest-btn" style="display:none" onclick="restNarrator()">Rest</button><button id="ip-action-btn" style="display:none" onclick="interactWithBuilding()">Interact</button><button id="ip-enter-btn" style="display:none" onclick="enterBuilding()">Enter</button></div>
+    <div id="interior-overlay">
+      <div id="interior-header">
+        <span class="int-room-name" id="interior-room-name"></span>
+        <button class="int-leave-btn" onclick="leaveBuilding()">&#x2190; Leave</button>
+      </div>
+      <div id="interior-info-content"><span class="int-hint">Click an object to examine it.</span></div>
+    </div>
   </div>
   <div id="sidebar">
     <div class="sb-section">
@@ -294,6 +314,10 @@ var state = {
   charConsecutiveDays: {},
   charEventsFired: {},
   arrivedChars: {},
+  activeInterior: null,
+  selectedInteriorObj: null,
+  hoveredInteriorObj: null,
+  interiorUpgrades: {},
 };
 
 var BUILDABLE_STRUCTURES = [
@@ -858,10 +882,20 @@ function applyMidnight(){
   // Building condition decay
   var extraDecay=state.gangThreat>50?2:0;
   BUILDINGS.forEach(function(b){if(!state.destroyedBuildings[b.id]&&b.condition!==undefined)b.condition=Math.max(0,b.condition-(1+Math.floor(Math.random()*4))-extraDecay);});
-  state.placedBuildings.forEach(function(b){b.condition=Math.max(0,b.condition-(1+Math.floor(Math.random()*4))-extraDecay);});
-  // Placed building daily effects (skip condemned)
+  state.placedBuildings.forEach(function(b){if(b.underConstruction)return;b.condition=Math.max(0,b.condition-(1+Math.floor(Math.random()*4))-extraDecay);});
+  // Construction timer
+  state.placedBuildings.forEach(function(pb){
+    if(!pb.underConstruction)return;
+    pb.constructionDaysLeft--;
+    if(pb.constructionDaysLeft<=0){
+      pb.underConstruction=false;
+      state.log.push({day:state.day,title:"Construction complete: "+pb.name});
+      canvasNotifications.push({text:"COMPLETE: "+pb.name.toUpperCase(),x:pb.x+pb.w/2,y:pb.y,born:Date.now()});
+    }
+  });
+  // Placed building daily effects (skip condemned, skip under construction)
   if(!state.phase2Active){
-    for(var i=0;i<state.placedBuildings.length;i++){var pb=state.placedBuildings[i];if(pb.condition===0)continue;var d=pb.daily;if(d.budget)state.budget+=d.budget;if(d.attendance)state.attendance=clamp(state.attendance+d.attendance,0,100);if(d.gangThreat)state.gangThreat=clamp(state.gangThreat+d.gangThreat,0,100);if(d.morale)state.morale=clamp(state.morale+d.morale,0,100);if(d.approval&&state.townshipUnlocked)state.approval=clamp(state.approval+d.approval,0,100);}
+    for(var i=0;i<state.placedBuildings.length;i++){var pb=state.placedBuildings[i];if(pb.condition===0||pb.underConstruction)continue;var d=pb.daily;if(d.budget)state.budget+=d.budget;if(d.attendance)state.attendance=clamp(state.attendance+d.attendance,0,100);if(d.gangThreat)state.gangThreat=clamp(state.gangThreat+d.gangThreat,0,100);if(d.morale)state.morale=clamp(state.morale+d.morale,0,100);if(d.approval&&state.townshipUnlocked)state.approval=clamp(state.approval+d.approval,0,100);}
   }else{applyPhase2Daily();}
   // Small random drift
   state.attendance=clamp(state.attendance+Math.floor(Math.random()*3)-1,0,100);
@@ -1017,7 +1051,7 @@ function sndThud(){
 // ──────────────────────────────────────────────────────────────
 
 var SAVE_KEY="civilwarland_save";
-var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns","productivity","phase2Active","charAssignedTo","charConsecutiveDays","charEventsFired","arrivedChars"];
+var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns","productivity","phase2Active","charAssignedTo","charConsecutiveDays","charEventsFired","arrivedChars","interiorUpgrades"];
 
 function saveGame(){
   var s={};
@@ -1038,6 +1072,8 @@ function loadGame(){
   // Restore non-saveable transient state
   state.selectedBuilding=null;state.gameOver=false;state.eventActive=false;
   state.buildMode=false;state.selectedBuildable=null;state.zoneMode=false;state.selectedZone=null;
+  state.activeInterior=null;state.selectedInteriorObj=null;state.hoveredInteriorObj=null;
+  if(!state.interiorUpgrades)state.interiorUpgrades={};
   if(state.productivity===undefined)state.productivity=50;
   if(!state.charAssignedTo)state.charAssignedTo={};
   if(!state.charConsecutiveDays)state.charConsecutiveDays={};
@@ -1277,6 +1313,16 @@ var RESIDENT_LINES = [
 ];
 
 function onCanvasMouseMove(e){
+  if(state.activeInterior){
+    var r=canvas.getBoundingClientRect();
+    var mx_px=e.clientX-r.left,my_px=e.clientY-r.top;
+    var interior=BUILDING_INTERIORS[state.activeInterior];
+    var hovered=null;
+    if(interior){interior.objects.forEach(function(obj){if(mx_px>=obj.x*cw&&mx_px<=(obj.x+obj.w)*cw&&my_px>=obj.y*ch&&my_px<=(obj.y+obj.h)*ch)hovered=obj.id;});}
+    state.hoveredInteriorObj=hovered;
+    canvas.style.cursor=hovered?"pointer":"default";
+    return;
+  }
   if(!state.buildMode&&!state.zoneMode)return;
   var ms=state.mapScale||1;
   var r=canvas.getBoundingClientRect();
@@ -1293,6 +1339,11 @@ function placedBuildingOverlaps(nx,ny,nw,nh){
 }
 
 function onCanvasClick(e){
+  if(state.activeInterior){
+    var r=canvas.getBoundingClientRect();
+    onInteriorClick(e.clientX-r.left,e.clientY-r.top);
+    return;
+  }
   var ms=state.mapScale||1;
   var r=canvas.getBoundingClientRect(),mx=(e.clientX-r.left)/cw/ms,my=(e.clientY-r.top)/ch/ms;
 
@@ -1319,10 +1370,11 @@ function onCanvasClick(e){
     var worldMax=1/ms;
     if(bx<0.02||by<0.02||bx+bw>worldMax-0.02||by+bh>worldMax-0.02){return;}
     if(placedBuildingOverlaps(bx,by,bw,bh)){return;}
+    for(var cbi=0;cbi<state.placedBuildings.length;cbi++){if(state.placedBuildings[cbi].underConstruction)return;}
     var placeCost=getActualCost(s.cost);
     if(state.budget<placeCost){return;}
     state.budget-=placeCost;
-    state.placedBuildings.push({id:"placed_"+Date.now(),typeId:s.id,name:s.name,x:bx,y:by,w:bw,h:bh,color:s.color,roof:s.roof,desc:s.desc,daily:s.daily,condition:100,restable:s.restable||false});
+    state.placedBuildings.push({id:"placed_"+Date.now(),typeId:s.id,name:s.name,x:bx,y:by,w:bw,h:bh,color:s.color,roof:s.roof,desc:s.desc,daily:s.daily,condition:100,restable:s.restable||false,underConstruction:true,constructionDaysLeft:3});
     if(s.id==="school")state.flags.school_built=true;
     state.log.push({day:state.day,title:"Built: "+s.name});
     canvasNotifications.push({text:"BUILT: "+s.name.toUpperCase(),x:mx,y:my,born:Date.now()});sndPlace();
@@ -1362,9 +1414,9 @@ function selectBuildable(id){
   renderBuildMenu();
 }
 
-function buildItemHTML(s){
+function buildItemHTML(s,constructionLock){
   var actualCost=getActualCost(s.cost);
-  var canAfford=state.budget>=actualCost;
+  var canAfford=state.budget>=actualCost&&!constructionLock;
   var sel=state.selectedBuildable&&state.selectedBuildable.id===s.id;
   var fx='<div class="build-item-effects">';
   if(s.daily.attendance)fx+='<span class="'+(s.daily.attendance>0?"eff-pos":"eff-neg")+'">Attendance '+(s.daily.attendance>0?"+":"")+s.daily.attendance+'/day</span>';
@@ -1382,16 +1434,19 @@ function buildItemHTML(s){
 }
 
 function renderBuildMenu(){
-  if(state.buildMode&&state.selectedBuildable){
+  var constructionLock=state.placedBuildings.some(function(pb){return pb.underConstruction;});
+  if(constructionLock){
+    document.getElementById("build-hint").textContent="Construction in progress. Wait for the current building to complete.";
+  }else if(state.buildMode&&state.selectedBuildable){
     document.getElementById("build-hint").textContent="Click the new land to place "+state.selectedBuildable.name+". Click again to cancel.";
   }else{
     document.getElementById("build-hint").textContent="Select a structure, then click the new land to place it.";
   }
   var h="";
-  for(var i=0;i<BUILDABLE_STRUCTURES.length;i++){if(!BUILDABLE_STRUCTURES[i].township)h+=buildItemHTML(BUILDABLE_STRUCTURES[i]);}
+  for(var i=0;i<BUILDABLE_STRUCTURES.length;i++){if(!BUILDABLE_STRUCTURES[i].township)h+=buildItemHTML(BUILDABLE_STRUCTURES[i],constructionLock);}
   if(state.townshipUnlocked){
     h+='<div class="sb-label" style="margin-top:12px;padding-top:8px;border-top:1px solid #2a3420;">Township Structures</div>';
-    for(var i=0;i<BUILDABLE_STRUCTURES.length;i++){if(BUILDABLE_STRUCTURES[i].township)h+=buildItemHTML(BUILDABLE_STRUCTURES[i]);}
+    for(var i=0;i<BUILDABLE_STRUCTURES.length;i++){if(BUILDABLE_STRUCTURES[i].township)h+=buildItemHTML(BUILDABLE_STRUCTURES[i],constructionLock);}
   }
   document.getElementById("build-items").innerHTML=h;
 }
@@ -1511,6 +1566,8 @@ function sketchPath(x1,y1,x2,y2,wb,wi){
 }
 
 function renderBuilding(b,bx,by,bw,bh,ms){
+  var isUnderConstruction=b.underConstruction;
+  if(isUnderConstruction){ctx.save();ctx.globalAlpha=0.4;}
   var cond=b.condition===undefined?100:b.condition;
   var isOpen=!b.roof;
   var darkPct=cond>=80?0:cond>=60?0.20:cond>=30?0.40:0.50;
@@ -1621,8 +1678,8 @@ function renderBuilding(b,bx,by,bw,bh,ms){
   if(state.selectedBuilding&&state.selectedBuilding.id===b.id){ctx.strokeStyle="#FFFFFF";ctx.lineWidth=2;ctx.strokeRect(bx-2,by-(isOpen?2:bh*0.25)-2,bw+4,bh+(isOpen?4:bh*0.25+4));}
 
   // Label
-  var label=cond===0?"CONDEMNED":b.name;
-  var labelColor=cond===0?"#cc3322":cond<30?"#dd6655":"#FFFFFF";
+  var label=isUnderConstruction?"UNDER CONSTRUCTION":(cond===0?"CONDEMNED":b.name);
+  var labelColor=isUnderConstruction?"#C8B878":(cond===0?"#cc3322":cond<30?"#dd6655":"#FFFFFF");
   var fs=Math.max(9,Math.min(12,bw/label.length*1.5));
   ctx.font=(cond===0?"bold ":"")+Math.floor(fs)+"px Georgia";ctx.textAlign="center";
   var labelW=ctx.measureText(label).width;var lx=bx+bw/2,ly=by+bh+11;
@@ -1634,6 +1691,7 @@ function renderBuilding(b,bx,by,bw,bh,ms){
   ctx.fillStyle="rgba(0,0,0,0.4)";ctx.fillRect(bx,barY,bw,3);
   ctx.fillStyle=cond>=60?"#c8a830":cond>=20?"#7a5828":"#aa3322";
   ctx.fillRect(bx,barY,bw*(cond/100),3);
+  if(isUnderConstruction){ctx.restore();}
 }
 
 function getStaffTarget(c){
@@ -1995,6 +2053,7 @@ function drawSmoke(bx,by,bw){
 
 function render(){
   if(!canvas)return;
+  if(state.activeInterior){renderInterior();return;}
   var ms=state.mapScale||1;
   ctx.clearRect(0,0,cw,ch);
   var br=getDayBrightness();
@@ -2298,6 +2357,81 @@ var BUILDING_ACTIONS = {
   cemetery:         {label:"Walk the Cemetery",      effect:{morale:4, narratorStress:3}}
 };
 
+var BUILDING_INTERIORS = {
+  cityhall: {
+    name: "City Hall \u2014 Mr. Alsuga\u2019s Office",
+    bgColor: "#3A3228",
+    floorColor: "#5E4E3A",
+    objects: [
+      {id:"desk",      name:"The Desk",          x:0.35, y:0.45, w:0.20, h:0.10, color:"#6A5238",
+       desc:"Mr. A\u2019s desk. Mahogany veneer over particleboard, purchased in bulk from a Rotary contact. There are three phones. One of them works. The others are for emphasis.",
+       upgrade:null},
+      {id:"cane_chair",name:"The Cane Chair",    x:0.60, y:0.48, w:0.10, h:0.10, color:"#8C7A58",
+       desc:"Mr. A\u2019s nice cane chair. Quinn got paw blood on it that one time in the Grizzly suit. The stain is still there. Mr. A doesn\u2019t mention it. He doesn\u2019t not mention it either.",
+       upgrade:null},
+      {id:"bigscreen", name:"The Bigscreen",     x:0.70, y:0.20, w:0.18, h:0.15, color:"#3A3A3A",
+       desc:"The bigscreen. Mr. A watches it when he should be working. He watches it when he is working. The distinction has eroded.",
+       upgrade:{label:"Upgrade to Flat Panel \u2014 $3,000",cost:3000,effect:{morale:2,attendance:1},upgradedDesc:"The new flat panel. Mr. A says it makes him feel like a man who has made correct decisions. The content is the same."}},
+      {id:"couch",     name:"The Office Couch",  x:0.15, y:0.55, w:0.15, h:0.08, color:"#7A6A52",
+       desc:"The couch where Mr. A fell asleep the night the church burned. You mixed him a drink. Then another. He said it doesn\u2019t look good for men like you and I. He was right about that part.",
+       upgrade:null},
+      {id:"tank",      name:"The Corporate Tank",x:0.80, y:0.60, w:0.10, h:0.18, color:"#4E7068",
+       desc:"The loach tank in the foyer. The kids try to get them to eat styrofoam. The loaches refuse. They are the most principled employees in the building.",
+       upgrade:{label:"New Fish \u2014 $500",cost:500,effect:{morale:1},upgradedDesc:"New fish. Tropical ones. They eat the styrofoam. The kids are delighted. The loaches are gone. Nobody asked where."}},
+      {id:"walkstick", name:"The Walking Stick",  x:0.28, y:0.30, w:0.04, h:0.14, color:"#5E3A1E",
+       desc:"Mr. A\u2019s walking stick. He takes it to the Great Forest when he doesn\u2019t want to hear what you have to say. Which is often. The beeper goes with him. The beeper doesn\u2019t help.",
+       upgrade:null}
+    ]
+  },
+  worship: {
+    name: "Worship Center \u2014 Former Siala Lodge",
+    bgColor: "#3A2E24",
+    floorColor: "#5E4A38",
+    objects: [
+      {id:"dome",     name:"The Gold Dome (interior)", x:0.40, y:0.08, w:0.20, h:0.12, color:"#B8924A",
+       desc:"The dome from inside. The Sialians built it to house their particular form of communal correction. If a member was excessively masturbating or overeating to the exclusion of others, he or she would be publicly dressed down for hours on end beneath this dome. Now we pipe in Brahms and call it sacred. It works. The light through the gold is the most beautiful thing in the park.",
+       upgrade:null},
+      {id:"basin",    name:"The Fake Marble Basin",    x:0.45, y:0.50, w:0.10, h:0.08, color:"#D4B878",
+       desc:"The baptism font. Fake marble. We charge three hundred dollars to rent the room. The priest dips the baby\u2019s head in and for a moment everyone believes this is a real place where real things happen.",
+       upgrade:{label:"Replace with Real Marble \u2014 $2,000",cost:2000,effect:{budget:100,approval:2},upgradedDesc:"Real marble now. Cost a fortune. The baptisms feel more legitimate. Mr. A says the ROI on legitimacy is incalculable, which is another way of saying he hasn\u2019t calculated it."}},
+      {id:"mannequins",name:"The Mannequin Elderly Couple",x:0.75,y:0.55,w:0.10,h:0.14,color:"#8C7A68",
+       desc:"The mannequin elderly couple clutching rosaries in the Invalid area. Justin in Prep keeps forgetting to remove them. The Foleys didn\u2019t notice. Other families have. One child asked if they were dead. Technically the answer is they were never alive, which is worse.",
+       upgrade:{label:"Remove Mannequins \u2014 $100",cost:100,effect:{attendance:2},upgradedDesc:"The mannequins are gone. The Invalid area is just an area now. It\u2019s not clear this is an improvement."}},
+      {id:"draperies",name:"The White Draperies",       x:0.10, y:0.20, w:0.08, h:0.40, color:"#D4D0C4",
+       desc:"White draperies. We put them up to hide the original Siala woodwork, which featured carvings of their communal practices. The carvings were anatomically ambitious. The draperies are fire-retardant. This has become a relevant feature.",
+       upgrade:null},
+      {id:"heater",   name:"The Woodburning Heater",    x:0.85, y:0.65, w:0.08, h:0.12, color:"#5E3A1E",
+       desc:"The woodburning heater in the Invalid area. It works. It\u2019s the only thing in the building that predates the Sialians, which means it predates everything in the park by about a century. It doesn\u2019t know it\u2019s in a theme park. It just heats.",
+       upgrade:null},
+      {id:"speaker",  name:"The Brahms Speaker",        x:0.20, y:0.70, w:0.06, h:0.06, color:"#5E6E7C",
+       desc:"The speaker that pipes in Brahms. The volume knob broke in 1988. It has been playing at the same mezzo-piano for seven years. Brahms would have had opinions about this. We do not consult Brahms.",
+       upgrade:{label:"Fix Volume Knob \u2014 $200",cost:200,effect:{morale:1,attendance:1},upgradedDesc:"The volume knob works now. You can make Brahms louder or quieter. This is more power than anyone in this building has had since the Sialians."}}
+    ]
+  },
+  saloon: {
+    name: "Nate\u2019s Saloon",
+    bgColor: "#2E2218",
+    floorColor: "#5E4228",
+    objects: [
+      {id:"bar",       name:"The Bar",                x:0.30, y:0.35, w:0.25, h:0.08, color:"#6A4228",
+       desc:"Nate\u2019s bar. The wood is original to Clydesville. The glasses are from a restaurant supply catalog. The frontier stew is mostly potato. On good days it\u2019s entirely potato. On bad days it\u2019s potato and something else.",
+       upgrade:{label:"Restock the Top Shelf \u2014 $1,500",cost:1500,effect:{morale:3,budget:-50},upgradedDesc:"The top shelf has been restocked. Mr. A has already been through twice. The morale improvement is measurable. The budget impact is also measurable."}},
+      {id:"stage",     name:"The Cancan Stage",       x:0.55, y:0.15, w:0.20, h:0.12, color:"#8C6238",
+       desc:"The stage. Nine cancan girls, now seven due to scheduling complications Sylvia told you not to spread around. The remaining seven perform nightly. The choreography has been adjusted. The audience has not noticed, or is being kind.",
+       upgrade:{label:"Repair Stage Boards \u2014 $800",cost:800,effect:{attendance:3,morale:1},upgradedDesc:"The stage boards no longer creak during the high kicks. This was a safety issue that had been reclassified as a feature. It has now been reclassified back."}},
+      {id:"sylvia_booth",name:"Sylvia\u2019s Corner Booth",x:0.10,y:0.55,w:0.12,h:0.10,color:"#5E4A38",
+       desc:"The booth where Sylvia sits when she has information. She always has information. She pulls out her folder and says according to her review of the data, and then your day gets worse. She enjoys this. She calls herself an S&M buff in training. You believe her.",
+       upgrade:null},
+      {id:"cannon_booth",name:"The Cannon Booth",    x:0.75, y:0.55, w:0.12, h:0.10, color:"#5E4A38",
+       desc:"The booth where Quinn fell asleep after eating three bowls of frontier stew. He was still in the Grizzly suit. Nate didn\u2019t wake him. Nobody wakes Quinn. There\u2019s a feeling that he needs the sleep more than the booth needs the revenue.",
+       upgrade:null},
+      {id:"jukebox",   name:"The Jukebox",            x:0.85, y:0.30, w:0.08, h:0.14, color:"#7A6A52",
+       desc:"The jukebox. It plays exclusively Civil War era songs, or rather, songs that someone in 1975 believed were Civil War era. Several are from World War I. One is clearly a Beach Boys song with different lyrics. Nobody has complained. This is not a place where people come to complain about the jukebox.",
+       upgrade:{label:"Update the Song List \u2014 $400",cost:400,effect:{morale:2},upgradedDesc:"New songs. Still historically dubious. Quinn has requested the addition of selections from Cats. This request has been noted and filed."}}
+    ]
+  }
+};
+
 var interactCooldownUntil = 0;
 var lastFrameTime = 0;
 var narratorWalkAccum = 0;
@@ -2327,12 +2461,13 @@ function getNearbyBuilding(){
 
 function updateInteractPrompt(){
   var el=document.getElementById("interact-prompt");
-  if(!canvas||state.gameOver||state.eventActive||state.gamePaused){el.style.display="none";return;}
+  if(!canvas||state.gameOver||state.eventActive){el.style.display="none";return;}
   var b=getNearbyBuilding();
   var action=b?(BUILDING_ACTIONS[b.id]||BUILDING_ACTIONS[b.typeId]):null;
   var needsRepair=b&&b.condition!==undefined&&b.condition<100;
   var canRest=b&&(b.id==="saloon"||b.id==="infirmary"||b.restable===true);
-  if(!b||(!action&&!needsRepair&&!canRest)){el.style.display="none";return;}
+  var hasInterior=b&&!!(BUILDING_INTERIORS[b.id]||BUILDING_INTERIORS[b.typeId]);
+  if(!b||b.underConstruction||(!action&&!needsRepair&&!canRest&&!hasInterior)){el.style.display="none";return;}
   var onCooldown=Date.now()<interactCooldownUntil;
   var ms=state.mapScale||1;
   var promptH=90; // approximate height of prompt — flip above building if it would clip
@@ -2348,6 +2483,7 @@ function updateInteractPrompt(){
   var repairBtn=document.getElementById("ip-repair-btn");
   var restBtn=document.getElementById("ip-rest-btn");
   var actionBtn=document.getElementById("ip-action-btn");
+  var enterBtn=document.getElementById("ip-enter-btn");
   if(needsRepair){
     var canAffordRepair=state.budget>=200;
     repairBtn.style.display="block";
@@ -2371,6 +2507,11 @@ function updateInteractPrompt(){
     actionBtn.style.opacity=onCooldown?"0.4":"1";
   }else{
     actionBtn.style.display="none";
+  }
+  if(hasInterior){
+    enterBtn.style.display="block";
+  }else{
+    enterBtn.style.display="none";
   }
 }
 
@@ -2402,9 +2543,9 @@ function interactWithBuilding(){
   if(Date.now()<interactCooldownUntil)return;
   var buildingId=document.getElementById("interact-prompt").dataset.buildingId;
   if(!buildingId||state.destroyedBuildings[buildingId])return;
+  var b=findBuildingById(buildingId);
   var action=BUILDING_ACTIONS[buildingId]||(b?BUILDING_ACTIONS[b.typeId]:null);
   if(!action)return;
-  var b=findBuildingById(buildingId);
   if(!b)return;
   var applyEffect=true;
   if(action.flagRequired&&!state.flags[action.flagRequired])applyEffect=false;
@@ -2422,6 +2563,217 @@ function interactWithBuilding(){
   updateSidebar();updateLog();
   interactCooldownUntil=Date.now()+2000;
 }
+
+// ── Interior system ───────────────────────────────────────────
+function enterBuilding(){
+  var buildingId=document.getElementById("interact-prompt").dataset.buildingId;
+  if(!buildingId||!BUILDING_INTERIORS[buildingId])return;
+  state.activeInterior=buildingId;
+  state.selectedInteriorObj=null;
+  state.hoveredInteriorObj=null;
+  state.gamePaused=true;
+  document.getElementById("interact-prompt").style.display="none";
+  var interior=BUILDING_INTERIORS[buildingId];
+  document.getElementById("interior-room-name").textContent=interior.name;
+  document.getElementById("interior-info-content").innerHTML='<span class="int-hint">Click an object to examine it.</span>';
+  document.getElementById("interior-overlay").classList.add("active");
+  setSpeed(0);
+}
+
+function leaveBuilding(){
+  state.activeInterior=null;
+  state.selectedInteriorObj=null;
+  state.hoveredInteriorObj=null;
+  canvas.style.cursor="default";
+  document.getElementById("interior-overlay").classList.remove("active");
+  setSpeed(1);
+}
+
+function onInteriorClick(mx_px,my_px){
+  var interior=BUILDING_INTERIORS[state.activeInterior];
+  if(!interior)return;
+  var clicked=null;
+  interior.objects.forEach(function(obj){if(mx_px>=obj.x*cw&&mx_px<=(obj.x+obj.w)*cw&&my_px>=obj.y*ch&&my_px<=(obj.y+obj.h)*ch)clicked=obj;});
+  state.selectedInteriorObj=clicked?clicked.id:null;
+  updateInteriorPanel();
+}
+
+function updateInteriorPanel(){
+  var el=document.getElementById("interior-info-content");
+  if(!state.activeInterior||!state.selectedInteriorObj){
+    el.innerHTML='<span class="int-hint">Click an object to examine it.</span>';
+    return;
+  }
+  var interior=BUILDING_INTERIORS[state.activeInterior];
+  var obj=null;
+  for(var i=0;i<interior.objects.length;i++){if(interior.objects[i].id===state.selectedInteriorObj){obj=interior.objects[i];break;}}
+  if(!obj){el.innerHTML='<span class="int-hint">Click an object to examine it.</span>';return;}
+  var upgradeKey=state.activeInterior+":"+obj.id;
+  var isUpgraded=!!(state.interiorUpgrades&&state.interiorUpgrades[upgradeKey]);
+  var desc=(isUpgraded&&obj.upgrade&&obj.upgrade.upgradedDesc)?obj.upgrade.upgradedDesc:obj.desc;
+  var html='<div class="int-obj-name">'+obj.name+'</div><div class="int-obj-desc">'+desc+'</div>';
+  if(obj.upgrade&&!isUpgraded){
+    var canAfford=state.budget>=obj.upgrade.cost;
+    html+='<button class="int-upgrade-btn'+(canAfford?'':' cant-afford')+'" '+(canAfford?'onclick="doInteriorUpgrade()"':'')+'>'+obj.upgrade.label+'</button>';
+  }
+  el.innerHTML=html;
+}
+
+function doInteriorUpgrade(){
+  if(!state.activeInterior||!state.selectedInteriorObj)return;
+  var interior=BUILDING_INTERIORS[state.activeInterior];
+  var obj=null;
+  for(var i=0;i<interior.objects.length;i++){if(interior.objects[i].id===state.selectedInteriorObj){obj=interior.objects[i];break;}}
+  if(!obj||!obj.upgrade)return;
+  var upgradeKey=state.activeInterior+":"+obj.id;
+  if(state.interiorUpgrades[upgradeKey])return;
+  if(state.budget<obj.upgrade.cost)return;
+  state.budget-=obj.upgrade.cost;
+  if(!state.interiorUpgrades)state.interiorUpgrades={};
+  state.interiorUpgrades[upgradeKey]=true;
+  var e=obj.upgrade.effect;
+  if(e.morale)state.morale=clamp(state.morale+e.morale,0,100);
+  if(e.attendance)state.attendance=clamp(state.attendance+e.attendance,0,100);
+  if(e.budget)state.budget+=e.budget;
+  if(e.gangThreat)state.gangThreat=clamp(state.gangThreat+e.gangThreat,0,100);
+  if(e.productivity)state.productivity=clamp(state.productivity+e.productivity,0,100);
+  state.log.push({day:state.day,title:"Upgraded: "+obj.name});
+  updateSidebar();updateLog();saveGame();
+  updateInteriorPanel();
+}
+
+function renderInterior(){
+  var interior=BUILDING_INTERIORS[state.activeInterior];
+  if(!interior)return;
+  ctx.clearRect(0,0,cw,ch);
+  var floorY=ch*0.35;
+
+  // --- Wall: base fill ---
+  ctx.fillStyle=interior.bgColor;
+  ctx.fillRect(0,0,cw,ch);
+
+  // --- Wall: ceiling-shadow gradient, darker at top, fades to transparent at floor line ---
+  var wallGrad=ctx.createLinearGradient(0,0,0,floorY);
+  wallGrad.addColorStop(0,"rgba(0,0,0,0.30)");
+  wallGrad.addColorStop(0.55,"rgba(0,0,0,0.06)");
+  wallGrad.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=wallGrad;ctx.fillRect(0,0,cw,floorY);
+
+  // --- Wall: warm lamplight band in the lower-middle wall ---
+  var lampGrad=ctx.createLinearGradient(0,floorY*0.42,0,floorY*0.70);
+  lampGrad.addColorStop(0,"rgba(255,220,160,0)");
+  lampGrad.addColorStop(0.5,"rgba(255,220,160,0.045)");
+  lampGrad.addColorStop(1,"rgba(255,220,160,0)");
+  ctx.fillStyle=lampGrad;ctx.fillRect(0,floorY*0.38,cw,floorY*0.45);
+
+  // --- Floor: base fill ---
+  ctx.fillStyle=interior.floorColor;
+  ctx.fillRect(0,floorY,cw,ch-floorY);
+
+  // --- Floor: plank lines (horizontal, slightly wobbled, low opacity) ---
+  var iSeed=0;
+  for(var ci=0;ci<state.activeInterior.length;ci++)iSeed+=state.activeInterior.charCodeAt(ci)*7;
+  ctx.strokeStyle="rgba(0,0,0,0.08)";ctx.lineWidth=1;ctx.lineCap="butt";
+  var plankSpacing=17;
+  var plankCount=Math.ceil((ch-floorY)/plankSpacing)+1;
+  for(var pi=0;pi<plankCount;pi++){
+    var py=floorY+(pi*plankSpacing)+8;
+    var wL=(seededRand(iSeed,pi*4  )-0.5)*3.5;
+    var wM=(seededRand(iSeed,pi*4+1)-0.5)*2.0;
+    var wR=(seededRand(iSeed,pi*4+2)-0.5)*3.5;
+    ctx.beginPath();
+    ctx.moveTo(0,py+wL);
+    ctx.lineTo(cw*0.42+(seededRand(iSeed,pi*4+3)-0.5)*4,py+wM);
+    ctx.lineTo(cw,py+wR);
+    ctx.stroke();
+  }
+
+  // --- Baseboard: wobbled warm-umber line at wall/floor boundary ---
+  var bwA=(seededRand(iSeed,80)-0.5)*2.5;
+  var bwB=(seededRand(iSeed,81)-0.5)*1.5;
+  var bwC=(seededRand(iSeed,82)-0.5)*2.5;
+  ctx.strokeStyle="#2E241E";ctx.lineWidth=2.5;ctx.lineCap="round";
+  ctx.beginPath();
+  ctx.moveTo(0,floorY+bwA);
+  ctx.lineTo(cw*0.46,floorY+bwB);
+  ctx.lineTo(cw,floorY+bwC);
+  ctx.stroke();
+  // Baseboard shadow band
+  ctx.fillStyle="rgba(46,36,30,0.28)";ctx.fillRect(0,floorY,cw,5);
+
+  // --- Warm ambient vignette: darker corners, lighter center ---
+  var vigR=Math.sqrt(cw*cw+ch*ch)*0.55;
+  var vignette=ctx.createRadialGradient(cw*0.5,ch*0.5,vigR*0.22,cw*0.5,ch*0.5,vigR);
+  vignette.addColorStop(0,"rgba(0,0,0,0)");
+  vignette.addColorStop(1,"rgba(0,0,0,0.32)");
+  ctx.fillStyle=vignette;ctx.fillRect(0,0,cw,ch);
+
+  // --- Room name (drawn after vignette so it stays readable) ---
+  ctx.font="italic 12px Georgia";ctx.textAlign="left";ctx.fillStyle="#6A5A42";
+  ctx.fillText(interior.name,16,22);
+
+  // --- Objects ---
+  interior.objects.forEach(function(obj){renderInteriorObject(obj);});
+}
+
+function renderInteriorObject(obj){
+  var ox=obj.x*cw,oy=obj.y*ch,ow=obj.w*cw,oh=obj.h*ch;
+  var isSel=state.selectedInteriorObj===obj.id;
+  var isHov=state.hoveredInteriorObj===obj.id;
+  var upgradeKey=state.activeInterior+":"+obj.id;
+  var isUpgraded=!!(state.interiorUpgrades&&state.interiorUpgrades[upgradeKey]);
+
+  // Per-object stable seed for shadow wobble
+  var oSeed=0;
+  for(var ci=0;ci<obj.id.length;ci++)oSeed+=obj.id.charCodeAt(ci)*13;
+  var swX=(seededRand(oSeed,0)-0.5)*1.8;
+  var swY=(seededRand(oSeed,1)-0.5)*1.8;
+
+  // Wobbled shadow (bottom-right, warm umber)
+  ctx.fillStyle="rgba(46,36,30,0.38)";
+  ctx.fillRect(ox+2+swX,oy+2+swY,ow,oh);
+
+  // Fill
+  ctx.fillStyle=obj.color;ctx.fillRect(ox,oy,ow,oh);
+
+  // Inner detail line (subtle top-left highlight)
+  if(ow>20&&oh>10){
+    ctx.strokeStyle="rgba(255,255,255,0.07)";ctx.lineWidth=1;
+    ctx.strokeRect(ox+2,oy+2,ow-4,oh-4);
+  }
+
+  // Hover warm glow border
+  if(isHov&&!isSel){
+    ctx.strokeStyle="rgba(240,200,120,0.35)";ctx.lineWidth=3;
+    ctx.strokeRect(ox-1,oy-1,ow+2,oh+2);
+  }
+
+  // Primary outline
+  ctx.strokeStyle=isSel?"#D4B878":"#2E241E";
+  ctx.lineWidth=isSel?2:1.2;
+  ctx.strokeRect(ox,oy,ow,oh);
+
+  // Label below
+  var label=obj.name;
+  var fs=10;
+  ctx.font=fs+"px Georgia";ctx.textAlign="center";
+  var lx=ox+ow/2,ly=oy+oh+13;
+  var lw=ctx.measureText(label).width;
+  ctx.fillStyle="rgba(0,0,0,0.45)";ctx.fillRect(lx-lw/2-3,ly-fs+1,lw+6,fs+3);
+  ctx.fillStyle=isSel?"#D4B878":"#A89878";ctx.fillText(label,lx,ly);
+
+  // Upgrade dots
+  if(isUpgraded){
+    // Warm gold (lit-window gold from AESTHETIC.md) — upgrade complete
+    ctx.beginPath();ctx.arc(ox+ow-5,oy+5,3.5,0,Math.PI*2);
+    ctx.fillStyle="rgba(240,200,120,0.72)";ctx.fill();
+  } else if(obj.upgrade){
+    // Dim amber ring — upgrade available
+    ctx.beginPath();ctx.arc(ox+ow-5,oy+5,2.5,0,Math.PI*2);
+    ctx.strokeStyle="rgba(184,146,74,0.55)";ctx.lineWidth=1;ctx.stroke();
+  }
+}
+// ─────────────────────────────────────────────────────────────
 
 function syncResidents(){
   var target=Math.min(20,Math.floor(state.population/5));
@@ -2768,7 +3120,7 @@ function applyPhase2Daily(){
     });
   });
   state.placedBuildings.forEach(function(pb){
-    if(pb.condition===0)return;
+    if(pb.condition===0||pb.underConstruction)return;
     var stype=null;for(var i=0;i<BUILDABLE_STRUCTURES.length;i++){if(BUILDABLE_STRUCTURES[i].id===pb.typeId){stype=BUILDABLE_STRUCTURES[i];break;}}
     var cap=stype&&stype.capacity!==undefined?stype.capacity:1;
     var charsHere=getCharsAtBuilding(pb.id);

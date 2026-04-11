@@ -30,6 +30,10 @@ Hand-drawn sketchy pen-and-ink illustration colored with Disco Elysium's palette
 - **Pass 8 — Event modal.** `#event-box` redesigned as period document: cream paper gradient (`#EAE0C8→#D8C8A0`), umber ink text (`#2E241E`), rust-brown border (`#8C6238`), inset double-border rule (::before). Title stamped uppercase with heavy rule below. Body text italic. All buttons use paper-and-ink palette.
 - **Pass 9 — Atmospheric layering.** Post-processing block at end of `render()`. Dawn warm bloom (gameTime 430–560, peak 490, max alpha 0.10). Dusk warm bloom (1020–1140, peak 1080, max alpha 0.17). Four-edge cool vignette (`rgba(80,100,120,0.10)` day / `0.18` night), ~18–20% canvas width/height each edge. No full-canvas overlay — all via edge gradients.
 
+### DONE (continued)
+
+- **Building interiors.** Three buildings have enterable interiors: City Hall (6 objects), Worship Center (6 objects), Nate's Saloon (5 objects). Enter button appears in interact prompt when narrator is nearby. Interior rendering uses: ceiling-shadow gradient on walls, warm lamplight band on lower wall, wobbled horizontal plank lines on floor, wobbled baseboard line, warm vignette. Objects render with wobbled umber drop-shadow, hover warm glow border (`rgba(240,200,120,0.35)`), primary umber outline. Upgrade state indicated by dim amber ring (available) or filled lit-window gold dot (complete). Leave button styled in warm umber. Upgrades persist via `state.interiorUpgrades` in save/load. One-time effects applied on purchase.
+
 ### NOT YET ADDRESSED
 
 Known aesthetic flaws, in rough priority order:
