@@ -2526,6 +2526,28 @@ var BUILDING_INTERIORS = {
        upgrade:{label:"Update the Song List \u2014 $400",cost:400,effect:{morale:2},dailyEffect:{morale:1},upgradedDesc:"New songs. Still historically dubious. Quinn has requested the addition of selections from Cats. This request has been noted and filed."}}
     ]
   },
+  canal: {
+    name: "Erie Canal Lock \u2014 90 Feet of Working Canal",
+    bgColor: "#2A3028",
+    floorColor: "#4A5A48",
+    objects: [
+      {id:"lock_mechanism", name:"The Lock Mechanism",          x:0.30, y:0.30, w:0.22, h:0.12, color:"#4E7068",
+       desc:"Ninety feet of actual working canal. We took the Lock apart cobble by cobble and numbered each piece and shipped them all back in padded containers for reassembly. It works. Water goes through it. This is the one thing in the park that does exactly what it\u2019s supposed to do.",
+       upgrade:null},
+      {id:"coolie_diorama", name:"The Coolie Campsite Diorama", x:0.60, y:0.25, w:0.18, h:0.15, color:"#8C6238",
+       desc:"A well-researched diorama of a coolie campsite. Inside the little bunkhouse there\u2019s this device that gives off the approximate aroma of an Oriental meal. Were our faces ever red when we found out it was actually the Irish who built the canal. We\u2019ve got no budget to correct.",
+       upgrade:{label:"Correct the Ethnicity \u2014 $2,500",cost:2500,effect:{attendance:5,morale:3},dailyEffect:{attendance:2},upgradedDesc:"The diorama now depicts Irish workers. The aromatic device has been adjusted. It gives off the approximate aroma of an Irish meal, which the supplier says is potato-based. Nobody on staff is confident enough in Irish cuisine to dispute this."}},
+      {id:"video_screen",   name:"The Video Screen",            x:0.15, y:0.50, w:0.14, h:0.10, color:"#3A3A3A",
+       desc:"Every fifteen minutes a screen comes down on the porch and we show a video of how hundreds of Chinese died to build the Canal. The video is historically incorrect in a way that compounds daily. Nobody watches it all the way through. The screen mechanism sticks.",
+       upgrade:{label:"Update the Video \u2014 $800",cost:800,effect:{attendance:3},dailyEffect:{attendance:1,budget:-15},upgradedDesc:"New video. Historically corrected. The Irish die now instead of the Chinese. The production values are better. A visitor cried. We\u2019re not sure if that\u2019s good."}},
+      {id:"spraypaint",     name:"The Spraypaint",              x:0.75, y:0.50, w:0.10, h:0.10, color:"#5E6E7C",
+       desc:"Gang spraypaint on the Lock walls. Mr. Haberstrom saw this and poked you with the spitty end of his cigar and said not with his money. The spraypaint remains. Some of it is obscene. Some of it is surprisingly well-executed. One tag appears to be a portrait of Quinn in the Grizzly suit. You haven\u2019t told him.",
+       upgrade:{label:"Professional Cleaning \u2014 $400",cost:400,effect:{attendance:3,gangThreat:-2},dailyEffect:{attendance:1},upgradedDesc:"The spraypaint is gone. The Lock looks as it did before the gangs found it. You know they\u2019ll be back. The cobbles don\u2019t care. They\u2019ve been numbered and reassembled and they\u2019ll outlast everything."}},
+      {id:"cobbles",        name:"The Numbered Cobbles",        x:0.45, y:0.65, w:0.16, h:0.06, color:"#6A6442",
+       desc:"The cobbles. Each one numbered. Someone in 1975 sat here with a grease pencil and wrote a number on every single stone. That person believed this mattered. You look at cobble #847 and try to imagine being the kind of person who numbers cobbles. You almost can.",
+       upgrade:null}
+    ]
+  },
   infirmary: {
     name: "Infirmary",
     bgColor: "#2A2E24",
