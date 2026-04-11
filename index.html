@@ -321,6 +321,7 @@ var state = {
   interiorNarratorX: 0.5, interiorNarratorY: 0.85,
   interiorNarratorTX: 0.5, interiorNarratorTY: 0.85,
   interiorWalkingTo: null,
+  interiorTimeCostMsg: null,
 };
 
 var BUILDABLE_STRUCTURES = [
@@ -1095,7 +1096,7 @@ function loadGame(){
   state.activeInterior=null;state.selectedInteriorObj=null;state.hoveredInteriorObj=null;
   state.interiorNarratorX=0.5;state.interiorNarratorY=0.85;
   state.interiorNarratorTX=0.5;state.interiorNarratorTY=0.85;
-  state.interiorWalkingTo=null;
+  state.interiorWalkingTo=null;state.interiorTimeCostMsg=null;
   if(!state.interiorUpgrades)state.interiorUpgrades={};
   if(state.productivity===undefined)state.productivity=50;
   if(!state.charAssignedTo)state.charAssignedTo={};
@@ -1295,6 +1296,7 @@ function startPhase2Game(){
 
 var buildPreviewX, buildPreviewY;
 var canvasNotifications = [];
+var interiorNotification = null;
 var grassPatches = (function(){var a=[];for(var i=0;i<40;i++){a.push({x:Math.random(),y:Math.random(),s:20+Math.random()*60,dark:Math.random()>0.5});}return a;})();
 var speechBubble = null;
 var speechCooldowns = {};
@@ -2588,7 +2590,8 @@ function enterBuilding(){
   state.hoveredInteriorObj=null;
   state.interiorNarratorX=0.5;state.interiorNarratorY=0.85;
   state.interiorNarratorTX=0.5;state.interiorNarratorTY=0.85;
-  state.interiorWalkingTo=null;
+  state.interiorWalkingTo=null;state.interiorTimeCostMsg=null;
+  interiorNotification=null;
   state.gamePaused=true;
   document.getElementById("interact-prompt").style.display="none";
   var interior=BUILDING_INTERIORS[buildingId];
@@ -2618,11 +2621,13 @@ function onInteriorClick(mx_px,my_px){
     state.interiorNarratorTY=Math.min(0.92,clicked.y+clicked.h+0.02);
     state.interiorWalkingTo=clicked.id;
     state.selectedInteriorObj=null;
+    state.interiorTimeCostMsg=null;
   } else {
     state.interiorNarratorTX=nx;
     state.interiorNarratorTY=ny;
     state.interiorWalkingTo=null;
     state.selectedInteriorObj=null;
+    state.interiorTimeCostMsg=null;
   }
   updateInteriorPanel();
 }
@@ -2665,6 +2670,9 @@ function updateInteriorPanel(){
       if(deHtml)html+='<div style="margin-top:5px;line-height:1.9;">'+deHtml+'</div>';
     }
   }
+  if(state.interiorTimeCostMsg){
+    html+='<div style="margin-top:8px;font-size:10px;color:#5A4A3A;font-style:italic;">'+state.interiorTimeCostMsg+'</div>';
+  }
   el.innerHTML=html;
 }
 
@@ -2687,6 +2695,11 @@ function doInteriorUpgrade(){
   if(e.gangThreat)state.gangThreat=clamp(state.gangThreat+e.gangThreat,0,100);
   if(e.productivity)state.productivity=clamp(state.productivity+e.productivity,0,100);
   state.log.push({day:state.day,title:"Upgraded: "+obj.name});
+  state.gameTime+=45;
+  if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}
+  updateTimeDisplay();
+  state.interiorTimeCostMsg="Upgrading took 1 hour.";
+  interiorNotification={text:"1 HOUR PASSES",born:Date.now()};
   updateSidebar();updateLog();saveGame();
   updateInteriorPanel();
 }
@@ -2779,6 +2792,11 @@ function renderInterior(){
     if(state.interiorWalkingTo){
       state.selectedInteriorObj=state.interiorWalkingTo;
       state.interiorWalkingTo=null;
+      state.gameTime+=15;
+      if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}
+      updateTimeDisplay();
+      state.interiorTimeCostMsg="Examining took 15 minutes.";
+      interiorNotification={text:"15 MINUTES PASS",born:Date.now()};
       updateInteriorPanel();
     }
   }
@@ -2788,6 +2806,19 @@ function renderInterior(){
   for(var ini=0;ini<state.characters.length;ini++){if(state.characters[ini].id==="narrator"){intNarrator=state.characters[ini];break;}}
   if(intNarrator){
     drawCharacter(intNarrator, state.interiorNarratorX*cw, state.interiorNarratorY*ch);
+  }
+
+  // --- Interior time notification ---
+  if(interiorNotification){
+    var _nt=(Date.now()-interiorNotification.born)/2000;
+    if(_nt<1){
+      ctx.save();ctx.globalAlpha=1-_nt;
+      ctx.font="bold 11px Georgia";ctx.textAlign="center";
+      var _ntw=ctx.measureText(interiorNotification.text).width;
+      ctx.fillStyle="rgba(0,0,0,0.60)";ctx.fillRect(cw/2-_ntw/2-6,ch*0.28-18,_ntw+12,18);
+      ctx.fillStyle="#E8D090";ctx.fillText(interiorNotification.text,cw/2,ch*0.28-4);
+      ctx.restore();
+    } else { interiorNotification=null; }
   }
 }
 
