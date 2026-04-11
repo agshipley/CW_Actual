@@ -319,6 +319,7 @@ var state = {
   hoveredInteriorObj: null,
   interiorUpgrades: {},
   usedBuildingActions: {},
+  repairedToday: {},
   interiorNarratorX: 0.5, interiorNarratorY: 0.85,
   interiorNarratorTX: 0.5, interiorNarratorTY: 0.85,
   interiorWalkingTo: null,
@@ -868,7 +869,7 @@ function dismissMinorEvent(){
 }
 
 function applyMidnight(){
-  state.usedBuildingActions={};
+  state.usedBuildingActions={};state.repairedToday={};
   state.day+=1;
   // Weather cycling
   state.weatherDaysLeft--;
@@ -1074,7 +1075,7 @@ function sndThud(){
 // ──────────────────────────────────────────────────────────────
 
 var SAVE_KEY="civilwarland_save";
-var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns","productivity","phase2Active","charAssignedTo","charConsecutiveDays","charEventsFired","arrivedChars","interiorUpgrades","usedBuildingActions"];
+var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns","productivity","phase2Active","charAssignedTo","charConsecutiveDays","charEventsFired","arrivedChars","interiorUpgrades","usedBuildingActions","repairedToday"];
 
 function saveGame(){
   var s={};
@@ -1101,6 +1102,7 @@ function loadGame(){
   state.interiorWalkingTo=null;state.interiorTimeCostMsg=null;
   if(!state.interiorUpgrades)state.interiorUpgrades={};
   if(!state.usedBuildingActions)state.usedBuildingActions={};
+  if(!state.repairedToday)state.repairedToday={};
   if(state.productivity===undefined)state.productivity=50;
   if(!state.charAssignedTo)state.charAssignedTo={};
   if(!state.charConsecutiveDays)state.charConsecutiveDays={};
@@ -2506,10 +2508,11 @@ function updateInteractPrompt(){
   var enterBtn=document.getElementById("ip-enter-btn");
   if(needsRepair){
     var canAffordRepair=state.budget>=200;
+    var alreadyRepaired=!!(state.repairedToday&&state.repairedToday[b.id]);
     repairBtn.style.display="block";
-    repairBtn.textContent="Repair "+b.name+" ($200)";
-    repairBtn.disabled=onCooldown||!canAffordRepair;
-    repairBtn.style.opacity=(onCooldown||!canAffordRepair)?"0.4":"1";
+    repairBtn.textContent=alreadyRepaired?"Repaired today":"Repair "+b.name+" ($200)";
+    repairBtn.disabled=onCooldown||!canAffordRepair||alreadyRepaired;
+    repairBtn.style.opacity=(onCooldown||!canAffordRepair||alreadyRepaired)?"0.4":"1";
   }else{
     repairBtn.style.display="none";
   }
@@ -2564,8 +2567,10 @@ function repairBuilding(){
   var buildingId=document.getElementById("interact-prompt").dataset.buildingId;
   var b=findBuildingById(buildingId);
   if(!b)return;
+  if(state.repairedToday[buildingId])return;
   state.budget-=200;
   b.condition=Math.min(100,b.condition+25);
+  state.repairedToday[buildingId]=true;
   state.log.push({day:state.day,title:"Repaired: "+b.name+" (+"+(25)+" condition)"});
   updateSidebar();updateLog();
   state.gameTime+=30;if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}updateTimeDisplay();
