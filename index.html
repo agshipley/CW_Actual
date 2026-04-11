@@ -746,14 +746,11 @@ function resize(){var col=document.getElementById("map-col");cw=col.clientWidth;
 
 var debugMode=false;
 var debugKeyBuffer="";
-console.log("[debug] keydown listener attached to document");
 document.addEventListener("keydown",function(e){
   var k=e.key.length===1?e.key.toLowerCase():e.key;
-  console.log("[debug] keydown:",JSON.stringify(k),"buffer:",debugKeyBuffer+k);
   debugKeyBuffer=(debugKeyBuffer+k).slice(-5);
   if(debugKeyBuffer==="debug"){
     debugMode=true;
-    console.log("[debug] DEBUG MODE ACTIVATED");
     var panel=document.getElementById("debug-panel");
     if(panel)panel.style.display="block";
   }
