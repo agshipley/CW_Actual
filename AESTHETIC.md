@@ -26,20 +26,20 @@ Visual brand guide for all art passes. Single source of truth. When a prompt ref
 
 ### Ground
 
-\`\`\`
+```
 Primary grass:      #8A8458   (warm dusty olive)
 Shadow grass:       #6A6442   (cooled olive in tree shadow)
 Highlight grass:    #A89A68   (warm straw where sun hits)
 Worn dirt patch:    #7C5E3A   (warm brown at doorways)
 Path core:          #8C6A42   (compacted dirt walkway)
 Path edge:          #5E4628   (darker worn edge)
-\`\`\`
+```
 
 ### Buildings (base walls)
 
 Each building should be ONE of these, not a custom color. The palette is intentionally limited so the map reads as coherent.
 
-\`\`\`
+```
 Weathered cream:    #D4B878   (Everly Mansion, Anglican Church — civic/proud buildings)
 Warm wood brown:    #8C6238   (Thespian Center, Blacksmith, Kriegal Place — utilitarian wood)
 Deep rust red:      #9C4A2E   (Saloon, Brothel — the warm-blooded buildings)
@@ -47,50 +47,50 @@ Dusty teal:         #4E7068   (Canal Lock, Infirmary — the cooler "institution
 Muted slate blue:   #5E6E7C   (civic/administrative background)
 Ochre gold:         #B8924A   (Worship Center dome ONLY — this is sacred and must glow)
 Pale celadon:       #9AAC94   (select accents, garden walls)
-\`\`\`
+```
 
 ### Roofs
 
-\`\`\`
+```
 Rust tile:          #7A3A24   (pairs with cream walls)
 Warm umber wood:    #5E3A1E   (pairs with wood brown)
 Slate shadow:       #3E4852   (pairs with teal / slate blue)
-\`\`\`
+```
 
 ### Windows
 
-\`\`\`
+```
 Lit warm:           rgba(240, 200, 120, 0.72)   [THE HERO ACCENT]
 Unlit dark:         rgba(40, 38, 34, 0.55)      (warm-dark, not cold)
 Window frame:       #D4B878
 Lamp glow bloom:    rgba(250, 210, 140, 0.25)   (soft radial around lit windows)
-\`\`\`
+```
 
 ### Outlines
 
 **Never use pure black. Never use neutral gray.**
 
-\`\`\`
+```
 Primary line:       #2E241E   (warm near-black umber)
 Shadow line:        #1E1812
 Interior detail:    #4A3A2A
-\`\`\`
+```
 
 ### Atmospheric
 
-\`\`\`
+```
 Cool distance wash: rgba(80, 100, 120, 0.10)    (applied only to far elements)
 Warm foreground:    no overlay — achieved via palette itself
-\`\`\`
+```
 
 ### Wear layer (applied over base colors)
 
-\`\`\`
+```
 Rust streaks:       rgba(60, 30, 15, 0.35)      (verticals under metal fixtures)
 Peeling paint:      small patches in #A89068 showing through
 Water damage:       rgba(40, 50, 60, 0.25)      (cool stains from gutters)
 Dirt accumulation:  rgba(50, 38, 22, 0.30)      (at base of walls)
-\`\`\`
+```
 
 ## Composition Rules
 
