@@ -3479,6 +3479,23 @@ function applyPhase2Daily(){
     var samAssigned=state.charAssignedTo&&state.charAssignedTo["samuel"];
     if(!samAssigned){state.gangThreat=clamp(state.gangThreat-3,0,100);}
   }
+  // Building synergies: clinic near residential zone → approval +1 (offsets daily decay)
+  if(state.townshipUnlocked){
+    var synApproval=0;
+    for(var si=0;si<state.placedBuildings.length;si++){
+      var spb=state.placedBuildings[si];
+      if(spb.typeId!=="clinic"||spb.condition===0||spb.underConstruction)continue;
+      var scx=spb.x+spb.w/2,scy=spb.y+spb.h/2;
+      for(var sj=0;sj<state.placedZones.length;sj++){
+        var sz=state.placedZones[sj];if(sz.type!=="residential")continue;
+        var szx=sz.x+sz.w/2,szy=sz.y+sz.h/2;
+        var sdist=Math.sqrt((scx-szx)*(scx-szx)+(scy-szy)*(scy-szy));
+        if(sdist<0.20){synApproval=1;break;}
+      }
+      if(synApproval)break;
+    }
+    if(synApproval)state.approval=clamp(state.approval+synApproval,0,100);
+  }
 }
 
 function applyBuildingEffect(eff){
