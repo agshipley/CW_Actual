@@ -2525,6 +2525,31 @@ var BUILDING_INTERIORS = {
        desc:"The jukebox. It plays exclusively Civil War era songs, or rather, songs that someone in 1975 believed were Civil War era. Several are from World War I. One is clearly a Beach Boys song with different lyrics. Nobody has complained. This is not a place where people come to complain about the jukebox.",
        upgrade:{label:"Update the Song List \u2014 $400",cost:400,effect:{morale:2},dailyEffect:{morale:1},upgradedDesc:"New songs. Still historically dubious. Quinn has requested the addition of selections from Cats. This request has been noted and filed."}}
     ]
+  },
+  thespian: {
+    name: "Thespian Center \u2014 Quinn\u2019s Domain",
+    bgColor: "#2E2418",
+    floorColor: "#5A4228",
+    objects: [
+      {id:"grizzly_suit",  name:"The Grizzly Suit",              x:0.15, y:0.25, w:0.12, h:0.20, color:"#6A4A28",
+       desc:"The Wounded Grizzly suit. Quinn bounds up steps in it. He shifts around in seats in it. He gets paw blood on nice cane chairs in it. It\u2019s the only role that lets him act without anyone seeing his face, which is how he prefers it. He\u2019s ugly as sin but he has never once stopped trying.",
+       upgrade:null},
+      {id:"costume_rack",  name:"The Costume Rack",              x:0.40, y:0.20, w:0.20, h:0.15, color:"#8C6238",
+       desc:"The costume rack. Period costumes for Visitors. We distribute the slave and Native American roles equitably among racial groups. Anyone is free to request a different identity at any time. In spite of our precautions, there\u2019s a Herlicher in every crowd.",
+       upgrade:{label:"Expand the Wardrobe \u2014 $1,200",cost:1200,effect:{attendance:2},dailyEffect:{attendance:1,budget:-20},upgradedDesc:"New costumes. More options. Fewer lawsuits pending. The Confederate general costume has been popular. We had to make three."}},
+      {id:"dp_locker",     name:"The Desperate Patrol Locker",   x:0.70, y:0.25, w:0.14, h:0.18, color:"#5E4A38",
+       desc:"The Desperate Patrol equipment locker. Floodlights, costumes based on actual Gettysburg photos, the hats they take off before putting their arms around each other and singing. The live ammo is in a separate, smaller locker. You try not to look at it.",
+       upgrade:null},
+      {id:"rehearsal_mirror",name:"The Rehearsal Mirror",        x:0.30, y:0.55, w:0.08, h:0.16, color:"#4A4A48",
+       desc:"The rehearsal mirror. Quinn practices in front of it daily. He is currently working on a monologue that combines elements of Hamlet, the Gettysburg Address, and his Dread Disease Rider. It is not going well. He does not know this.",
+       upgrade:null},
+      {id:"script_pile",   name:"The Script Pile",               x:0.60, y:0.58, w:0.14, h:0.06, color:"#D4B878",
+       desc:"A pile of scripts. Most are Quinn\u2019s rewrites of the rousing speech for the Desperate Patrol. Each one is slightly longer than the last. The most recent version runs forty minutes. The Patrol itself is scheduled for twelve.",
+       upgrade:{label:"Commission Original Material \u2014 $800",cost:800,effect:{morale:3},dailyEffect:{morale:1,attendance:1},upgradedDesc:"Quinn has been given permission to develop original material. He is writing a play. It is about a man in a bear suit who discovers he is the last honest person in a dishonest place. It is autobiographical in ways Quinn does not recognize."}},
+      {id:"goose_masks",   name:"The Mother Goose Masks",        x:0.82, y:0.55, w:0.08, h:0.12, color:"#D4C8A0",
+       desc:"Masks from Mother Goose Days. Humpty-Dumpty, the one Quinn specializes in because it requires a mask. Also Little Bo Peep, Old King Cole, and a wolf that was supposed to be the Big Bad but looks more like a surprised dog. Children love it. Adults are unsettled.",
+       upgrade:null}
+    ]
   }
 };
 
