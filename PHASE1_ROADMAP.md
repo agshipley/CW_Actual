@@ -49,26 +49,26 @@
 
 ## LAYER 1: GAMEPLAY FIXES (exploit closure)
 
-### 📋 Fix 1 — Building actions cost game time
-Every building interaction advances the clock by 30 minutes (60 for rest). This kills the spam loop — the player can do ~24 actions per day maximum. CC prompt written.
+### ✅ Fix 1 — Building actions cost game time
+Every building interaction advances the clock by 30 minutes (60 for rest). This kills the spam loop — the player can do ~24 actions per day maximum.
 
-### 📋 Fix 2 — Building actions once per day
-`state.usedBuildingActions` tracks which buildings have been used today. Reset at midnight. CC prompt written.
+### ✅ Fix 2 — Building actions once per day
+`state.usedBuildingActions` tracks which buildings have been used today. Reset at midnight.
 
-### 📋 Fix 3 — Show effects before clicking
-Interact prompt displays stat effects in green/red below the action button. Player makes informed decisions. CC prompt written.
+### ✅ Fix 3 — Show effects before clicking
+Interact prompt displays stat effects in green/red below the action button. When stress ≥ 70, preview shows stress-reduced values with dimmer color.
 
-### 📋 Fix 4 — Repair once per building per day
-`state.repairedToday` limits repair to one per building per day. Repair becomes triage. CC prompt written.
+### ✅ Fix 4 — Repair once per building per day
+`state.repairedToday` limits repair to one per building per day. Button grays out with "Repaired today" text.
 
-### 📋 Fix 5 — Energy cost per action
-8 energy per building action, 10 per repair. Blocks at 0. Creates a real daily energy budget of ~8-10 meaningful actions. CC prompt written.
+### ✅ Fix 5 — Energy cost per action
+8 energy per building action, 10 per repair. Blocks at 0. Energy restores to 100 at midnight.
 
-### 📋 Fix 6 — Stress graduated effects
-50+: faster energy drain. 70+: 25% reduced action effectiveness. Makes stress a constant pressure, not a binary fail condition. CC prompt written.
+### ✅ Fix 6 — Stress graduated effects
+50+: faster energy drain (2s vs 3s interval). 70+: 25% reduced beneficial action effects. Stress label color-coded amber/red.
 
-### 📋 Fix 7 — Daily actions UI
-Restore DAILY_ACTIONS as once-per-day strategic choice in sidebar. Pick one standing order per day. CC prompt written.
+### ✅ Fix 7 — Daily actions UI
+DAILY_ACTIONS as once-per-day strategic choice in sidebar "Today's Order" section. Chosen action locked, others grayed out.
 
 ---
 
@@ -83,8 +83,8 @@ Restore DAILY_ACTIONS as once-per-day strategic choice in sidebar. Pick one stan
 ### ✅ Interior data authored (7 buildings)
 City Hall, Worship Center, Saloon, Thespian Center, General Store, Infirmary, Erie Canal Lock — all objects and descriptions written in Saunders voice.
 
-### 🔧 Interior upgrade daily effects
-Upgrades provide ongoing daily stat modifiers (not just one-time bumps). `dailyEffect` field applied in `applyMidnight()`. CC prompt written.
+### ✅ Interior upgrade daily effects
+Upgrades provide ongoing daily stat modifiers. `dailyEffect` field on each upgrade object applied in `applyMidnight()` via `applyBuildingEffect()`.
 
 ### 📋 2A — Replace object interaction with character conversations
 **This is the key Phase 1 change.** When the player enters a building, instead of clicking on furniture, they find a CHARACTER. The primary interaction is a SHORT DIALOGUE TREE, not an object examination.
@@ -128,7 +128,7 @@ When narrator stats meet thresholds, extra dialogue options appear:
 
 These are NOT random. They're authored dialogue branches gated by stat thresholds. The player never sees the check — they just see new options appear when conditions are met.
 
-### 📋 2D — Thought system
+### ✅ 2D — Thought system
 After key conversations or events, the narrator "internalizes" a thought:
 - Small UI element in sidebar or below stats: "Narrator's Thoughts" with 3-4 slots
 - Each thought is a short phrase + a small ongoing stat modifier
