@@ -110,7 +110,7 @@
     .dbg-row { display:flex; gap:5px; margin-bottom:5px; }
     .dbg-row select { flex:1; background:#1a0000; border:1px solid #882222; color:#cc8888; font-family:Georgia,serif; font-size:11px; padding:4px; }
     .dbg-row .dbg-btn { margin-bottom:0; flex:0 0 auto; }
-    .speed-btn { background:rgba(26,30,20,0.9); border:1px solid #4a5a3a; color:#b0b898; padding:8px 14px; font-family:Georgia,serif; font-size:15px; cursor:pointer; }
+    .speed-btn { background:rgba(30,24,18,0.9); border:1px solid #4A3A2A; color:#C8B878; padding:7px 12px; font-family:Georgia,serif; font-size:14px; cursor:pointer; }
     #mute-btn { position:absolute; top:12px; right:12px; z-index:20; background:rgba(26,20,14,0.88); border:1px solid #4A3A2A; color:#7A6A52; width:28px; height:28px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; border-radius:0; }
     #mute-btn:hover { border-color:#8C6238; color:#C8B878; }
     #mute-btn.unmuted { color:#C8B878; border-color:#6A5038; }
@@ -222,13 +222,6 @@
     </div>
     <div id="day-display"><span class="day-num" id="day-num">0</span><span class="day-label">Days</span><span id="time-display">8:00 AM</span></div>
     <div id="interact-prompt"><div class="ip-name" id="ip-building-name"></div><button id="ip-repair-btn" style="display:none" onclick="repairBuilding()">Repair</button><button id="ip-rest-btn" style="display:none" onclick="restNarrator()">Rest</button><button id="ip-action-btn" style="display:none" onclick="interactWithBuilding()">Interact</button></div>
-    <div id="speed-controls" style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:10;align-items:center;">
-      <button class="speed-btn active" id="spd-pause" onclick="setSpeed(0)">&#x23F8;</button>
-      <button class="speed-btn" id="spd-1" onclick="setSpeed(1)">&#x25B6;</button>
-      <button class="speed-btn" id="spd-2" onclick="setSpeed(2)">&#x25B6;&#x25B6;</button>
-      <button class="speed-btn" id="spd-4" onclick="setSpeed(4)">&#x25B6;&#x25B6;&#x25B6;</button>
-      <span onclick="saveAndQuit()" style="font-size:9px;letter-spacing:1px;color:#4a5a3a;text-transform:uppercase;cursor:pointer;margin-left:6px;" title="Save &amp; Quit (Esc)">&#x2715; Quit</span>
-    </div>
   </div>
   <div id="sidebar">
     <div class="sb-section">
@@ -266,6 +259,13 @@
     </div>
     <div id="info-panel"><div class="sb-label">Selected</div><div class="desc" style="color:#4a5a3a;">Click a building for details.</div></div>
     <div id="log-panel"><div class="sb-label">Event Log</div><div id="log-entries"></div></div>
+    <div id="speed-controls" style="display:flex;gap:6px;padding:10px 16px;border-top:1px solid #3A2A1E;align-items:center;flex-shrink:0;">
+      <button class="speed-btn active" id="spd-pause" onclick="setSpeed(0)">&#x23F8;</button>
+      <button class="speed-btn" id="spd-1" onclick="setSpeed(1)">&#x25B6;</button>
+      <button class="speed-btn" id="spd-2" onclick="setSpeed(2)">&#x25B6;&#x25B6;</button>
+      <button class="speed-btn" id="spd-4" onclick="setSpeed(4)">&#x25B6;&#x25B6;&#x25B6;</button>
+      <span onclick="saveAndQuit()" style="font-size:9px;letter-spacing:1px;color:#5A4030;text-transform:uppercase;cursor:pointer;margin-left:auto;" title="Save &amp; Quit (Esc)">&#x2715; Quit</span>
+    </div>
   </div>
 </div>
 <div id="event-overlay"><div id="event-box"></div></div>
