@@ -2335,8 +2335,12 @@ function updateInteractPrompt(){
   if(!b||(!action&&!needsRepair&&!canRest)){el.style.display="none";return;}
   var onCooldown=Date.now()<interactCooldownUntil;
   var ms=state.mapScale||1;
+  var promptH=90; // approximate height of prompt — flip above building if it would clip
+  var belowY=(b.y+b.h)*ms*ch+10;
+  var aboveY=b.y*ms*ch-promptH-4;
+  var useAbove=belowY+promptH>ch-4;
   el.style.left=(b.x+b.w/2)*ms*cw+"px";
-  el.style.top=(b.y+b.h)*ms*ch+10+"px";
+  el.style.top=(useAbove?aboveY:belowY)+"px";
   el.style.transform="translateX(-50%)";
   el.style.display="block";
   document.getElementById("ip-building-name").textContent=b.name;
