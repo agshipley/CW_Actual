@@ -2526,6 +2526,28 @@ var BUILDING_INTERIORS = {
        upgrade:{label:"Update the Song List \u2014 $400",cost:400,effect:{morale:2},dailyEffect:{morale:1},upgradedDesc:"New songs. Still historically dubious. Quinn has requested the addition of selections from Cats. This request has been noted and filed."}}
     ]
   },
+  infirmary: {
+    name: "Infirmary",
+    bgColor: "#2A2E24",
+    floorColor: "#4E5A42",
+    objects: [
+      {id:"exam_table",   name:"The Examination Table",     x:0.35, y:0.35, w:0.18, h:0.10, color:"#4E7068",
+       desc:"The examination table. Quinn was here after the cannon incident. The gang guys took his pants and put tiny notches in him with their knives. You wrapped him in a Confederate flag and loaded him into a hay cart. The table still has the antiseptic smell from that day. It doesn\u2019t go away.",
+       upgrade:null},
+      {id:"med_cabinet",  name:"The Medicine Cabinet",      x:0.70, y:0.20, w:0.12, h:0.20, color:"#5E6E7C",
+       desc:"The medicine cabinet. Half-stocked. The expiration dates on several items have been creatively reinterpreted. The bandages are period-authentic, which means they\u2019re cotton and hope.",
+       upgrade:{label:"Restock Medical Supplies \u2014 $1,500",cost:1500,effect:{morale:4},dailyEffect:{morale:1,productivity:1},upgradedDesc:"New supplies. Modern ones. Connie says they\u2019re adequate, which from a retired ER nurse is the equivalent of a standing ovation."}},
+      {id:"cot",          name:"The Cot",                   x:0.15, y:0.55, w:0.15, h:0.08, color:"#8C7A58",
+       desc:"The recovery cot. It has seen Quinn after the cannon, three visitors after the tainted meat incident, and you after the shovel incident if you chose to intervene at the baptism. The mattress has a permanent indentation in the shape of whoever was last desperate enough to sleep here.",
+       upgrade:null},
+      {id:"conf_flags",   name:"The Confederate Flag Pile", x:0.80, y:0.60, w:0.10, h:0.08, color:"#9C4A2E",
+       desc:"A pile of Confederate flags used as emergency blankets. This was not in the original supply requisition. It happened organically. Mr. A says it\u2019s historically immersive. The flags are surprisingly warm.",
+       upgrade:null},
+      {id:"sink",         name:"The Sink",                  x:0.55, y:0.55, w:0.08, h:0.06, color:"#D4D0C4",
+       desc:"The infirmary sink. You burned Samuel\u2019s report here. The one about the south perimeter. Three pages, handwritten, very precise. The ashes went down the drain. The drain doesn\u2019t care what it carries.",
+       upgrade:null}
+    ]
+  },
   general: {
     name: "General Store \u2014 Fred Moore\u2019s Domain",
     bgColor: "#2A2014",
