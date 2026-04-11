@@ -80,7 +80,7 @@
     ::-webkit-scrollbar { width:4px; }
     ::-webkit-scrollbar-track { background:#1E1812; }
     ::-webkit-scrollbar-thumb { background:#4A3A2A; border-radius:0; }
-    #interact-prompt { display:none; position:absolute; z-index:20; pointer-events:auto; background:rgba(26,20,14,0.97); border:1px solid #6A5038; padding:8px 14px; text-align:center; }
+    #interact-prompt { display:none; position:absolute; top:72px; left:16px; z-index:20; pointer-events:auto; background:rgba(26,20,14,0.97); border:1px solid #6A5038; padding:8px 14px; text-align:left; }
     #interact-prompt .ip-name { font-size:9px; letter-spacing:3px; text-transform:uppercase; color:#8A6A44; margin-bottom:7px; }
     #interact-prompt button { background:none; border:1px solid #6A5038; color:#C8B878; padding:5px 16px; font-family:Georgia,serif; font-size:11px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; }
     #interact-prompt button:hover { background:rgba(140,98,56,0.18); border-color:#C8B878; }
@@ -175,8 +175,8 @@
     .int-hint{font-size:11px;color:#5A4A3A;font-style:italic;}
     .int-obj-name{font-size:14px;color:#D4B878;margin-bottom:6px;}
     .int-obj-desc{font-size:12px;color:#8A7A62;line-height:1.7;font-style:italic;}
-    .int-upgrade-btn{margin-top:10px;background:rgba(140,98,56,0.08);border:1px solid #8C6238;color:#2E241E;padding:8px 16px;font-family:Georgia,serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:block;}
-    .int-upgrade-btn:hover{background:rgba(140,98,56,0.18);border-color:#2E241E;}
+    .int-upgrade-btn{margin-top:10px;background:rgba(140,98,56,0.08);border:1px solid #8C6238;color:#C8B878;padding:8px 16px;font-family:Georgia,serif;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;display:block;}
+    .int-upgrade-btn:hover{background:rgba(140,98,56,0.18);border-color:#C8B878;}
     .int-upgrade-btn.cant-afford{opacity:0.4;cursor:not-allowed;}
   </style>
 </head>
@@ -2461,7 +2461,7 @@ function getNearbyBuilding(){
 
 function updateInteractPrompt(){
   var el=document.getElementById("interact-prompt");
-  if(!canvas||state.gameOver||state.eventActive){el.style.display="none";return;}
+  if(!canvas||state.gameOver||state.eventActive||state.activeInterior){el.style.display="none";return;}
   var b=getNearbyBuilding();
   var action=b?(BUILDING_ACTIONS[b.id]||BUILDING_ACTIONS[b.typeId]):null;
   var needsRepair=b&&b.condition!==undefined&&b.condition<100;
@@ -2469,14 +2469,6 @@ function updateInteractPrompt(){
   var hasInterior=b&&!!(BUILDING_INTERIORS[b.id]||BUILDING_INTERIORS[b.typeId]);
   if(!b||b.underConstruction||(!action&&!needsRepair&&!canRest&&!hasInterior)){el.style.display="none";return;}
   var onCooldown=Date.now()<interactCooldownUntil;
-  var ms=state.mapScale||1;
-  var promptH=90; // approximate height of prompt — flip above building if it would clip
-  var belowY=(b.y+b.h)*ms*ch+10;
-  var aboveY=b.y*ms*ch-promptH-4;
-  var useAbove=belowY+promptH>ch-4;
-  el.style.left=(b.x+b.w/2)*ms*cw+"px";
-  el.style.top=(useAbove?aboveY:belowY)+"px";
-  el.style.transform="translateX(-50%)";
   el.style.display="block";
   document.getElementById("ip-building-name").textContent=b.name;
   el.dataset.buildingId=b.id;
