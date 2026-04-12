@@ -77,6 +77,15 @@
     #event-box.fail-end .ev-day { color:#9C4A2E; }
     .ev-continue-btn { background:rgba(140,98,56,0.08); border:1px solid #8C6238; color:#2E241E; padding:10px 28px; font-family:Georgia,serif; font-size:12px; letter-spacing:2px; text-transform:uppercase; cursor:pointer; width:100%; margin-top:12px; }
     .ev-continue-btn:hover { border-color:#2E241E; background:rgba(140,98,56,0.18); }
+    #event-box.tally-overlay{background:rgba(26,20,12,0.95);border:1px solid #8A7556;max-width:420px;margin:40px auto;padding:32px 36px;color:#C8B878;overflow-y:auto;max-height:80vh;}
+    .tally-title{font:italic 22px Georgia;text-align:center;color:#E8D8A8;margin-bottom:8px;letter-spacing:2px;}
+    .tally-days{font:14px Georgia;text-align:center;color:#8A7A5A;margin-bottom:16px;}
+    .tally-divider{border:none;border-top:1px solid #4A3E2E;margin:12px 0;}
+    .tally-row{display:flex;justify-content:space-between;font:12px Georgia;color:#6A5A3A;padding:2px 0;}
+    .tally-row .tally-val{color:#C8B878;}
+    .tally-verdict{font:italic 14px/1.7 Georgia;text-align:center;color:#E8D8A8;padding:16px 8px;margin:12px 0;}
+    .tally-btn{display:block;margin:16px auto 0;background:none;border:1px solid #8A7556;color:#C8B878;font:12px Georgia;padding:8px 24px;cursor:pointer;letter-spacing:2px;text-transform:uppercase;}
+    .tally-btn:hover{border-color:#C8B878;color:#E8D8A8;}
     ::-webkit-scrollbar { width:4px; }
     ::-webkit-scrollbar-track { background:#1E1812; }
     ::-webkit-scrollbar-thumb { background:#4A3A2A; border-radius:0; }
@@ -330,6 +339,9 @@ var state = {
   repairedToday: {},
   todaysAction: null,
   narratorThoughts: [],
+  tallyCounters: {compromises:0,coverUps:0,peopleLetDown:0,thingsLetRot:0},
+  tallyHistory: [],
+  lastTallyDay: 0,
   interiorNarratorX: 0.5, interiorNarratorY: 0.85,
   interiorNarratorTX: 0.5, interiorNarratorTY: 0.85,
   interiorWalkingTo: null,
@@ -638,39 +650,39 @@ var MINOR_EVENTS = [
 var EVENTS = [
   {day:1,title:"THE HABERSTROM VISIT",text:"Mr. Haberstrom, founder of Burn'n'Learn, is here to consider a major investment. His great-grandfather was killed by a donkey on the Erie Canal. The gangs have tagged the Lock with spraycans.",choices:[
     {label:"Cover it up",text:"Stall Haberstrom at the saloon while staff paints over the graffiti. Expensive, and he might still notice.",effect:{budget:-2500,attendance:4,gangThreat:0,morale:3},flag:"haberstrom_saved"},
-    {label:"Wing it",text:"Hope he doesn't notice. He notices. He pokes you with his cigar and storms off. Word gets around.",effect:{budget:0,attendance:-8,gangThreat:8,morale:-5}}]},
+    {label:"Wing it",text:"Hope he doesn't notice. He notices. He pokes you with his cigar and storms off. Word gets around.",effect:{budget:0,attendance:-8,gangThreat:8,morale:-5},tally:"thingsLetRot"}]},
   {day:4,title:"SUMMER STATS",text:"Mr. A pulls out the numbers. Worst attendance decline in ten years. Staff may be let go in droves. He gives you a meaningful look.",choices:[
     {label:"Propose marketing push",text:"Spend $4,000 on local radio ads and flyers. It might help. It might not.",effect:{budget:-4000,attendance:8,gangThreat:0,morale:3}},
-    {label:"Suggest layoffs",text:"Cut three part-timers. The budget breathes but the remaining staff notice.",effect:{budget:2000,attendance:-5,gangThreat:0,morale:-18}}]},
+    {label:"Suggest layoffs",text:"Cut three part-timers. The budget breathes but the remaining staff notice.",effect:{budget:2000,attendance:-5,gangThreat:0,morale:-18},tally:"peopleLetDown"}]},
   {day:6,title:"QUINN FOR DESPERATE PATROL",text:"Sylvia's research identifies Quinn as the most violent employee. Mr. A wants him on Desperate Patrol with live ammo. Quinn's got six kids and needs the money.",choices:[
-    {label:"Arm Quinn",text:"Give Quinn live ammo and an extra $200/week. You're putting a weapon in the hands of a man who once burned a storage shed.",effect:{budget:-400,attendance:0,gangThreat:-4,morale:-8,stress:8},flag:"quinn_armed"},
+    {label:"Arm Quinn",text:"Give Quinn live ammo and an extra $200/week. You're putting a weapon in the hands of a man who once burned a storage shed.",effect:{budget:-400,attendance:0,gangThreat:-4,morale:-8,stress:8},flag:"quinn_armed",tally:"compromises"},
     {label:"Refuse",text:"Tell Mr. A this is insane. He questions your commitment. The gangs remain unchecked.",effect:{budget:0,attendance:-3,gangThreat:8,morale:5,stress:3},flag:"quinn_refused"}]},
   {day:8,title:"THE ORNITHOLOGIST QUESTION",text:"Grayson says we need to eliminate a couple hundred orioles to match 1865. Mr. A says ornithologists are a luxury. You'll do the telling.",choices:[
-    {label:"Fire Grayson",text:"You hand him Kleenexes and fend off a few blows. One more person who trusted you, gone.",effect:{budget:600,attendance:0,gangThreat:0,morale:-12,stress:10},flag:"grayson_fired",removeChar:"grayson"},
+    {label:"Fire Grayson",text:"You hand him Kleenexes and fend off a few blows. One more person who trusted you, gone.",effect:{budget:600,attendance:0,gangThreat:0,morale:-12,stress:10},flag:"grayson_fired",removeChar:"grayson",tally:"peopleLetDown"},
     {label:"Defend Grayson",text:"You argue he's essential. Mr. A is annoyed. He'll remember this when cuts come.",effect:{budget:-1200,attendance:0,gangThreat:0,morale:5,stress:3}}]},
   {day:10,title:"QUINN HUMILIATED",text:"Quinn and his men are tied to the cannon. The gangs took Quinn's pants and cut him with knives. You wrap him in a Confederate flag and load him into a hay cart.",conditionNot:"quinn_refused",choices:[
     {label:"Report it",text:"Call the police. The story makes the news. Attendance craters but at least there's a record.",effect:{budget:-2000,attendance:-12,gangThreat:8,morale:-5,stress:5}},
-    {label:"Keep it quiet",text:"Give Quinn the week off. The staff know what happened. They know you buried it.",effect:{budget:-500,attendance:0,gangThreat:8,morale:-15,stress:12}}]},
+    {label:"Keep it quiet",text:"Give Quinn the week off. The staff know what happened. They know you buried it.",effect:{budget:-500,attendance:0,gangThreat:8,morale:-15,stress:12},tally:"coverUps"}]},
   {day:10,title:"GANGS ESCALATE",text:"Without Quinn on patrol, the gangs get bolder. They wound two visitors near the General Store and spraypaint the Everly Mansion.",condition:"quinn_refused",choices:[
     {label:"Hire security firm",text:"Professional but expensive. And they're not cheap enough to stick around.",effect:{budget:-6000,attendance:3,gangThreat:-12,morale:5,stress:4}},
     {label:"Tough it out",text:"Hope it blows over. Everyone knows it won't.",effect:{budget:0,attendance:-12,gangThreat:18,morale:-12,stress:6}}]},
   {day:13,title:"SAMUEL ARRIVES",text:"A guy shows up at Personnel looking completely Civil War. His name is Samuel. Sylvia's federal sources say he was expelled from Vietnam for a bloodbath. His marksmanship scores go on for pages.",choices:[
-    {label:"Arm Samuel",text:"Mr. A says Sam's our man. You get off your indefensible high horse. You're handing a weapon to a man expelled from a war for excessive violence.",effect:{budget:-800,gangThreat:-20,morale:-15,attendance:0,stress:10},flag:"samuel_armed",addChar:{id:"samuel",name:"Samuel",x:.54,y:.20,color:"#8B4513",speed:.002}},
+    {label:"Arm Samuel",text:"Mr. A says Sam's our man. You get off your indefensible high horse. You're handing a weapon to a man expelled from a war for excessive violence.",effect:{budget:-800,gangThreat:-20,morale:-15,attendance:0,stress:10},flag:"samuel_armed",addChar:{id:"samuel",name:"Samuel",x:.54,y:.20,color:"#8B4513",speed:.002},tally:"compromises"},
     {label:"Keep him churning butter",text:"Samuel stays on the Kriegal porch. The gangs remain your problem. Mr. A's patience thins.",effect:{budget:0,gangThreat:8,morale:3,attendance:-3,stress:2},flag:"samuel_butter"}]},
   {day:17,title:"THE CHURCH BURNS",text:"The gangs have set fire to the Anglican Church. $90,000 to transport and refurbish, up in flames. You can see it from Mr. A's window. He breaks down in tears.",choices:[
     {label:"Call fire department",text:"Official response. The story gets out. Insurance covers some of it but the damage to reputation is real.",effect:{budget:-5000,attendance:-15,gangThreat:8,morale:-6,stress:8},destroy:"church"},
-    {label:"Let it burn for insurance",text:"Mr. A's eyes light up through his tears. You file the claim. You both know what you've done.",effect:{budget:5000,attendance:-15,gangThreat:5,morale:-25,stress:15},destroy:"church",flag:"insurance_fraud"}]},
+    {label:"Let it burn for insurance",text:"Mr. A's eyes light up through his tears. You file the claim. You both know what you've done.",effect:{budget:5000,attendance:-15,gangThreat:5,morale:-25,stress:15},destroy:"church",flag:"insurance_fraud",tally:"coverUps"}]},
   {day:20,title:"THE FOLEY BAPTISM",text:"The Foleys rent the Worship Center for a baptism. Midway through, a gang bursts in and seizes a sixteen-year-old niece. Her father is blackjacked.",conditionNot:"samuel_butter",choices:[
-    {label:"Let Samuel handle it",text:"Six fast shots. Six gang corpses. Samuel's having punch with the niece. The police arrive. You all lie like rugs. You are now an accessory to six homicides.",effect:{budget:300,attendance:3,gangThreat:-20,morale:-10,stress:15},flag:"foley_massacre"},
+    {label:"Let Samuel handle it",text:"Six fast shots. Six gang corpses. Samuel's having punch with the niece. The police arrive. You all lie like rugs. You are now an accessory to six homicides.",effect:{budget:300,attendance:3,gangThreat:-20,morale:-10,stress:15},flag:"foley_massacre",tally:"coverUps"},
     {label:"Call 911 immediately",text:"The gang flees before police arrive. No one dies. But the Foleys are furious and the story makes the news.",effect:{budget:-5000,attendance:-12,gangThreat:8,morale:-5,stress:5}}]},
   {day:20,title:"THE FOLEY BAPTISM",text:"A gang bursts into the Foley baptism and seizes a niece. You have no armed enforcer in the woods.",condition:"samuel_butter",choices:[
     {label:"Call 911",text:"Police respond in twelve minutes. The niece is found shaken but alive. The Foleys sue for negligence.",effect:{budget:-10000,attendance:-18,gangThreat:8,morale:-12,stress:5}},
     {label:"Intervene yourself",text:"You grab a shovel and run after them. You get beaten badly but the niece escapes. A week in the Infirmary. The staff look at you differently after.",effect:{budget:-2000,attendance:-5,gangThreat:5,morale:10,stress:8},flag:"narrator_brave"}]},
   {day:23,title:"THE HAND",text:"A human hand on your chair, holding a note. Penny candy everywhere. 'Sir, another pig disciplined. Samuel the Rectifier.' There's a class ring on it. A high schooler. For stealing candy.",condition:"samuel_armed",choices:[
-    {label:"Bury it in the marsh",text:"Mr. A says bury it behind Refreshments. You are now burying human remains to protect a murderer. Mr. McKinnon's ghost watches you dig.",effect:{budget:0,attendance:0,gangThreat:-5,morale:-22,stress:15},flag:"buried_hand"},
+    {label:"Bury it in the marsh",text:"Mr. A says bury it behind Refreshments. You are now burying human remains to protect a murderer. Mr. McKinnon's ghost watches you dig.",effect:{budget:0,attendance:0,gangThreat:-5,morale:-22,stress:15},flag:"buried_hand",tally:"coverUps"},
     {label:"Turn Samuel in",text:"You call the police. Samuel vanishes into the Great Forest. Mr. A says if you go down, he goes down, you go down. He's right.",effect:{budget:-3000,attendance:-8,gangThreat:18,morale:8,stress:10},flag:"samuel_reported",removeChar:"samuel"}]},
   {day:26,title:"HALLOWEEN",text:"You bring Marcus and Howie for trick-or-treating. Teens burst from the Conifer Grove as you cross the Timeless Green.",condition:"samuel_armed",conditionNot:"samuel_reported",choices:[
-    {label:"Trust Samuel",text:"Shots ring out. Howie drops. His ledger is hit, not him. The 'gang' turns out to be a bird-watching group. Samuel has shot three adolescent bird-watchers. Your son was ten feet from live fire.",effect:{budget:-10000,attendance:-20,gangThreat:5,morale:-15,stress:15},flag:"birdwatchers_shot"},
+    {label:"Trust Samuel",text:"Shots ring out. Howie drops. His ledger is hit, not him. The 'gang' turns out to be a bird-watching group. Samuel has shot three adolescent bird-watchers. Your son was ten feet from live fire.",effect:{budget:-10000,attendance:-20,gangThreat:5,morale:-15,stress:15},flag:"birdwatchers_shot",tally:"peopleLetDown"},
     {label:"Grab the boys and run",text:"You scoop up the kids and sprint for City Hall. Samuel fires anyway. One bird-watcher is wounded. But your boys are safe. For now.",effect:{budget:-5000,attendance:-22,gangThreat:5,morale:-18,stress:10}}]},
   {day:28,title:"EVELYN LEAVES",text:"Her note: 'I could never forgive you for putting our sons at risk. Good-bye forever you passive flake. Norm Hinkle has been a source of strength for several years, if you know what I mean.'",choices:[
     {label:"Go after them",text:"You drive to Hinkle's. Evelyn won't come to the door. Marcus waves from an upstairs window. You sit in the car until dawn. You accomplish nothing.",effect:{budget:0,attendance:-5,gangThreat:3,morale:-18,stress:8}},
@@ -859,14 +871,8 @@ function checkFailState(){
 }
 
 function showFailEnd(f){
-  state.gameOver=true;state.eventActive=true;
-  try{localStorage.removeItem(SAVE_KEY);}catch(e){}
-  sndThud();
-  var b=document.getElementById("event-box");b.className="fail-end";
-  var s='<br><br><span style="color:#5a6a4a;font-size:11px;">Day '+state.day+' \u00b7 Budget: $'+state.budget.toLocaleString()+' \u00b7 Attendance: '+state.attendance+' \u00b7 Morale: '+state.morale+'% \u00b7 Threat: '+state.gangThreat+'%</span>';
-  b.innerHTML='<div class="ev-day">Park Closed \u2014 Day '+state.day+'</div><div class="ev-title">'+f.title+'</div><div class="ev-text">'+f.text+s+'</div><button class="ev-continue-btn" onclick="location.reload()">Start Over</button>';
-  document.getElementById("event-overlay").classList.add("active");
-  state.gamePaused=true;
+  var failMap={"BREAKDOWN":"stress","STAFF COLLAPSE":"morale","EXODUS":"morale","INSOLVENCY":"budget"};
+  showFailureTally(failMap[f.title]||null,f);
 }
 
 function getRandomMinorEvent(){
@@ -905,6 +911,142 @@ function dismissMinorEvent(){
   state.eventActive=false;
 }
 
+// ── Tally System ───────────────────────────────────────────────
+var TALLY_TEXT={
+  tally1:{compromises:"You\u2019re learning how things work here. Mr. A noticed. He always notices.",coverUps:"Some things are easier left in the marsh. You\u2019re starting to understand which ones.",peopleLetDown:"They\u2019re not your friends. They were never going to be your friends. Try to remember that.",thingsLetRot:"Maintenance is a budget line. Budget lines get cut. This is how it works.",clean:"You\u2019re trying to do this clean. Mr. A finds that endearing. It won\u2019t last."},
+  tally2:[
+    {max:0,text:"A week and your hands are still clean. The park notices. So do the investors. They\u2019re nervous about you. A man who won\u2019t bend is a man who\u2019ll break."},
+    {max:3,text:"You\u2019re keeping your head down. Cutting the corners that need cutting. Sleeping at night, mostly. This is sustainable. For now."},
+    {max:7,text:"The job is changing you. You can feel it in the way you draft memos now. Words you would never have used a week ago come easy. Mr. A says you\u2019re \u201csettling in.\u201d"},
+    {max:Infinity,text:"You\u2019ve stopped flinching. That\u2019s the part that should worry you, but it doesn\u2019t, which is also the part that should worry you. The narrator you were on day one would not recognize the narrator you are now. He would not approve. He would also not survive a week here, so."}
+  ],
+  tally3a:{compromises:"You\u2019re good at this. It turns out being good at this is mostly about not asking the second question.",coverUps:"The marsh is starting to fill up. You\u2019ve stopped counting what you\u2019ve put there.",peopleLetDown:"The empty desks bother you less than they used to. The empty desks bother you, but less.",thingsLetRot:"The retaining wall is taller than it used to be. The things behind it are smaller.",equal:"No specialty. You take whatever shape the day requires. Mr. A says this makes you valuable."},
+  tally3b:[
+    {min:61,text:"The staff likes you. You\u2019re not sure that\u2019s a compliment anymore."},
+    {min:31,text:"The staff tolerates you. This is the most you can reasonably ask for, given."},
+    {min:11,text:"The staff is afraid of you. You tell yourself this is leadership. The word feels heavy in your mouth."},
+    {min:0,text:"The staff has stopped making eye contact. You haven\u2019t earned this exactly. You also haven\u2019t earned the alternative. You sit with it."}
+  ],
+  tally4a:{strong:"You did it. By the metrics that matter to the people who pay you, you did it. The park is solvent. The staff is mostly intact. Most of the structures are still standing. Mr. A is going to get his bonus. You are going to get your job back, which is the bonus they give people like you.",medium:"You held it together. Not gracefully. Not cleanly. But you\u2019re still standing on day thirty, and the park is still standing on day thirty, and these are the things they grade you on. Mr. A is \u201cguardedly optimistic.\u201d You take what you can get.",weak:"You survived. The park survived. The investors are choosing to interpret this as success because the alternative is admitting they were wrong, and admitting they were wrong is not something the investors do. You\u2019re keeping your job. The job is not what you thought it was when you took it. It is not what you thought it was a week ago. It is not what you will think it is a week from now."},
+  tally4b:{compromises:"The kind of man who would have refused this job a month ago is gone. You did not notice him leaving. Mr. A sends his regards.",coverUps:"There are things you put in the marsh that you no longer remember putting in the marsh. This is, on balance, a relief.",peopleLetDown:"The roster is shorter. The names you remember are the ones you fired personally. The names you don\u2019t remember are the ones who left without saying goodbye.",thingsLetRot:"CivilWarLand is smaller than it was thirty days ago. It is also, technically, larger. Both of these things are true. Mr. A would say this is the kind of paradox that builds character.",clean:"You did it clean. You did it impossibly clean. Tomorrow, the next thirty days begin. The corners you didn\u2019t cut are going to want cutting. The hands you didn\u2019t bury are going to want burying. You\u2019ll see."},
+  failures:{stress:{title:"BREAKDOWN",text:"They found you in a closet, performing Hatred Abatement Breathing for the ninth consecutive hour. Mr. A sent you home. You didn\u2019t come back. Someone else has your office now. The job got filled in a week. The park is still standing. It will keep standing. With or without you. Mostly without."},morale:{title:"THE STAFF VOTED WITH THEIR FEET",text:"They left one at a time at first. Then in pairs. By the end of the week the costuming room was empty and the cancan stage was dark and the only person clocking in was you. Mr. A says it\u2019s a temporary setback. Mr. A says everything is a temporary setback. You\u2019re updating your resume. Two hundred send-outs. Maybe this time."},budget:{title:"INSOLVENT",text:"The investors stopped returning calls a week ago. The vendors stopped delivering three days ago. Today the lights flickered and didn\u2019t come back on. Mr. A is in his office drinking and watching a bigscreen that no longer has power. He waves you in. He says he\u2019s torching the place for insurance purposes. He says you should get your ass out. You get your ass out."},buildings:{title:"THE PARK WENT FIRST",text:"Things fall apart. This is, technically, what things do. The Anglican Church went first, then the Worship Center, then the Cimarron Brothel \u2014 though to be fair the Cimarron had been going for some time. By the end the only thing still standing was the retaining wall, which was always the point. The retaining wall was always the point."}}
+};
+
+var _activeTally=0;
+function incrementTallyCounter(category){
+  if(!state.tallyCounters)state.tallyCounters={compromises:0,coverUps:0,peopleLetDown:0,thingsLetRot:0};
+  if(state.tallyCounters[category]!==undefined)state.tallyCounters[category]++;
+}
+function getTallyTotal(){var tc=state.tallyCounters;return tc.compromises+tc.coverUps+tc.peopleLetDown+tc.thingsLetRot;}
+function getHighestCategory(){
+  var tc=state.tallyCounters;
+  var cats=[{k:"compromises",v:tc.compromises},{k:"coverUps",v:tc.coverUps},{k:"peopleLetDown",v:tc.peopleLetDown},{k:"thingsLetRot",v:tc.thingsLetRot}];
+  cats.sort(function(a,b){return b.v-a.v;});
+  if(cats[0].v-cats[3].v<=2&&getTallyTotal()>0)return"equal";
+  if(cats[0].v===0)return"clean";
+  return cats[0].k;
+}
+function getBuildingsStanding(){
+  var total=BUILDINGS.length,standing=0;
+  for(var i=0;i<BUILDINGS.length;i++){if(!state.destroyedBuildings[BUILDINGS[i].id])standing++;}
+  return{standing:standing,total:total,pct:Math.round(standing/total*100)};
+}
+function getStaffRemaining(){
+  var ids=["quinn","sylvia","grayson"],count=0;
+  for(var i=0;i<ids.length;i++){for(var j=0;j<state.characters.length;j++){if(state.characters[j].id===ids[i]){count++;break;}}}
+  return{count:count,total:ids.length};
+}
+function checkTallyTrigger(){
+  var total=getTallyTotal();
+  if(state.lastTallyDay<3&&state.day>=3&&state.day<=5){if(total>0||state.day>=5){showTally(1);return true;}}
+  if(state.lastTallyDay<7&&state.day>=7){showTally(2);return true;}
+  if(state.lastTallyDay<15&&state.day>=15){showTally(3);return true;}
+  if(state.lastTallyDay<30&&state.day>=30){showTally(4);return true;}
+  return false;
+}
+function showTally(num){
+  _activeTally=num;state.lastTallyDay=state.day;
+  state.tallyHistory.push({day:state.day,counters:{compromises:state.tallyCounters.compromises,coverUps:state.tallyCounters.coverUps,peopleLetDown:state.tallyCounters.peopleLetDown,thingsLetRot:state.tallyCounters.thingsLetRot}});
+  state.eventActive=true;state.gamePaused=true;
+  var tc=state.tallyCounters,total=getTallyTotal(),highest=getHighestCategory();
+  var title,verdict,showAll=true,showFact=true,showTraj=false;
+  if(num===1){
+    title="THREE DAYS IN";showAll=false;showFact=false;
+    verdict=total===0?TALLY_TEXT.tally1.clean:(TALLY_TEXT.tally1[highest]||TALLY_TEXT.tally1.clean);
+  }else if(num===2){
+    title="ONE WEEK";
+    for(var ti=0;ti<TALLY_TEXT.tally2.length;ti++){if(total<=TALLY_TEXT.tally2[ti].max){verdict=TALLY_TEXT.tally2[ti].text;break;}}
+  }else if(num===3){
+    title="HALFWAY";showTraj=true;
+    var la=TALLY_TEXT.tally3a[highest]||TALLY_TEXT.tally3a.equal;
+    var lb;for(var mi=0;mi<TALLY_TEXT.tally3b.length;mi++){if(state.morale>=TALLY_TEXT.tally3b[mi].min){lb=TALLY_TEXT.tally3b[mi].text;break;}}
+    if(!lb)lb=TALLY_TEXT.tally3b[TALLY_TEXT.tally3b.length-1].text;
+    verdict=la+"<br><br>"+lb;
+  }else if(num===4){
+    title="THIRTY DAYS";
+    var bp=getBuildingsStanding(),sr=getStaffRemaining();
+    var la;
+    if(state.budget>5000&&sr.count/sr.total>0.8&&bp.pct>80)la=TALLY_TEXT.tally4a.strong;
+    else if(state.budget<2000||sr.count/sr.total<0.5||bp.pct<50)la=TALLY_TEXT.tally4a.weak;
+    else la=TALLY_TEXT.tally4a.medium;
+    var lb=total===0?TALLY_TEXT.tally4b.clean:(TALLY_TEXT.tally4b[highest]||TALLY_TEXT.tally4b.clean);
+    verdict=la+"<br><br>"+lb;
+  }
+  var h='<div class="tally-title">'+title+'</div><div class="tally-days">Days survived: '+state.day+'</div><hr class="tally-divider">';
+  if(showAll){
+    h+='<div class="tally-row"><span>Compromises</span><span class="tally-val">'+tc.compromises+'</span></div>';
+    h+='<div class="tally-row"><span>Cover-ups</span><span class="tally-val">'+tc.coverUps+'</span></div>';
+    h+='<div class="tally-row"><span>People let down</span><span class="tally-val">'+tc.peopleLetDown+'</span></div>';
+    h+='<div class="tally-row"><span>Things let rot</span><span class="tally-val">'+tc.thingsLetRot+'</span></div>';
+  }else{
+    var sorted=[{l:"Compromises",v:tc.compromises},{l:"Cover-ups",v:tc.coverUps},{l:"People let down",v:tc.peopleLetDown},{l:"Things let rot",v:tc.thingsLetRot}];
+    sorted.sort(function(a,b){return b.v-a.v;});
+    for(var si=0;si<2;si++){if(sorted[si].v>0)h+='<div class="tally-row"><span>'+sorted[si].l+'</span><span class="tally-val">'+sorted[si].v+'</span></div>';}
+  }
+  if(showTraj&&state.tallyHistory.length>=2){
+    var prev=state.tallyHistory[state.tallyHistory.length-2].counters;
+    h+='<hr class="tally-divider">';
+    var deltas=[{l:"Compromises",d:tc.compromises-prev.compromises},{l:"Cover-ups",d:tc.coverUps-prev.coverUps},{l:"People let down",d:tc.peopleLetDown-prev.peopleLetDown},{l:"Things let rot",d:tc.thingsLetRot-prev.thingsLetRot}];
+    for(var di=0;di<deltas.length;di++){if(deltas[di].d>0)h+='<div class="tally-row" style="color:#8A7A5A;"><span>'+deltas[di].l+' since last tally</span><span>+'+deltas[di].d+'</span></div>';}
+  }
+  if(showFact){
+    h+='<hr class="tally-divider">';
+    h+='<div class="tally-row"><span>Money in the bank</span><span class="tally-val">$'+state.budget.toLocaleString()+'</span></div>';
+    var sr2=getStaffRemaining();
+    h+='<div class="tally-row"><span>Staff remaining</span><span class="tally-val">'+sr2.count+' / '+sr2.total+'</span></div>';
+    if(num>=4){var bp2=getBuildingsStanding();h+='<div class="tally-row"><span>Buildings standing</span><span class="tally-val">'+bp2.standing+' / '+bp2.total+'</span></div>';}
+  }
+  h+='<hr class="tally-divider"><div class="tally-verdict">'+verdict+'</div>';
+  h+='<button class="tally-btn" onclick="dismissTally()">'+(num===4?"Continue to Phase Two":"Continue")+'</button>';
+  var b=document.getElementById("event-box");b.className="tally-overlay";b.innerHTML=h;
+  document.getElementById("event-overlay").classList.add("active");
+}
+function showFailureTally(failType,existingFail){
+  _activeTally=-1;state.gameOver=true;state.eventActive=true;
+  try{localStorage.removeItem(SAVE_KEY);}catch(e){}
+  sndThud();
+  var tc=state.tallyCounters;
+  var ft=TALLY_TEXT.failures[failType];
+  var title=ft?ft.title:existingFail.title;
+  var verdict=ft?ft.text:existingFail.text;
+  var h='<div class="tally-title">'+title+'</div><div class="tally-days">Days survived: '+state.day+'</div><hr class="tally-divider">';
+  h+='<div class="tally-row"><span>Compromises</span><span class="tally-val">'+tc.compromises+'</span></div>';
+  h+='<div class="tally-row"><span>Cover-ups</span><span class="tally-val">'+tc.coverUps+'</span></div>';
+  h+='<div class="tally-row"><span>People let down</span><span class="tally-val">'+tc.peopleLetDown+'</span></div>';
+  h+='<div class="tally-row"><span>Things let rot</span><span class="tally-val">'+tc.thingsLetRot+'</span></div>';
+  h+='<hr class="tally-divider"><div class="tally-verdict">'+verdict+'</div>';
+  h+='<button class="tally-btn" onclick="location.reload()">Start a new run</button>';
+  var b=document.getElementById("event-box");b.className="tally-overlay";b.innerHTML=h;
+  document.getElementById("event-overlay").classList.add("active");
+  state.gamePaused=true;
+}
+function dismissTally(){
+  document.getElementById("event-overlay").classList.remove("active");
+  state.eventActive=false;
+  if(_activeTally===4&&state.day>=30&&!state.expanded){_activeTally=0;showEnding();}
+  else{_activeTally=0;}
+}
+
 function applyMidnight(){
   state.usedBuildingActions={};state.repairedToday={};state.todaysAction=null;state.narratorEnergy=100;
   // Apply narrator thought daily effects
@@ -925,10 +1067,12 @@ function applyMidnight(){
   state.attendance=clamp(state.attendance-1,0,100);
   state.narratorStress=clamp(state.narratorStress+1,0,100);
   if(state.phase2Active){state.productivity=clamp(state.productivity-1,0,100);}
-  // Building condition decay
+  // Building condition decay — track newly condemned for tally
   var extraDecay=state.gangThreat>50?2:0;
-  BUILDINGS.forEach(function(b){if(!state.destroyedBuildings[b.id]&&b.condition!==undefined)b.condition=Math.max(0,b.condition-(1+Math.floor(Math.random()*4))-extraDecay);});
-  state.placedBuildings.forEach(function(b){if(b.underConstruction)return;b.condition=Math.max(0,b.condition-(1+Math.floor(Math.random()*4))-extraDecay);});
+  BUILDINGS.forEach(function(b){if(!state.destroyedBuildings[b.id]&&b.condition!==undefined){var wasCond=b.condition>0;b.condition=Math.max(0,b.condition-(1+Math.floor(Math.random()*4))-extraDecay);if(wasCond&&b.condition===0)incrementTallyCounter("thingsLetRot");}});
+  state.placedBuildings.forEach(function(b){if(b.underConstruction)return;var wasCond=b.condition>0;b.condition=Math.max(0,b.condition-(1+Math.floor(Math.random()*4))-extraDecay);if(wasCond&&b.condition===0)incrementTallyCounter("thingsLetRot");});
+  // Tally: morale drop to miserable tier (once per run)
+  if(state.morale<30&&!state.flags._tally_miserable){state.flags._tally_miserable=true;incrementTallyCounter("peopleLetDown");}
   // Construction timer
   state.placedBuildings.forEach(function(pb){
     if(!pb.underConstruction)return;
@@ -1031,6 +1175,7 @@ function applyMidnight(){
   document.getElementById("day-num").textContent=state.day;
   updateSidebar();saveGame();
   var f=checkFailState();if(f){showFailEnd(f);return;}
+  if(checkTallyTrigger())return;
   if(state.day===30&&!state.expanded){showEnding();return;}
   // Check for story event
   var ev=null;
@@ -1145,7 +1290,7 @@ function sndThud(){
 // ──────────────────────────────────────────────────────────────
 
 var SAVE_KEY="civilwarland_save";
-var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns","productivity","phase2Active","charAssignedTo","charConsecutiveDays","charEventsFired","arrivedChars","interiorUpgrades","usedBuildingActions","repairedToday","todaysAction","narratorThoughts"];
+var SAVE_FIELDS=["day","budget","attendance","gangThreat","morale","log","destroyedBuildings","flags","characters","usedMinorEvents","expanded","mapScale","placedBuildings","narratorEnergy","narratorStress","gameTime","gameSpeed","placedZones","townshipUnlocked","population","approval","residents","deficitDays","lastEconBreakdown","weather","weatherDaysLeft","actionCooldowns","productivity","phase2Active","charAssignedTo","charConsecutiveDays","charEventsFired","arrivedChars","interiorUpgrades","usedBuildingActions","repairedToday","todaysAction","narratorThoughts","tallyCounters","tallyHistory","lastTallyDay"];
 
 function saveGame(){
   var s={};
@@ -1173,6 +1318,9 @@ function loadGame(){
   if(!state.interiorUpgrades)state.interiorUpgrades={};
   if(!state.usedBuildingActions)state.usedBuildingActions={};
   if(!state.repairedToday)state.repairedToday={};
+  if(!state.tallyCounters)state.tallyCounters={compromises:0,coverUps:0,peopleLetDown:0,thingsLetRot:0};
+  if(!state.tallyHistory)state.tallyHistory=[];
+  if(!state.lastTallyDay)state.lastTallyDay=0;
   if(state.todaysAction===undefined)state.todaysAction=null;
   if(state.productivity===undefined)state.productivity=50;
   if(!state.charAssignedTo)state.charAssignedTo={};
@@ -1277,6 +1425,7 @@ function makeChoice(day,idx){
   if(c.effect.stress)state.narratorStress=clamp(state.narratorStress+c.effect.stress,0,100);
   if(c.effect.narratorStress)state.narratorStress=clamp(state.narratorStress+c.effect.narratorStress,0,100);
   if(c.flag)state.flags[c.flag]=true;
+  if(c.tally)incrementTallyCounter(c.tally);
   checkNarratorThoughts();
   if(c.destroy){
     var hasFireStation=false;

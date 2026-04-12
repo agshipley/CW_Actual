@@ -70,3 +70,4 @@ When in doubt, design in claude.ai first and hand completed prompts to Claude Co
 - `PHASE2_ROADMAP.md` — Feature roadmap for Phase 2 with implementation layers and status tracking.
 - `AUTONOMOUS.md` — Instruction set for autonomous Claude Code development sessions. Read this to begin a self-directed loop.
 - `INTERIOR_ART_ASSETS.md` — Tracking doc for Midjourney interior background art. Contains completed image URLs (Saloon, City Hall, Worship Center), style guidelines, and remaining rooms. Read before any interior background integration work.
+- `TALLY_SYSTEM.md` — Design doc and authored content for the tally/ledger system. All verdict text is authored Saunders voice — pull verbatim, never paraphrase or generate.
