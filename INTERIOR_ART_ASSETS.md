@@ -17,19 +17,17 @@ See `AESTHETIC_INTERIORS.md` — all prompt structure, parameter, and iteration 
 
 All seven interior backgrounds selected and locked. Midjourney job URLs below — images must be downloaded to `assets/interiors/` as PNG files for use in-game. CDN links return 403; images must live in the repo.
 
-| # | Room | Status | Filename | Midjourney Job |
-|---|------|--------|----------|----------------|
-| 1 | Saloon | ✅ downloaded (PDF) | `saloon.png` | `d99b38a0-4f17-4435-bfa4-3a42da5e2486?index=0` |
-| 2 | City Hall | ❌ needs download | `cityhall.png` | `8bf03d39-bd64-4f8d-bdf6-a71caa95b137?index=2` |
-| 3 | Worship Center | ❌ needs download | `worship.png` | `4d086d64-eecc-4577-903e-b0e32facb2cd?index=0` |
-| 4 | Thespian Center | ❌ needs download | `thespian.png` | `7852c503-4112-406a-85b1-8501fd28e266?index=0` |
-| 5 | General Store | ❌ needs download | `general.png` | `25cdfcfd-8f4a-411e-b54e-b2d4c01245bb?index=1` |
-| 6 | Infirmary | ❌ needs download | `infirmary.png` | `4eddf23b-6d1a-4439-b84e-408576e7dd47?index=0` |
-| 7 | Erie Canal Lock | ❌ needs download | `canal.png` | `44f532b5-fd78-4a8b-8876-36c5f7cd04a0?index=1` |
+| # | Room | Status | Midjourney Job |
+|---|------|--------|----------------|
+| 1 | Saloon | ✅ `assets/interiors/saloon.png` | `d99b38a0-4f17-4435-bfa4-3a42da5e2486?index=0` |
+| 2 | City Hall | ✅ `assets/interiors/cityhall.png` | `8bf03d39-bd64-4f8d-bdf6-a71caa95b137?index=2` |
+| 3 | Worship Center | ✅ `assets/interiors/worship.png` | `4d086d64-eecc-4577-903e-b0e32facb2cd?index=0` |
+| 4 | Thespian Center | ✅ `assets/interiors/thespian.png` | `7852c503-4112-406a-85b1-8501fd28e266?index=0` |
+| 5 | General Store | ✅ `assets/interiors/general.png` | `25cdfcfd-8f4a-411e-b54e-b2d4c01245bb?index=1` |
+| 6 | Infirmary | ✅ `assets/interiors/infirmary.png` | `4eddf23b-6d1a-4439-b84e-408576e7dd47?index=0` |
+| 7 | Erie Canal Lock | ✅ `assets/interiors/canal.png` | `44f532b5-fd78-4a8b-8876-36c5f7cd04a0?index=1` |
 
 **Filename convention:** matches `BUILDING_INTERIORS` key in `index.html` + `.png`. This lets the code do `"assets/interiors/" + state.activeInterior + ".png"`.
-
-**Note:** Saloon is currently `saloon.pdf` — needs re-download or conversion to PNG.
 
 ### Object lists per room
 
@@ -55,8 +53,7 @@ Coordinates go here once mapped — one section per room:
 
 ## INTEGRATION CHECKLIST
 
-- [ ] Download all 7 images as PNG to `assets/interiors/`
-- [ ] Convert or re-download saloon.pdf as saloon.png
+- [x] Download all 7 images as PNG to `assets/interiors/`
 - [ ] Map hotspot coordinates for all 7 rooms using mapper tool
 - [ ] Record coordinates in this file
 - [ ] CC implements rendering integration in `index.html`
