@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CivilWarLand Hotspot Mapper</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#1A140C;color:#C8B878;font-family:Georgia,serif;padding:20px;}
+h1{font-size:18px;color:#E8D8A8;margin-bottom:16px;font-style:italic;}
+.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+select,button,input[type="file"]{background:#2A2018;border:1px solid #5A4A30;color:#C8B878;font:13px Georgia;padding:6px 12px;cursor:pointer;}
+select:hover,button:hover{border-color:#8A7556;}
+.canvas-wrap{position:relative;display:inline-block;border:1px solid #4A3E2E;}
+canvas{display:block;cursor:crosshair;}
+.sidebar{display:inline-block;vertical-align:top;margin-left:16px;width:320px;}
+.obj-list{margin-bottom:12px;}
+.obj-item{padding:4px 8px;font-size:12px;margin-bottom:2px;border:1px solid #3A2E1E;cursor:pointer;display:flex;justify-content:space-between;}
+.obj-item.mapped{border-color:#6a8a4a;color:#7A9A5A;}
+.obj-item.active{border-color:#C8B878;background:#2A2418;}
+.obj-item .coords{font-size:10px;color:#6A5A3A;}
+.output{background:#0A0804;border:1px solid #3A2E1E;padding:12px;font:11px monospace;color:#8A9A6A;white-space:pre-wrap;max-height:300px;overflow-y:auto;margin-top:12px;}
+.hint{font-size:11px;color:#6A5A3A;margin:8px 0;font-style:italic;}
+.legend{font-size:10px;color:#5A4A3A;margin-top:12px;}
+</style>
+</head>
+<body>
+<h1>CivilWarLand Hotspot Mapper</h1>
+<div class="controls">
+  <label>Room: <select id="room-select"></select></label>
+  <label>Image: <input type="file" id="img-input" accept="image/*,.pdf"></label>
+  <button onclick="clearAll()">Clear All</button>
+  <button onclick="exportJSON()">Export JSON</button>
+</div>
+<div style="display:flex;align-items:flex-start;">
+  <div class="canvas-wrap">
+    <canvas id="canvas" width="960" height="540"></canvas>
+  </div>
+  <div class="sidebar">
+    <div class="hint">Select an object below, then click-drag on the image to place its hotspot rectangle.</div>
+    <div id="obj-list" class="obj-list"></div>
+    <div class="hint">All coordinates are normalized 0-1. Output matches BUILDING_INTERIORS format.</div>
+    <div id="output" class="output">// Load an image and map objects to generate output</div>
+    <div class="legend">
+      Green border = mapped. Click an object to select it, then drag on canvas.<br>
+      Right-click a mapped object to clear its rectangle.
+    </div>
+  </div>
+</div>
+
+<script>
+var ROOMS = {
+  cityhall: {name:"City Hall",objects:["desk","cane_chair","bigscreen","couch","tank","walkstick"]},
+  worship:  {name:"Worship Center",objects:["dome","basin","mannequins","draperies","heater","speaker"]},
+  saloon:   {name:"Nate's Saloon",objects:["bar","stage","sylvia_booth","cannon_booth","jukebox"]},
+  canal:    {name:"Erie Canal Lock",objects:["lock_mechanism","coolie_diorama","video_screen","spraypaint","cobbles"]},
+  infirmary:{name:"Infirmary",objects:["exam_table","med_cabinet","cot","conf_flags","sink"]},
+  general:  {name:"General Store",objects:["penny_candy","freds_counter","shelves","butter_knives","rie_log"]},
+  thespian: {name:"Thespian Center",objects:["grizzly_suit","costume_rack","dp_locker","rehearsal_mirror","script_pile","goose_masks"]}
+};
+
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+var CW = 960, CH = 540;
+var img = null;
+var currentRoom = "cityhall";
+var activeObj = null;
+var mappings = {}; // {objId: {x,y,w,h} in normalized 0-1}
+var dragging = false, dragStart = null;
+
+// Populate room select
+var sel = document.getElementById("room-select");
+for (var k in ROOMS) {
+  var opt = document.createElement("option");
+  opt.value = k; opt.textContent = ROOMS[k].name;
+  sel.appendChild(opt);
+}
+sel.onchange = function(){ currentRoom = sel.value; mappings = {}; activeObj = null; renderObjList(); redraw(); };
+
+// File input
+document.getElementById("img-input").onchange = function(e){
+  var file = e.target.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var i = new Image();
+    i.onload = function(){ img = i; redraw(); };
+    i.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+// Object list
+function renderObjList(){
+  var el = document.getElementById("obj-list");
+  var objs = ROOMS[currentRoom].objects;
+  var h = "";
+  for (var i = 0; i < objs.length; i++){
+    var id = objs[i];
+    var m = mappings[id];
+    var cls = "obj-item" + (m ? " mapped" : "") + (activeObj === id ? " active" : "");
+    var coords = m ? (m.x.toFixed(3)+", "+m.y.toFixed(3)+", "+m.w.toFixed(3)+", "+m.h.toFixed(3)) : "not mapped";
+    h += '<div class="'+cls+'" onclick="selectObj(\''+id+'\')" oncontextmenu="clearObj(event,\''+id+'\')">';
+    h += '<span>'+id+'</span><span class="coords">'+coords+'</span></div>';
+  }
+  el.innerHTML = h;
+}
+
+function selectObj(id){ activeObj = id; renderObjList(); }
+
+function clearObj(e, id){
+  e.preventDefault();
+  delete mappings[id];
+  renderObjList(); redraw(); updateOutput();
+}
+
+function clearAll(){
+  mappings = {}; activeObj = null;
+  renderObjList(); redraw(); updateOutput();
+}
+
+// Canvas drawing
+function redraw(){
+  ctx.clearRect(0,0,CW,CH);
+  ctx.fillStyle = "#1A140C"; ctx.fillRect(0,0,CW,CH);
+  if (img){
+    // Draw image scaled to fit canvas (maintain aspect ratio)
+    var scale = Math.min(CW/img.width, CH/img.height);
+    var iw = img.width*scale, ih = img.height*scale;
+    var ox = (CW-iw)/2, oy = (CH-ih)/2;
+    ctx.drawImage(img, ox, oy, iw, ih);
+  }
+  // Draw mapped rectangles
+  var objs = ROOMS[currentRoom].objects;
+  var colors = ["#E8A050","#50A0E8","#A0E850","#E850A0","#50E8A0","#A050E8","#E8E050"];
+  for (var i = 0; i < objs.length; i++){
+    var id = objs[i];
+    var m = mappings[id];
+    if (!m) continue;
+    var col = colors[i % colors.length];
+    ctx.strokeStyle = col;
+    ctx.lineWidth = activeObj === id ? 3 : 1.5;
+    ctx.setLineDash(activeObj === id ? [] : [4,3]);
+    ctx.strokeRect(m.x*CW, m.y*CH, m.w*CW, m.h*CH);
+    ctx.setLineDash([]);
+    ctx.font = "bold 10px Georgia";
+    ctx.fillStyle = col;
+    ctx.fillText(id, m.x*CW+3, m.y*CH+12);
+  }
+}
+
+// Mouse drag for rectangle drawing
+canvas.onmousedown = function(e){
+  if (!activeObj || !img) return;
+  var r = canvas.getBoundingClientRect();
+  dragStart = {x: (e.clientX - r.left)/CW, y: (e.clientY - r.top)/CH};
+  dragging = true;
+};
+
+canvas.onmousemove = function(e){
+  if (!dragging || !dragStart) return;
+  var r = canvas.getBoundingClientRect();
+  var mx = (e.clientX - r.left)/CW, my = (e.clientY - r.top)/CH;
+  var x = Math.min(dragStart.x, mx), y = Math.min(dragStart.y, my);
+  var w = Math.abs(mx - dragStart.x), h = Math.abs(my - dragStart.y);
+  mappings[activeObj] = {x:x, y:y, w:w, h:h};
+  redraw();
+  // Draw live drag rect
+  ctx.strokeStyle = "#FFFFFF"; ctx.lineWidth = 1;
+  ctx.setLineDash([2,2]);
+  ctx.strokeRect(x*CW, y*CH, w*CW, h*CH);
+  ctx.setLineDash([]);
+};
+
+canvas.onmouseup = function(e){
+  if (!dragging) return;
+  dragging = false;
+  var r = canvas.getBoundingClientRect();
+  var mx = (e.clientX - r.left)/CW, my = (e.clientY - r.top)/CH;
+  var x = Math.min(dragStart.x, mx), y = Math.min(dragStart.y, my);
+  var w = Math.abs(mx - dragStart.x), h = Math.abs(my - dragStart.y);
+  if (w < 0.01 || h < 0.01){ delete mappings[activeObj]; } // too small, discard
+  else { mappings[activeObj] = {x:+x.toFixed(4), y:+y.toFixed(4), w:+w.toFixed(4), h:+h.toFixed(4)}; }
+  dragStart = null;
+  // Auto-advance to next unmapped object
+  var objs = ROOMS[currentRoom].objects;
+  var idx = objs.indexOf(activeObj);
+  for (var i = 1; i <= objs.length; i++){
+    var next = objs[(idx+i) % objs.length];
+    if (!mappings[next]){ activeObj = next; break; }
+  }
+  renderObjList(); redraw(); updateOutput();
+};
+
+function updateOutput(){
+  var objs = ROOMS[currentRoom].objects;
+  var lines = ["// " + currentRoom + " hotspot coordinates"];
+  var allMapped = true;
+  for (var i = 0; i < objs.length; i++){
+    var id = objs[i];
+    var m = mappings[id];
+    if (!m){ allMapped = false; lines.push("// " + id + ": NOT MAPPED"); continue; }
+    lines.push('{id:"'+id+'", x:'+m.x.toFixed(3)+', y:'+m.y.toFixed(3)+', w:'+m.w.toFixed(3)+', h:'+m.h.toFixed(3)+'}');
+  }
+  if (allMapped) lines.push("\n// All objects mapped for " + currentRoom + "!");
+  document.getElementById("output").textContent = lines.join("\n");
+}
+
+function exportJSON(){
+  var objs = ROOMS[currentRoom].objects;
+  var data = {};
+  for (var i = 0; i < objs.length; i++){
+    var id = objs[i];
+    if (mappings[id]) data[id] = mappings[id];
+  }
+  var blob = new Blob([JSON.stringify({room:currentRoom, objects:data}, null, 2)], {type:"application/json"});
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = currentRoom + "_hotspots.json";
+  a.click();
+}
+
+// Init
+renderObjList();
+redraw();
+</script>
+</body>
+</html>
