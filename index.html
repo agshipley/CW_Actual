@@ -1692,9 +1692,9 @@ function renderBuildMenu(){
   if(constructionLock){
     document.getElementById("build-hint").textContent="Construction in progress. Wait for the current building to complete.";
   }else if(state.buildMode&&state.selectedBuildable){
-    document.getElementById("build-hint").textContent="Click the new land to place "+state.selectedBuildable.name+". Click again to cancel.";
+    document.getElementById("build-hint").textContent="Click anywhere on the map to place "+state.selectedBuildable.name+".";
   }else{
-    document.getElementById("build-hint").textContent="Select a structure, then click the new land to place it.";
+    document.getElementById("build-hint").textContent="Select a structure, then click anywhere on the map to place it.";
   }
   var h="";
   for(var i=0;i<BUILDABLE_STRUCTURES.length;i++){if(!BUILDABLE_STRUCTURES[i].township)h+=buildItemHTML(BUILDABLE_STRUCTURES[i],constructionLock);}
@@ -3036,7 +3036,7 @@ function updateInteractPrompt(){
     restBtn.style.display="none";
   }
   var fxEl=document.getElementById("ip-action-effects");
-  if(action){
+  if(action&&!state.phase2Active){
     var actionUsed=!!(state.usedBuildingActions&&state.usedBuildingActions[b.id]);
     actionBtn.style.display="block";
     var actionDisabled=onCooldown||actionUsed||tooTiredForAction;
