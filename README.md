@@ -19,6 +19,15 @@ No install, no package manager, no build, no dev server. Save state persists in 
 
 The in-browser hotspot authoring tool lives at [tools/hotspot-mapper.html](tools/hotspot-mapper.html) and runs the same way.
 
+### Development setup (one-time)
+
+```bash
+npm install                          # installs eslint — only needed for the lint hook
+git config core.hooksPath scripts    # activates the pre-push lint check
+```
+
+The hook lives at `scripts/pre-push` and runs `npm run lint` before every push. Skip it once with `git push --no-verify` if needed.
+
 ---
 
 ## Architecture Overview
