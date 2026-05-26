@@ -1,0 +1,26 @@
+{
+  "name": "civilwarland",
+  "version": "1.0.0",
+  "description": "A single-file, canvas-rendered park management simulation adapted from the George Saunders short story of the same name. You play the Special Assistant at a historical theme park in terminal decline. The budget is bleeding, the gang problem is \"being addressed from a revenue-impacting standpoint,\" and your boss has ideas.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/agshipley/CW_Actual.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/agshipley/CW_Actual/issues"
+  },
+  "homepage": "https://github.com/agshipley/CW_Actual#readme",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.4.0",
+    "eslint-plugin-html": "^8.1.4"
+  }
+}
