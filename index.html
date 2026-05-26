@@ -1635,6 +1635,7 @@ function onCanvasClick(e){
     updateSidebar();updateLog();saveGame();
     state.selectedBuildable=null;state.buildMode=false;
     canvas.classList.remove("build-mode");
+    document.getElementById("build-toggle-btn").classList.remove("active");
     renderBuildMenu();
     if(state.placedBuildings.length===10&&!state.townshipUnlocked){showMunicipalAmbitions();}
     return;
@@ -1664,6 +1665,7 @@ function closeBuildMenu(){
 function selectBuildable(id){
   for(var i=0;i<BUILDABLE_STRUCTURES.length;i++){if(BUILDABLE_STRUCTURES[i].id===id){state.selectedBuildable=BUILDABLE_STRUCTURES[i];break;}}
   state.buildMode=true;
+  document.getElementById("build-menu-overlay").style.display="none";
   canvas.classList.add("build-mode");
   renderBuildMenu();
 }
