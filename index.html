@@ -311,7 +311,7 @@
 <script>
 var COOLDOWN_DAYS = 2;
 
-var state = {
+var DEFAULT_STATE = {
   day: 0, budget: 50000, attendance: 70, gangThreat: 15, morale: 60,
   selectedBuilding: null, gameOver: false, eventActive: false,
   log: [], destroyedBuildings: {}, flags: {}, characters: [],
@@ -347,6 +347,7 @@ var state = {
   interiorWalkingTo: null,
   interiorTimeCostMsg: null,
 };
+var state = Object.assign({}, DEFAULT_STATE);
 
 var BUILDABLE_STRUCTURES = [
   {id:"watchtower",       name:"Watchtower",             cost:2000,  color:"#8C6238",roof:"#5E3A1E", desc:"Eyes on the retaining wall. Whoever's up there sees everything, or claims to.",              daily:{gangThreat:-3}, capacity:1, upkeep:30},
@@ -491,7 +492,7 @@ var PHASE2_EVENTS = [
    text:"Samuel submits a report. It is handwritten, three pages, very precise. You read it twice. You understand why he wrote it by hand. Whatever happened to the gang activity on the south perimeter, there is no digital record of it and there won't be. He has included a map. There is a small X near the creek.",
    choices:[
     {label:"File it",text:"You put the report in the drawer with the other things you don't look at. The gang threat does not return to the south perimeter. You do not wonder why.",effect:{gangThreat:-10,morale:-5,productivity:2},flag:"samuels_report"},
-    {label:"Destroy it",text:"You burn the report in the sink in the infirmary. Samuel watches from the window. He nods. You've now done this twice.",effect:{gangThreat:-15,morale:-15,narratorStress:10},flag:"samuels_report"}
+    {label:"Destroy it",text:"You burn the report in the sink in the infirmary. Samuel watches from the window. He nods. You've now done this twice.",effect:{gangThreat:-15,morale:-15,stress:10},flag:"samuels_report"}
    ]},
   {id:"graysons_discovery",title:"GRAYSON'S DISCOVERY",
    condition:function(){if(!state.phase2Active||state.flags.grayson_fired||state.charEventsFired.graysons_discovery)return false;var a=state.charAssignedTo["grayson"];if(!a)return false;var b=findBuildingById(a);var tid=b?(b.typeId||b.id):null;return(tid==="conifer"||tid==="herb_garden"||tid==="memorial_garden")&&(state.charConsecutiveDays["grayson"]||0)>=6;},
@@ -692,7 +693,7 @@ var EVENTS = [
   {day:14,condition:"grayson_fired",title:"THE EMPTY POST",text:"You pass his empty observation post. The orioles are there. He is not.",choices:[
     {label:"Continue",text:"",effect:{morale:-1}}]},
   {day:18,condition:"insurance_fraud",title:"THE INSPECTOR",text:"The insurance inspector's car is in the parking lot again.",choices:[
-    {label:"Continue",text:"",effect:{narratorStress:5}}]}
+    {label:"Continue",text:"",effect:{stress:5}}]}
 ];
 
 var TOWNSHIP_EVENTS = [
@@ -1121,7 +1122,7 @@ function applyMidnight(){
     for(var pbi=0;pbi<state.placedBuildings.length;pbi++){
       var pb2=state.placedBuildings[pbi];
       if(pb2.typeId==="water_tower"){waterTowers++;}
-      else if(pb2.typeId==="school"&&!pb2.underConstruction&&pb2.condition!==0){
+      else if(pb2.typeId==="school"&&!pb2.underConstruction&&pb2.condition!==0&&!state.destroyedBuildings[pb2.typeId]){
         // Only contributes if within 0.25 map units of a residential zone
         var scx=pb2.x+(pb2.w||0)/2,scy=pb2.y+(pb2.h||0)/2;
         for(var sri=0;sri<state.placedZones.length;sri++){
@@ -1140,7 +1141,7 @@ function applyMidnight(){
     for(var ci3=0;ci3<state.placedZones.length;ci3++){var cz3=state.placedZones[ci3];if(cz3.type!=="commercial")continue;var czx3=cz3.x+cz3.w/2,czy3=cz3.y+cz3.h/2;for(var ri3=0;ri3<state.placedZones.length;ri3++){var rz3=state.placedZones[ri3];if(rz3.type!=="residential")continue;var rzx3=rz3.x+rz3.w/2,rzy3=rz3.y+rz3.h/2;if(Math.sqrt((czx3-rzx3)*(czx3-rzx3)+(czy3-rzy3)*(czy3-rzy3))<0.15){comNearRes++;break;}}}
     // Housing quality: residential near park/garden (memorial_garden or herb_garden) → +1 approval
     var gardenBonus=0;
-    for(var gi=0;gi<state.placedBuildings.length;gi++){var gb=state.placedBuildings[gi];if(gb.typeId!=="memorial_garden"&&gb.typeId!=="herb_garden")continue;if(gb.underConstruction||gb.condition===0)continue;var gx=gb.x+(gb.w||0)/2,gy=gb.y+(gb.h||0)/2;for(var rgi=0;rgi<state.placedZones.length;rgi++){var rgz=state.placedZones[rgi];if(rgz.type!=="residential")continue;var rgx=rgz.x+rgz.w/2,rgy=rgz.y+rgz.h/2;if(Math.sqrt((gx-rgx)*(gx-rgx)+(gy-rgy)*(gy-rgy))<0.20){gardenBonus=1;break;}}if(gardenBonus)break;}
+    for(var gi=0;gi<state.placedBuildings.length;gi++){var gb=state.placedBuildings[gi];if(gb.typeId!=="memorial_garden"&&gb.typeId!=="herb_garden")continue;if(gb.underConstruction||gb.condition===0||state.destroyedBuildings[gb.typeId])continue;var gx=gb.x+(gb.w||0)/2,gy=gb.y+(gb.h||0)/2;for(var rgi=0;rgi<state.placedZones.length;rgi++){var rgz=state.placedZones[rgi];if(rgz.type!=="residential")continue;var rgx=rgz.x+rgz.w/2,rgy=rgz.y+rgz.h/2;if(Math.sqrt((gx-rgx)*(gx-rgx)+(gy-rgy)*(gy-rgy))<0.20){gardenBonus=1;break;}}if(gardenBonus)break;}
     state.approval=clamp(state.approval-1+civCount*2+safetyMod+comNearRes+gardenBonus,0,100);
     syncResidents();
     // Commercial income: 50 per nearby (within 0.15) residential zone for each commercial zone
@@ -1309,7 +1310,9 @@ function loadGame(){
   try{raw=localStorage.getItem(SAVE_KEY);}catch(e){}
   if(!raw)return;
   var s=JSON.parse(raw);
-  SAVE_FIELDS.forEach(function(k){if(s[k]!==undefined)state[k]=s[k];});
+  var savedFields={};
+  SAVE_FIELDS.forEach(function(k){if(s[k]!==undefined)savedFields[k]=s[k];});
+  state=Object.assign({},DEFAULT_STATE,savedFields);
   if(s._buildingConditions){BUILDINGS.forEach(function(b){if(s._buildingConditions[b.id]!==undefined)b.condition=s._buildingConditions[b.id];});}
   // Restore non-saveable transient state
   state.selectedBuilding=null;state.gameOver=false;state.eventActive=false;
@@ -1318,19 +1321,6 @@ function loadGame(){
   state.interiorNarratorX=0.5;state.interiorNarratorY=0.85;
   state.interiorNarratorTX=0.5;state.interiorNarratorTY=0.85;
   state.interiorWalkingTo=null;state.interiorTimeCostMsg=null;
-  if(!state.interiorUpgrades)state.interiorUpgrades={};
-  if(!state.usedBuildingActions)state.usedBuildingActions={};
-  if(!state.repairedToday)state.repairedToday={};
-  if(!state.tallyCounters)state.tallyCounters={compromises:0,coverUps:0,peopleLetDown:0,thingsLetRot:0};
-  if(!state.tallyHistory)state.tallyHistory=[];
-  if(!state.lastTallyDay)state.lastTallyDay=0;
-  if(state.todaysAction===undefined)state.todaysAction=null;
-  if(state.productivity===undefined)state.productivity=50;
-  if(!state.charAssignedTo)state.charAssignedTo={};
-  if(!state.charConsecutiveDays)state.charConsecutiveDays={};
-  if(!state.charEventsFired)state.charEventsFired={};
-  if(!state.arrivedChars)state.arrivedChars={};
-  if(!state.narratorThoughts)state.narratorThoughts=[];
   state.gamePaused=true;state.weatherEventPending=false;
   // Boot into game
   document.getElementById("title-screen").style.display="none";
@@ -1426,7 +1416,6 @@ function makeChoice(day,idx){
   if(c.effect.gangThreat)state.gangThreat=clamp(state.gangThreat+c.effect.gangThreat,0,100);
   if(c.effect.morale)state.morale=clamp(state.morale+c.effect.morale,0,100);
   if(c.effect.stress)state.narratorStress=clamp(state.narratorStress+c.effect.stress,0,100);
-  if(c.effect.narratorStress)state.narratorStress=clamp(state.narratorStress+c.effect.narratorStress,0,100);
   if(c.flag)state.flags[c.flag]=true;
   if(c.tally)incrementTallyCounter(c.tally);
   checkNarratorThoughts();
@@ -3125,9 +3114,9 @@ function interactWithBuilding(){
   if(!buildingId||state.destroyedBuildings[buildingId])return;
   if(state.usedBuildingActions[buildingId])return;
   var b=findBuildingById(buildingId);
-  var action=BUILDING_ACTIONS[buildingId]||(b?BUILDING_ACTIONS[b.typeId]:null);
-  if(!action)return;
   if(!b)return;
+  var action=BUILDING_ACTIONS[buildingId]||BUILDING_ACTIONS[b.typeId];
+  if(!action)return;
   if(state.narratorEnergy<=0)return;
   state.narratorEnergy=Math.max(0,state.narratorEnergy-8);
   updateSidebar();
@@ -3213,44 +3202,35 @@ function onInteriorClick(mx_px,my_px){
 
 function updateInteriorPanel(){
   var el=document.getElementById("interior-info-content");
-  if(state.interiorWalkingTo){
-    var wInterior=BUILDING_INTERIORS[state.activeInterior];
-    var wObj=null;
-    if(wInterior){for(var wi=0;wi<wInterior.objects.length;wi++){if(wInterior.objects[wi].id===state.interiorWalkingTo){wObj=wInterior.objects[wi];break;}}}
-    el.innerHTML='<span class="int-hint">Walking to '+(wObj?wObj.name:"...")+'...</span>';
-    return;
-  }
-  if(!state.activeInterior||!state.selectedInteriorObj){
-    el.innerHTML='<span class="int-hint">Click an object to examine it.</span>';
-    return;
-  }
+  if(!state.activeInterior){el.innerHTML='<span class="int-hint">Click an object to examine it.</span>';return;}
+  // Show description for whichever object is targeted or selected — immediately on click
+  var showId=state.interiorWalkingTo||state.selectedInteriorObj;
+  var isWalking=!!(state.interiorWalkingTo);
+  if(!showId){el.innerHTML='<span class="int-hint">Click an object to examine it.</span>';return;}
   var interior=BUILDING_INTERIORS[state.activeInterior];
   var obj=null;
-  for(var i=0;i<interior.objects.length;i++){if(interior.objects[i].id===state.selectedInteriorObj){obj=interior.objects[i];break;}}
+  for(var i=0;i<interior.objects.length;i++){if(interior.objects[i].id===showId){obj=interior.objects[i];break;}}
   if(!obj){el.innerHTML='<span class="int-hint">Click an object to examine it.</span>';return;}
   var upgradeKey=state.activeInterior+":"+obj.id;
   var isUpgraded=!!(state.interiorUpgrades&&state.interiorUpgrades[upgradeKey]);
   var desc=(isUpgraded&&obj.upgrade&&obj.upgrade.upgradedDesc)?obj.upgrade.upgradedDesc:obj.desc;
-  var html='<div class="int-obj-name">'+obj.name+'</div><div class="int-obj-desc">'+desc+'</div>';
-  if(obj.upgrade&&!isUpgraded){
-    var canAfford=state.budget>=obj.upgrade.cost;
-    html+='<button class="int-upgrade-btn'+(canAfford?'':' cant-afford')+'" '+(canAfford?'onclick="doInteriorUpgrade()"':'')+'>'+obj.upgrade.label+'</button>';
-    if(obj.upgrade.dailyEffect){
-      var de=obj.upgrade.dailyEffect;
-      var deLabels={budget:'budget',attendance:'attendance',morale:'morale',gangThreat:'threat',productivity:'productivity',approval:'approval'};
-      var deHtml='';
-      for(var dk in deLabels){
-        if(de[dk]){
-          var dv=de[dk];
-          var dc=dv>0?'#6a8a4a':'#9a5a4a';
-          deHtml+='<span style="color:'+dc+';font-size:10px;">'+(dv>0?'+':'')+dv+'\u00a0'+deLabels[dk]+'/day</span> ';
-        }
+  var descStyle=isWalking?'style="opacity:0.55;"':'';
+  var html='<div class="int-obj-name">'+obj.name+'</div><div class="int-obj-desc" '+descStyle+'>'+desc+'</div>';
+  if(isWalking){
+    html+='<div style="margin-top:6px;font-size:9px;color:#5A4030;letter-spacing:2px;text-transform:uppercase;">Walking over\u2026</div>';
+  } else {
+    if(obj.upgrade&&!isUpgraded){
+      var canAfford=state.budget>=obj.upgrade.cost;
+      html+='<button class="int-upgrade-btn'+(canAfford?'':' cant-afford')+'" '+(canAfford?'onclick="doInteriorUpgrade()"':'')+'>'+obj.upgrade.label+'</button>';
+      if(obj.upgrade.dailyEffect){
+        var de=obj.upgrade.dailyEffect;
+        var deLabels={budget:'budget',attendance:'attendance',morale:'morale',gangThreat:'threat',productivity:'productivity',approval:'approval'};
+        var deHtml='';
+        for(var dk in deLabels){if(de[dk]){var dv=de[dk];var dc=dv>0?'#6a8a4a':'#9a5a4a';deHtml+='<span style="color:'+dc+';font-size:10px;">'+(dv>0?'+':'')+dv+'\u00a0'+deLabels[dk]+'/day</span> ';}}
+        if(deHtml)html+='<div style="margin-top:5px;line-height:1.9;">'+deHtml+'</div>';
       }
-      if(deHtml)html+='<div style="margin-top:5px;line-height:1.9;">'+deHtml+'</div>';
     }
-  }
-  if(state.interiorTimeCostMsg){
-    html+='<div style="margin-top:8px;font-size:10px;color:#5A4A3A;font-style:italic;">'+state.interiorTimeCostMsg+'</div>';
+    if(state.interiorTimeCostMsg){html+='<div style="margin-top:8px;font-size:10px;color:#5A4A3A;font-style:italic;">'+state.interiorTimeCostMsg+'</div>';}
   }
   el.innerHTML=html;
 }
@@ -3275,7 +3255,7 @@ function doInteriorUpgrade(){
   if(e.productivity)state.productivity=clamp(state.productivity+e.productivity,0,100);
   state.log.push({day:state.day,title:"Upgraded: "+obj.name});
   state.gameTime+=45;
-  if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}
+  if(state.gameTime>=1440){state.gameTime-=1440;leaveBuilding();applyMidnight();return;}
   updateTimeDisplay();
   state.interiorTimeCostMsg="Upgrading took 1 hour.";
   interiorNotification={text:"1 HOUR PASSES",born:Date.now()};
@@ -3760,6 +3740,7 @@ var INTERIOR_IMAGES={};
 function renderInterior(){
   var interior=BUILDING_INTERIORS[state.activeInterior];
   if(!interior)return;
+  ctx.globalAlpha=1;ctx.shadowBlur=0;ctx.shadowColor="transparent";ctx.setLineDash([]);
   ctx.clearRect(0,0,cw,ch);
   var floorY=ch*0.35;
 
@@ -3792,12 +3773,6 @@ function renderInterior(){
     if(isDusk){ctx.fillStyle="rgba(220,140,40,0.05)";ctx.fillRect(0,0,cw,ch);}
   }
   // --- Vignette (after background, before objects) ---
-  if(_irgc.id!==state.activeInterior||_irgc.cw!==cw||_irgc.ch!==ch){
-    var _vigR=Math.sqrt(cw*cw+ch*ch)*0.55;
-    _irgc.vignette=ctx.createRadialGradient(cw*0.5,ch*0.5,_vigR*0.35,cw*0.5,ch*0.5,_vigR);
-    _irgc.vignette.addColorStop(0,"rgba(0,0,0,0)");_irgc.vignette.addColorStop(1,"rgba(0,0,0,0.40)");
-    _irgc.id=state.activeInterior;_irgc.cw=cw;_irgc.ch=ch;
-  }
   ctx.fillStyle=_irgc.vignette;ctx.fillRect(0,0,cw,ch);
 
   // --- Room name (drawn after vignette so it stays readable) ---
@@ -3812,7 +3787,7 @@ function renderInterior(){
   var itx=state.interiorNarratorTX, ity=state.interiorNarratorTY;
   var iddx=itx-inx, iddy=ity-iny;
   var idist=Math.sqrt(iddx*iddx+iddy*iddy);
-  var ispeed=0.004;
+  var ispeed=0.012;
   if(idist>ispeed){
     state.interiorNarratorX+=( iddx/idist)*ispeed;
     state.interiorNarratorY+=(iddy/idist)*ispeed;
@@ -3823,7 +3798,7 @@ function renderInterior(){
       state.selectedInteriorObj=state.interiorWalkingTo;
       state.interiorWalkingTo=null;
       state.gameTime+=15;
-      if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}
+      if(state.gameTime>=1440){state.gameTime-=1440;leaveBuilding();applyMidnight();return;}
       updateTimeDisplay();
       state.interiorTimeCostMsg="Examining took 15 minutes.";
       interiorNotification={text:"15 MINUTES PASS",born:Date.now()};
@@ -4361,7 +4336,7 @@ function makePhase2Choice(eventId,idx){
     if(c.effect.productivity)state.productivity=clamp(state.productivity+c.effect.productivity,0,100);
     if(c.effect.approval&&state.townshipUnlocked)state.approval=clamp(state.approval+c.effect.approval,0,100);
     if(c.effect.population)state.population=Math.max(0,state.population+c.effect.population);
-    if(c.effect.narratorStress)state.narratorStress=clamp(state.narratorStress+c.effect.narratorStress,0,100);
+    if(c.effect.stress)state.narratorStress=clamp(state.narratorStress+c.effect.stress,0,100);
   }
   if(c.flag)state.charEventsFired[c.flag]=true;
   if(c.setFlag)state.flags[c.setFlag]=true;
