@@ -1692,7 +1692,7 @@ function renderBuildMenu(){
   if(constructionLock){
     document.getElementById("build-hint").textContent="Construction in progress. Wait for the current building to complete.";
   }else if(state.buildMode&&state.selectedBuildable){
-    document.getElementById("build-hint").textContent="Click anywhere on the map to place "+state.selectedBuildable.name+".";
+    document.getElementById("build-hint").textContent="Click the map to place "+state.selectedBuildable.name+". Zoning is, technically, a suggestion.";
   }else{
     document.getElementById("build-hint").textContent="Select a structure, then click anywhere on the map to place it.";
   }
