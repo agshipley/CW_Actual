@@ -1612,7 +1612,7 @@ function onCanvasClick(e){
     state.placedZones.push({id:"zone_"+Date.now(),type:sz.id,name:sz.name,x:zx,y:zy,w:zw,h:zh,color:sz.color,roof:sz.roof});
     state.log.push({day:state.day,title:"Zoned: "+sz.name});
     canvasNotifications.push({text:"ZONED: "+sz.name.toUpperCase(),x:mx,y:my,born:Date.now()});sndPlace();
-    updateSidebar();updateLog();
+    updateSidebar();updateLog();saveGame();
     state.selectedZone=null;state.zoneMode=false;
     canvas.classList.remove("build-mode");
     renderZoneMenu();
@@ -1632,7 +1632,7 @@ function onCanvasClick(e){
     if(s.id==="school")state.flags.school_built=true;
     state.log.push({day:state.day,title:"Built: "+s.name});
     canvasNotifications.push({text:"BUILT: "+s.name.toUpperCase(),x:mx,y:my,born:Date.now()});sndPlace();
-    updateSidebar();updateLog();
+    updateSidebar();updateLog();saveGame();
     state.selectedBuildable=null;state.buildMode=false;
     canvas.classList.remove("build-mode");
     renderBuildMenu();
@@ -3069,7 +3069,7 @@ function updateInteractPrompt(){
     actionBtn.style.display="none";
     fxEl.style.display="none";
   }
-  if(hasInterior){
+  if(hasInterior&&!state.phase2Active){
     enterBtn.style.display="block";
   }else{
     enterBtn.style.display="none";
@@ -3149,6 +3149,7 @@ function interactWithBuilding(){
 
 // ── Interior system ───────────────────────────────────────────
 function enterBuilding(){
+  if(state.phase2Active)return;
   var buildingId=document.getElementById("interact-prompt").dataset.buildingId;
   var interiorKey=BUILDING_INTERIORS[buildingId]?buildingId:null;
   if(!interiorKey){var bb=findBuildingById(buildingId);if(bb&&bb.typeId&&BUILDING_INTERIORS[bb.typeId])interiorKey=bb.typeId;}
@@ -4187,15 +4188,15 @@ function assignCharToBuilding(charId,buildingId){
   state.charAssignedTo[charId]=buildingId;
   state.charConsecutiveDays[charId]=0;
   state.log.push({day:state.day,title:"Assigned "+charId+" to "+b.name});
-  updateInfoPanel();updateLog();sndPlace();
+  updateInfoPanel();updateLog();saveGame();sndPlace();
 }
 
 function unassignChar(charId){
   if(!state.charAssignedTo)return;
   delete state.charAssignedTo[charId];
   if(state.charConsecutiveDays)delete state.charConsecutiveDays[charId];
-  updateInfoPanel();updateLog();
   state.log.push({day:state.day,title:"Unassigned "+charId});
+  updateInfoPanel();updateLog();saveGame();
 }
 
 function updateCharConsecutiveDays(){
