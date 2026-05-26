@@ -3006,7 +3006,9 @@ function updateInteractPrompt(){
   var needsRepair=b&&b.condition!==undefined&&b.condition<100;
   var canRest=b&&(b.id==="saloon"||b.id==="infirmary"||b.restable===true);
   var hasInterior=b&&!!(BUILDING_INTERIORS[b.id]||BUILDING_INTERIORS[b.typeId]);
-  if(!b||b.underConstruction||(!action&&!needsRepair&&!canRest&&!hasInterior)){el.style.display="none";return;}
+  var effectiveAction=action&&!state.phase2Active;
+  var effectiveInterior=hasInterior&&!state.phase2Active;
+  if(!b||b.underConstruction||(!effectiveAction&&!needsRepair&&!canRest&&!effectiveInterior)){el.style.display="none";return;}
   var onCooldown=Date.now()<interactCooldownUntil;
   el.style.display="block";
   document.getElementById("ip-building-name").textContent=b.name;
