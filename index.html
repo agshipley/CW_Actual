@@ -200,9 +200,9 @@
   <div class="decline">in Bad Decline</div>
   <div class="desc">You are the Special Assistant at CivilWarLand, a historical theme park in terminal decline. Gangs roam the grounds. Attendance is cratering. Your boss has ideas. None of them are good.<br><br>Each day, choose how to spend your energy. When the story intervenes, choose how to respond. Try to keep the place standing for thirty days.</div>
   <button id="continue-btn" onclick="loadGame()" style="display:none;margin-bottom:10px;">Continue</button>
-  <button onclick="startGame()">Enter the Park</button>
+  <button onclick="newGame()">Enter the Park</button>
   <button id="newgame-btn" onclick="newGame()" style="display:none;margin-top:10px;font-size:11px;letter-spacing:2px;padding:10px 32px;opacity:0.65;">New Game</button>
-  <button onclick="startPhase2Game()" style="margin-top:20px;font-size:10px;letter-spacing:3px;padding:9px 28px;opacity:0.55;border-color:#4a6a5a;color:#90b898;">Skip to The Community</button>
+  <button id="skip-phase2-btn" onclick="startPhase2Game()" style="display:none;margin-top:20px;font-size:10px;letter-spacing:3px;padding:9px 28px;opacity:0.55;border-color:#4a6a5a;color:#90b898;">Skip to The Community</button>
   <div class="credit">After George Saunders</div>
 </div>
 <div id="game-screen">
@@ -777,6 +777,13 @@ function makeTownshipChoice(eventId,idx){
 
 var canvas, ctx, cw, ch;
 function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+// Diminishing returns on building interactions: easy to climb out of a hole, hard to stay on top.
+// Morale/attendance gains halve at 75+ and stop at 90+; stress relief halves once stress is 20 or below.
+function diminishGain(stat,cur,v){
+  if((stat==="morale"||stat==="attendance")&&v>0){if(cur>=90)return 0;if(cur>=75)return Math.floor(v/2);}
+  if(stat==="narratorStress"&&v<0&&cur<=20)return Math.ceil(v/2);
+  return v;
+}
 
 function formatGameTime(min){var h=Math.floor(min/60)%24,m=Math.floor(min%60);var ampm=h>=12?"PM":"AM";var h12=h%12||12;return h12+":"+(m<10?"0":"")+m+" "+ampm;}
 function updateTimeDisplay(){var el=document.getElementById("time-display");if(el)el.textContent="— "+formatGameTime(state.gameTime);}
@@ -800,6 +807,9 @@ document.addEventListener("keydown",function(e){
     debugMode=true;
     var panel=document.getElementById("debug-panel");
     if(panel)panel.style.display="block";
+    // Phase 2 is unfinished: its title-screen shortcut only appears in debug mode
+    var skip=document.getElementById("skip-phase2-btn");
+    if(skip)skip.style.display="inline-block";
   }
 });
 
@@ -841,7 +851,9 @@ function dbgKillStat(){
   updateSidebar();
 }
 
+var _gameStartedThisPage=false;
 function startGame(){
+  _gameStartedThisPage=true;
   document.getElementById("title-screen").style.display="none";
   document.getElementById("game-screen").classList.add("active");
   initCanvas();
@@ -858,7 +870,7 @@ function startGame(){
   setSpeed(0);
   checkNarratorThoughts();renderDailyActions();
   startDrone();
-  gameLoop();
+  startLoop();
   if(!state.flags.tutorial_done)showTutorialStep(0);
 }
 
@@ -962,10 +974,10 @@ function getStaffRemaining(){
 }
 function checkTallyTrigger(){
   var total=getTallyTotal();
-  if(state.lastTallyDay<3&&state.day>=3&&state.day<=5){if(total>0||state.day>=5){showTally(1);return true;}}
-  if(state.lastTallyDay<7&&state.day>=7){showTally(2);return true;}
-  if(state.lastTallyDay<15&&state.day>=15){showTally(3);return true;}
   if(state.lastTallyDay<30&&state.day>=30){showTally(4);return true;}
+  if(state.lastTallyDay<15&&state.day>=15){showTally(3);return true;}
+  if(state.lastTallyDay<7&&state.day>=7){showTally(2);return true;}
+  if(state.lastTallyDay<3&&state.day>=3&&state.day<=5){if(total>0||state.day>=5){showTally(1);return true;}}
   return false;
 }
 function showTally(num){
@@ -1180,7 +1192,7 @@ function applyMidnight(){
   updateSidebar();saveGame();
   var f=checkFailState();if(f){showFailEnd(f);return;}
   if(checkTallyTrigger())return;
-  if(state.day===30&&!state.expanded){showEnding();return;}
+  if(state.day>=30&&!state.expanded){showEnding();return;}
   // Check for story event
   var ev=null;
   for(var i=0;i<EVENTS.length;i++){var e=EVENTS[i];if(e.day!==state.day)continue;if(e.condition&&!state.flags[e.condition])continue;if(e.conditionNot&&state.flags[e.conditionNot])continue;ev=e;break;}
@@ -1306,6 +1318,7 @@ function saveGame(){
 }
 
 function loadGame(){
+  _gameStartedThisPage=true;
   var raw;
   try{raw=localStorage.getItem(SAVE_KEY);}catch(e){}
   if(!raw)return;
@@ -1339,11 +1352,14 @@ function loadGame(){
   updateTimeDisplay();setSpeed(0);updateSidebar();updateLog();
   checkNarratorThoughts();renderDailyActions();
   startDrone();
-  gameLoop();
+  startLoop();
 }
 
 function newGame(){
   try{localStorage.removeItem(SAVE_KEY);}catch(e){}
+  // A session already ran in this page: its state, flags and tallies are still in memory.
+  // Reload for a pristine start (same path as "Start a new run"), then start immediately.
+  if(_gameStartedThisPage){try{window.sessionStorage.setItem("cw_start_new","1");}catch(e){}location.reload();return;}
   startGame();
 }
 
@@ -1487,6 +1503,7 @@ function dismissPhase2Intro(){
 }
 
 function startPhase2Game(){
+  _gameStartedThisPage=true;
   // Set Phase 2 starting conditions
   state.day=31;state.budget=50000;state.attendance=55;state.gangThreat=8;state.morale=65;
   state.expanded=true;state.mapScale=0.5;state.phase2Active=true;state.productivity=60;
@@ -1511,7 +1528,7 @@ function startPhase2Game(){
   document.getElementById("day-num").textContent=state.day;
   updateTimeDisplay();setSpeed(0);updateSidebar();updateLog();
   renderDailyActions();
-  startDrone();gameLoop();
+  startDrone();startLoop();
   // Show intro
   state.eventActive=true;
   var b=document.getElementById("event-box");b.className="";
@@ -1569,7 +1586,7 @@ function onCanvasMouseMove(e){
   if(state.activeInterior){
     var interior=BUILDING_INTERIORS[state.activeInterior];
     var hovered=null;
-    if(interior){interior.objects.forEach(function(obj){if(mx_px>=obj.x*cw&&mx_px<=(obj.x+obj.w)*cw&&my_px>=obj.y*ch&&my_px<=(obj.y+obj.h)*ch)hovered=obj.id;});}
+    if(interior){var hovArea=Infinity;interior.objects.forEach(function(obj){if(mx_px>=obj.x*cw&&mx_px<=(obj.x+obj.w)*cw&&my_px>=obj.y*ch&&my_px<=(obj.y+obj.h)*ch&&obj.w*obj.h<hovArea){hovArea=obj.w*obj.h;hovered=obj.id;}});}
     state.hoveredInteriorObj=hovered;
     canvas.style.cursor=hovered?"pointer":"default";
     return;
@@ -1598,6 +1615,8 @@ function onCanvasClick(e){
     onInteriorClick(e.clientX-r.left,e.clientY-r.top);
     return;
   }
+  // Tutorial step 1 ("click anywhere to walk") completes when the player actually walks
+  if(tutStep===0&&!state.flags.tutorial_done&&document.getElementById("tutorial-overlay").classList.contains("active"))tutAdvance();
   var ms=state.mapScale||1;
   var r=canvas.getBoundingClientRect(),mx=(e.clientX-r.left)/cw/ms,my=(e.clientY-r.top)/ch/ms;
 
@@ -1708,6 +1727,7 @@ function renderBuildMenu(){
 }
 
 function updateSidebar(){
+  if(state.todaysAction===null&&typeof renderDailyActions==="function")renderDailyActions();
   document.getElementById("s-budget").textContent="$"+Math.max(0,state.budget).toLocaleString();
   document.getElementById("s-att").textContent=state.attendance+"/day";
   document.getElementById("s-gang").textContent=state.gangThreat+"%";
@@ -1896,6 +1916,7 @@ function renderDailyActions(){
     var fxParts=[];
     for(var fk in fxFmt){
       var fv=da.effect[fk];
+      if(fv&&!isChosen)fv=diminishGain(fk,state[fk],fv);
       if(fv){
         var isGood=(fxGood[fk]===1&&fv>0)||(fxGood[fk]===-1&&fv<0);
         fxParts.push('<span style="color:'+(isGood?"#7A9A5A":"#9A5A4A")+';">'+fxFmt[fk](fv)+'</span>');
@@ -1908,7 +1929,8 @@ function renderDailyActions(){
     if(fxParts.length)h+='<div style="display:flex;flex-wrap:wrap;gap:4px;font-size:9px;">'+fxParts.join("")+'</div>';
     h+='</button>';
   }
-  container.innerHTML=h;
+  if(container._lastHtml===h)return; // unchanged: don't rebuild buttons under the cursor
+  container._lastHtml=h;container.innerHTML=h;
 }
 
 function chooseDailyAction(id){
@@ -1919,9 +1941,9 @@ function chooseDailyAction(id){
   state.todaysAction=id;
   var e=da.effect;
   if(e.budget)state.budget+=e.budget;
-  if(e.attendance)state.attendance=clamp(state.attendance+e.attendance,0,100);
+  if(e.attendance)state.attendance=clamp(state.attendance+diminishGain("attendance",state.attendance,e.attendance),0,100);
   if(e.gangThreat)state.gangThreat=clamp(state.gangThreat+e.gangThreat,0,100);
-  if(e.morale)state.morale=clamp(state.morale+e.morale,0,100);
+  if(e.morale)state.morale=clamp(state.morale+diminishGain("morale",state.morale,e.morale),0,100);
   if(e.productivity)state.productivity=clamp((state.productivity||50)+e.productivity,0,100);
   if(e.approval)state.approval=clamp((state.approval||50)+e.approval,0,100);
   state.log.push({day:state.day,title:"Today's Order: "+da.title});
@@ -3063,6 +3085,8 @@ function updateInteractPrompt(){
       if(fxE[fk]){
         var fv=fxE[fk];
         if(stressedPreview){var isGoodWhenNeg=(fxGood[fk]===-1);if(isGoodWhenNeg){if(fv<0)fv=Math.ceil(fv*0.75);}else{if(fv>0)fv=Math.floor(fv*0.75);}}
+        fv=diminishGain(fk,fk==="narratorStress"?(state.narratorStress||0):state[fk],fv);
+        if(!fv)continue;
         var isGood=(fxGood[fk]===1&&fv>0)||(fxGood[fk]===-1&&fv<0);
         fxParts.push('<span style="color:'+(isGood?(stressedPreview?'#6A8A4A':'#7A9A5A'):'#9A5A4A')+';">'+fxMap[fk].fmt(fv)+'\u00a0'+fxMap[fk].label+'</span>');
       }
@@ -3136,12 +3160,12 @@ function interactWithBuilding(){
       return v>0?Math.floor(v*0.75):v;
     }
     if(e.budget)state.budget+=stressedVal(e.budget,false);
-    if(e.attendance)state.attendance=clamp(state.attendance+stressedVal(e.attendance,false),0,100);
+    if(e.attendance)state.attendance=clamp(state.attendance+diminishGain("attendance",state.attendance,stressedVal(e.attendance,false)),0,100);
     if(e.gangThreat)state.gangThreat=clamp(state.gangThreat+stressedVal(e.gangThreat,true),0,100);
-    if(e.morale)state.morale=clamp(state.morale+stressedVal(e.morale,false),0,100);
+    if(e.morale)state.morale=clamp(state.morale+diminishGain("morale",state.morale,stressedVal(e.morale,false)),0,100);
     if(e.productivity)state.productivity=clamp((state.productivity||50)+stressedVal(e.productivity,false),0,100);
     if(e.approval)state.approval=clamp((state.approval||50)+stressedVal(e.approval,false),0,100);
-    if(e.narratorStress)state.narratorStress=clamp((state.narratorStress||0)+stressedVal(e.narratorStress,true),0,100);
+    if(e.narratorStress)state.narratorStress=clamp((state.narratorStress||0)+diminishGain("narratorStress",state.narratorStress||0,stressedVal(e.narratorStress,true)),0,100);
   }
   state.usedBuildingActions[buildingId]=true;
   state.log.push({day:state.day,title:action.label+": "+b.name+(applyEffect?"":" (no effect)")});
@@ -3188,7 +3212,8 @@ function onInteriorClick(mx_px,my_px){
   if(!interior)return;
   var nx=mx_px/cw, ny=my_px/ch;
   var clicked=null;
-  interior.objects.forEach(function(obj){if(mx_px>=obj.x*cw&&mx_px<=(obj.x+obj.w)*cw&&my_px>=obj.y*ch&&my_px<=(obj.y+obj.h)*ch)clicked=obj;});
+  // Overlapping hotspots: the smallest (most specific) box under the cursor wins
+  interior.objects.forEach(function(obj){if(mx_px>=obj.x*cw&&mx_px<=(obj.x+obj.w)*cw&&my_px>=obj.y*ch&&my_px<=(obj.y+obj.h)*ch){if(!clicked||obj.w*obj.h<clicked.w*clicked.h)clicked=obj;}});
   if(clicked){
     state.interiorNarratorTX=clicked.x+clicked.w/2;
     state.interiorNarratorTY=Math.min(0.92,clicked.y+clicked.h+0.02);
@@ -3959,8 +3984,10 @@ function renderZoneMenu(){
   document.getElementById("zone-items").innerHTML=h;
 }
 
+var _loopRunning=false;
+function startLoop(){if(_loopRunning)return;_loopRunning=true;requestAnimationFrame(gameLoop);}
 function gameLoop(ts){
-  var delta=lastFrameTime?ts-lastFrameTime:0;
+  var delta=lastFrameTime?Math.min(250,Math.max(0,ts-lastFrameTime)):0;
   lastFrameTime=ts;
   // Real-time clock: 45 real seconds = 1440 game minutes at 1x speed
   if(!state.gamePaused&&!state.eventActive&&!state.gameOver){
@@ -3990,7 +4017,7 @@ function gameLoop(ts){
     var fpPrune=Date.now();
     footprints=footprints.filter(function(fp){return fpPrune-fp.born<5000;});
   }
-  render();updateInteractPrompt();requestAnimationFrame(gameLoop);
+  render();updateInteractPrompt();syncTutorialVisibility();requestAnimationFrame(gameLoop);
 }
 
 // ── Tutorial ──────────────────────────────────────────────────
@@ -4039,6 +4066,13 @@ function showTutorialStep(n){
     '<button class="tut-next" onclick="tutAdvance()">'+(isLast?'Got it':'Next \u2192')+'</button>'+
     '</div>';
   document.getElementById("tutorial-overlay").classList.add("active");
+}
+
+function syncTutorialVisibility(){
+  var o=document.getElementById("tutorial-overlay");
+  if(!o||!o.classList.contains("active"))return;
+  var hide=state.eventActive||!!state.activeInterior||state.gameOver||!document.getElementById("game-screen").classList.contains("active");
+  o.style.visibility=hide?"hidden":"";
 }
 
 function tutAdvance(){
@@ -4369,6 +4403,7 @@ function dbgSkipToPhase2(){
 
 // Check for existing save on page load
 checkSaveOnTitleScreen();
+try{if(window.sessionStorage.getItem("cw_start_new")){window.sessionStorage.removeItem("cw_start_new");newGame();}}catch(e){}
 </script>
 </body>
 </html>

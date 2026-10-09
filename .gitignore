@@ -1,1 +1,4 @@
 node_modules/
+
+# monkey test screenshots (tools/testing/monkey.mjs)
+monkey-out/
