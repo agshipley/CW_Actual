@@ -6,6 +6,19 @@ Built as one `index.html` with no build step, no framework, and no server. The e
 
 ---
 
+## Why the implementation is interesting
+
+This is an experiment in **constraint-driven interactive systems**, not a framework showcase. The simulation runs entirely in one browser document, with no server, build chain, or runtime library dependencies.
+
+- **Stateful simulation:** Compounding resource decay, spatial placement, character assignments, and scheduled narrative events compete for the player's limited actions.
+- **Data-driven narrative:** Events and choices are represented as structured records with condition flags and downstream consequences, rather than a separate scripted scene for every branch.
+- **Custom rendering:** Canvas drawing, hit-testing, and interior hotspots are implemented directly; there is no game engine or UI framework underneath them.
+- **Local persistence:** A deliberately small allow-listed snapshot of game state is saved to browser storage so play can resume without an account or backend.
+
+The main architectural tradeoff is intentional: a single-file monolith keeps the project trivial to run and distribute, while making further modular expansion harder. See the [execution model](#execution-model), [event system](#event-system), and [save design](#save-system) for the implementation detail.
+
+---
+
 ## Quick Start
 
 ```bash
