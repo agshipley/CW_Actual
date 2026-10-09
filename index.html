@@ -2995,7 +2995,8 @@ var BUILDING_INTERIORS = {
   }
 };
 
-var interactCooldownUntil = 0;
+var interactCooldownUntil = 0; // brief lock after any prompt action (prevents double-clicks)
+var restCooldownUntil = 0;     // Rest only: it's strong, so it has its own longer cooldown
 var lastFrameTime = 0;
 var narratorWalkAccum = 0;
 
@@ -3056,8 +3057,11 @@ function updateInteractPrompt(){
   }
   if(canRest){
     restBtn.style.display="block";
-    restBtn.disabled=onCooldown;
-    restBtn.style.opacity=onCooldown?"0.4":"1";
+    var restWait=Math.ceil((restCooldownUntil-Date.now())/1000);
+    var restDisabled=onCooldown||restWait>0;
+    restBtn.disabled=restDisabled;
+    restBtn.textContent=restWait>0?"Rest ("+restWait+"s)":"Rest";
+    restBtn.style.opacity=restDisabled?"0.4":"1";
   }else{
     restBtn.style.display="none";
   }
@@ -3120,11 +3124,11 @@ function repairBuilding(){
   updateSidebar();updateLog();
   state.gameTime+=30;if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}updateTimeDisplay();
   document.getElementById("interact-prompt").style.display="none";
-  interactCooldownUntil=Date.now()+2000;
+  interactCooldownUntil=Date.now()+500;
 }
 
 function restNarrator(){
-  if(Date.now()<interactCooldownUntil)return;
+  if(Date.now()<interactCooldownUntil||Date.now()<restCooldownUntil)return;
   var buildingId=document.getElementById("interact-prompt").dataset.buildingId;
   var b=findBuildingById(buildingId);
   state.narratorEnergy=Math.min(100,state.narratorEnergy+40);
@@ -3133,7 +3137,8 @@ function restNarrator(){
   updateSidebar();updateLog();
   state.gameTime+=60;if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}updateTimeDisplay();
   document.getElementById("interact-prompt").style.display="none";
-  interactCooldownUntil=Date.now()+10000;
+  interactCooldownUntil=Date.now()+500;
+  restCooldownUntil=Date.now()+10000;
 }
 
 function interactWithBuilding(){
@@ -3172,7 +3177,7 @@ function interactWithBuilding(){
   updateSidebar();updateLog();
   state.gameTime+=30;if(state.gameTime>=1440){state.gameTime-=1440;applyMidnight();}updateTimeDisplay();
   document.getElementById("interact-prompt").style.display="none";
-  interactCooldownUntil=Date.now()+2000;
+  interactCooldownUntil=Date.now()+500;
 }
 
 // ── Interior system ───────────────────────────────────────────

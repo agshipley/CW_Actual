@@ -69,6 +69,14 @@ try {
   const fresh = JSON.parse(await ev(`JSON.stringify({day:state.day,budget:state.budget,quinn:!!state.flags.quinn_armed,inGame:document.getElementById('game-screen').classList.contains('active')})`));
   check("Enter the Park after quitting starts a fresh run", fresh.inGame && fresh.day === 0 && fresh.budget === 50000 && !fresh.quinn, JSON.stringify(fresh));
 
+  // --- prompt actions: Rest's cooldown must not lock Repair
+  await ev(`(function(){document.getElementById('event-overlay').classList.remove('active');state.eventActive=false;state.gameOver=false;tutDismiss();var n=state.characters.find(c=>c.id==='narrator');var b=BUILDINGS.find(b=>b.id==='saloon');n.x=n.tx=b.x+b.w/2;n.y=n.ty=b.y+b.h+0.01;b.condition=60;state.repairedToday={};state.budget=50000;state.narratorEnergy=80;interactCooldownUntil=0;restCooldownUntil=0;document.getElementById('interact-prompt').dataset.buildingId='saloon';restNarrator();})()`);
+  await sleep(800);
+  const rb = JSON.parse(await ev(`(function(){var r=document.getElementById('ip-repair-btn').getBoundingClientRect();return JSON.stringify({x:r.left+r.width/2,y:r.top+r.height/2})})()`));
+  await click(rb.x, rb.y); await sleep(300);
+  check("Repair works right after Rest (Rest's cooldown is its own)", (await ev(`BUILDINGS.find(b=>b.id==='saloon').condition`)) === 85);
+  check("Rest shows its countdown", /Rest \(\d+s\)/.test(await ev(`document.getElementById('ip-rest-btn').textContent`)));
+
   check("no uncaught exceptions", game.errors.length === 0, game.errors.slice(0, 2).join(" ; "));
 } catch (e) { check("driver", false, e.stack); }
 game.close();

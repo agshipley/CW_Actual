@@ -16,7 +16,7 @@ Run them from the repository root.
 node tools/testing/regression.mjs
 ```
 
-Fifteen pass/fail checks for bugs that have been fixed, including the tutorial covering modals,
+Seventeen pass/fail checks for bugs that have been fixed, including the tutorial covering modals,
 the duplicate game loop after quit and continue, the Day 30 handoff, the background-tab
 fast-forward, and "Enter the Park" after quitting resuming the old run. Exits with status 1 if
 anything fails. Run it after any change to the event system, tallies, save/load, the title screen
